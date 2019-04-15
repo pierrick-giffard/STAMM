@@ -1,0 +1,81 @@
+&IBM
+    init_file ='/data/MEMMS/IBM/input/init_pos_files/ATL/YalimapoCayenne_summer_25km_26.125_53.875_2002_2500turt_version_gaussienne_double_verif_papier.txt'
+    type ='x/y'
+    nturtles = 50
+    tstep = 86400
+    nsteps_simu = 10
+    species = 'Leatherback'
+    mode = 'active' 
+    alpha = 3e6
+    vscale= 1.2
+    Fa=50.
+    key_alltracers = True
+/
+&GRIDPARAM
+    nsteps_max =2619
+    key_periodic = True
+    overlap = 2
+    key_jfold = False
+    pivot ='T'
+/
+&ZONALCRT
+    c_dir_zo ='/data/FSHML/Tortues/LMTL-WP4/forcings/nc/stamm/dddd/'
+    c_prefix_zo ='mercatorglorys2v4_'
+    ind0_zo =1
+    indn_zo =2619
+    maxsize_zo =4
+    c_suffix_zo ='_U.nc'
+    nc_var_zo ='u'
+    nc_lon_zo = 'longitude'
+    nc_lat_zo = 'latitude'
+    nc_att_mask_zo = 'mask'
+/
+&MERIDCRT
+    c_dir_me ='/data/FSHML/Tortues/LMTL-WP4/forcings/nc/stamm/dddd/'
+    c_prefix_me ='mercatorglorys2v4_'
+    ind0_me =1
+    indn_me =2619
+    maxsize_me =4
+    c_suffix_me ='_V.nc'
+    nc_var_me ='v'
+    nc_lon_me = 'longitude'
+    nc_lat_me = 'latitude'
+    nc_att_mask_me = 'mask'
+/
+&TEMPERATURE
+    c_dir_te ='/data/FSHML/Tortues/LMTL-WP4/forcings/nc/stamm/dddd/'
+    c_prefix_te ='mercatorglorys2v4_'
+    ind0_te =1
+    indn_te =2619
+    maxsize_te =4
+    c_suffix_te ='_T.nc'
+    nc_var_te ='temperature'
+    nc_lon_te = 'longitude'
+    nc_lat_te = 'latitude'
+    nc_att_mask_te = 'mask'
+/
+&PRIMARY PRODUCTION
+    c_dir_pp ='/data/MEMMS/IBM/GLORYS/PP/'
+    c_prefix_pp ='PP_'
+    ind0_pp =1
+    indn_pp =2619
+    maxsize_pp =4
+    c_suffix_pp ='.nc'
+    nc_var_pp ='pp'
+    nc_lon_pp = 'longitude'
+    nc_lat_pp = 'latitude'
+    nc_att_mask_pp = 'mask'
+/
+&MESH
+    dir_mesh ='/data/MEMMS/IBM/input/mesh_grid/'
+    fn_mesh ='mesh_reg.nc'
+    nc_var_xx_tt ='glamt'
+    nc_var_xx_uu ='glamu'
+    nc_var_yy_tt ='gphit'
+    nc_var_yy_vv ='gphiv'
+    nc_var_e2u ='e2u'
+    nc_var_e1v ='e1v'
+    nc_var_e1t ='e1t'
+    nc_var_e2t ='e2t'
+    nc_var_tmask ='mask'
+/
