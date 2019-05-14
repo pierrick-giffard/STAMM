@@ -3,7 +3,7 @@
 
 
 """@package docstring
-A useful tool to get, print and manipulate Ariane output.
+A useful tool to get, print(and manipulate Ariane output.)
 Used for leatherback turtle drift simulation during summer 2009 (A. Reveiller),
 green turtle during summer 2010 (G. Jacob) and
 leatherback and green turtles Feb-June 2011 (C. Meetoo)
@@ -75,14 +75,14 @@ class data:
         try :
             infile = nc.NetCDFFile(filename,'r')
         except :
-            print str(filename)+"\n\n\n file does not exist\n\n"
+            print(str(filename)+"\n\n\n file does not exist\n\n")
             exit()
 
         # loading data
         lon=infile.variables['traj_lon'].getValue()
-        print '   => longitude loaded',lon
+        print('   => longitude loaded',lon)
         lat=infile.variables['traj_lat'].getValue()
-        print '   => latitude loaded',lat
+        print('   => latitude loaded',lat)
         
         try : # key_alltracers = .TRUE. in namelist
             temp=infile.variables['traj_temp'].getValue()
@@ -123,7 +123,7 @@ class data:
         self.pp=var(pp,self.mask|(np.array(pp)<0),np.float32,'primary production',0,80)
         self.filename=filename
 
-        print 'Zone de depart : ' + str(self.lat0) + ', ' + str(self.lon0)
+        print('Zone de depart : ' + str(self.lat0) + ', ' + str(self.lon0))
 
 
     def mask_zone(self,zone):
@@ -183,10 +183,10 @@ class data:
                      (np.array(self.lat.table) < max(lat1, lat2))&
                      (np.array(self.lon.table) > min(lon1, lon2))&
                      (np.array(self.lon.table) < max(lon1, lon2)))
-        #print 'aux', aux
+        #print('aux', aux)
         age_mean=np.mean(aux[0])
         traj=np.unique(aux[1])
-        #print 'traj', traj
+        #print('traj', traj)
 
         if inverse==False:
             return np.array(traj) #,age_mean peut etre renvoye
@@ -209,7 +209,7 @@ class data:
         last: if True, checks if particle in zone at time
         """
 
-        print '  Zone ',zone
+        print('  Zone ',zone)
         if traj=='all':
             traj=range(self.ntraj)
         
@@ -283,8 +283,7 @@ class data:
         mat_distance=(self.lat.table-lat)**2+(self.lon.table-lon)**2
         min_distance=np.amin(mat_distance,axis=0)
         ind_traj=np.argmin(min_distance)
-        print 'la trajectoire d\'indice '+str(ind_traj)+\
-              ' est la plus proche des coordonnees : \nlat : '+str(lat)+'\nlon : '+str(lon)
+        print('la trajectoire d\'indice '+str(ind_traj)+' est la plus proche des coordonnees : \nlat : '+str(lat)+'\nlon : '+str(lon))
         return ind_traj
 
 
@@ -298,18 +297,18 @@ class data:
         lat and lon must have the same shape
         """
         if not(lat.shape.__len__()==1 and lon.shape.__len__()==1):
-            print "trajectory is not 1D"
+            print("trajectory is not 1D")
             exit()
         N=lat.shape[0]
         distance=np.zeros((N,self.ntraj),dtype=np.float32)
         p=-1
         for i in range(N):
             distance[i,:]=np.amin((self.lat.table[:,:]-lat[i])**2+(self.lon.table[:,:]-lon[i])**2,axis=0)
-            if i*100/N!=p : print str(i*100/N)+' %'
+            if i*100/N!=p : print(str(i*100/N)+' %')
             p=i*100/N
         distance_cum=np.sum(distance,axis=0)
         ind_traj=np.argmin(distance_cum)
-        print "la trajectoire la plus proche est la trajectoire numero "+str(ind_traj)
+        print("la trajectoire la plus proche est la trajectoire numero "+str(ind_traj))
         return ind_traj
 
 
@@ -398,7 +397,7 @@ class data:
         for age in range(self.nb_year):
             table[6,age]=np.sum(table[0:6,age],0)
         table[6,self.nb_year]=np.sum(table[0:6,self.nb_year],0)
-        print table
+        print(table)
         self.hist_zones(table)
         return table
 
@@ -485,7 +484,7 @@ class data:
         """
 
         if cold==0:
-            print 'No cold death'
+            print('No cold death')
             if traj is None:
                 if trajmin is None:
                     trajmin = 0
@@ -501,8 +500,8 @@ class data:
             cold_death = [] ## cold_death est définie comme une liste vide.
 
         elif cold==1:
-            print 'Cold death, fixed temperature =', Tmin_adult
-            print '   * Import du vecteur cold_death'
+            print('Cold death, fixed temperature =', Tmin_adult)
+            print('   * Import du vecteur cold_death')
             if traj is None:
                 traj = np.arange(0,self.ntraj)
                 cold_death = self.noevol_temperature(plot=False, Tmin=Tmin_adult,tolerance=tolerance)
@@ -515,11 +514,11 @@ class data:
             trajex = np.array(traj)
             traj = trajex[ind]
             age = np.arange(0,agemax*365)
-            print 'cold_death', cold_death
+            print('cold_death', cold_death)
 
         elif cold==2:
-            print 'Cold death, evolving temperature, Tmin_adult =', Tmin_adult ## Temperature minimum supportée par les adultes.
-            print '   * Import du vecteur cold_death'
+            print('Cold death, evolving temperature, Tmin_adult =', Tmin_adult ## Temperature minimum supportée par les adultes.)
+            print('   * Import du vecteur cold_death')
             if traj is None:
                 traj = np.arange(self.ntraj)## Indices des particules
                 cold_death = self.evol_temperature(plot=False, Tmin_adult=Tmin_adult,Tmin_hatch=Tmin_hatch, tolerance=tolerance)
@@ -530,7 +529,7 @@ class data:
                 ind = ind[0]
                 traj = traj[ind]
                 age = np.arange(0,agemax*365)
-            print 'cold_death', cold_death
+            print('cold_death', cold_death)
 
         return traj, age, cold_death
 
@@ -559,13 +558,13 @@ class data:
         # Selection des trajectoires
         traj, age, cold_death = self.cold_selection(traj=traj,age=age,agemin=agemin,agemax=agemax,cold=cold,Tmin_adult=Tmin_adult,Tmin_hatch=Tmin_hatch, tolerance=tolerance,traj_mortes=traj_mortes)
 
-        print 'traj', traj # survivantes, ok 
+        print('traj', traj # survivantes, ok )
 
         nb_traj = np.size(traj)
         nb_output = np.size(age)
 
         # Calculate sum of pp for each particule p
-        print 'COMPT PP'
+        print('COMPT PP')
 
         compt_pp = np.zeros(nb_traj)
         sum_pp = 0                
@@ -590,8 +589,8 @@ class data:
                     compt_ppmonth.append(compt_pp_norm[ind])
                     sum_ppmonth = sum_ppmonth + compt_pp_norm[ind]
 
-            print 'compt_pp_normalized month', len(compt_ppmonth)#, compt_ppmonth
-            print 'sum_pp_month (ratio)', sum_ppmonth                        
+            print('compt_pp_normalized month', len(compt_ppmonth)#, compt_ppmonth)
+            print('sum_pp_month (ratio)', sum_ppmonth                        )
             return sum_ppmonth
 
         # If plot histogram
@@ -606,7 +605,7 @@ class data:
                 born_sup = min(compt_pp) + (i+1)*pp_pas
                 axis[i+1] = int(born_sup)
             axis[-1] = int(max(compt_pp))+1
-            print 'axis', axis
+            print('axis', axis)
 
             # table
             table = np.zeros(precision)
@@ -620,7 +619,7 @@ class data:
             
             table = [int(table[i]) for i in range(len(table))]
             table = np.array(table)
-            print 'table histo', table
+            print('table histo', table)
 
             # histogram
             n, bins, patches = plt.hist(compt_pp, precision, facecolor='#FFCC00')
@@ -657,34 +656,34 @@ class data:
         # Selection des trajectoires
         traj, age, cold_death = self.cold_selection(traj=traj,age=age,agemin=agemin,agemax=agemax,cold=cold,Tmin_adult=Tmin_adult,Tmin_hatch=Tmin_hatch, tolerance=tolerance, traj_mortes=traj_mortes)
 
-        print 'traj', traj # survivantes, ok 
+        print('traj', traj # survivantes, ok )
 
         nb_traj = np.size(traj)
         nb_output = np.size(age)
 
         # Calculate sum of temp for each particule p
-        print 'COMPT TEMP'
+        print('COMPT TEMP')
         compt_temp = np.zeros(nb_traj)
         sum_temp = 0                
         for p in range(nb_traj):
-            #print ' p ', p
+            #print(' p ', p)
             for t in range(nb_output):
-                #print '    t ', t
+                #print('    t ', t)
                 compt_temp[p] = compt_temp[p] + self.temp.table[t,traj[p]]
             sum_temp = sum_temp + compt_temp[p]
 
-        print 'compt_temp', len(compt_temp)#, compt_temp
+        print('compt_temp', len(compt_temp)#, compt_temp)
         #compt_temp_norm = compt_temp/max(compt_temp)
         compt_temp_norm = compt_temp/365
-        print 'compt_temp_normalized', len(compt_temp_norm), compt_temp_norm
+        print('compt_temp_normalized', len(compt_temp_norm), compt_temp_norm)
 
         if month != 'all':
 
-            print 'Month ', month
+            print('Month ', month)
 
             compt_tempmonth = []
             trajmonth = self.traj_month(month)
-            print 'trajmonth', len(trajmonth)#, trajmonth
+            print('trajmonth', len(trajmonth))#, trajmonth)
             traj = list(traj)
             sum_tempmonth = 0 
 
@@ -694,8 +693,8 @@ class data:
                     compt_tempmonth.atempend(compt_temp_norm[ind])
                     sum_tempmonth = sum_tempmonth + compt_temp_norm[ind]
 
-            print 'compt_temp_normalized month', compt_tempmonth
-            print 'sum_temp_month (ratio)', sum_tempmonth         
+            print('compt_temp_normalized month', compt_tempmonth)
+            print('sum_temp_month (ratio)', sum_tempmonth         )
                        
             return sum_tempmonth
 
@@ -710,7 +709,7 @@ class data:
                 born_sup = min(compt_temp_norm) + (i+1)*temp_pas
                 axis[i+1] = int(born_sup)
             axis[-1] = int(max(compt_temp_norm))+1
-            print 'axis', axis
+            print('axis', axis)
 
             # table
             table = np.zeros(precision)
@@ -724,7 +723,7 @@ class data:
             
             table = [int(table[i]) for i in range(len(table))]
             table = np.array(table)
-            print 'table histo', table
+            print('table histo', table)
 
             # histogram
             n, bins, patches = plt.hist(compt_temp_norm, precision, facecolor='#FFCC00')
@@ -755,11 +754,11 @@ class data:
         
         if traj==None:
             traj = np.arange(0, self.ntraj) # vecteur [0, 1 ... , 4999]
-        #print traj
+        #print(traj)
 
         #Temperature loading
         t = self.temp.table[:,traj]
-        #print t
+        #print(t)
          
         #Variables : converting age into SCL
         Linf = 1.43
@@ -776,7 +775,7 @@ class data:
 
         #Critical temperatures for different ages
         #temp[10] => age = 9 days
-        print '  - Calcul des temperatures tolerees'
+        print('  - Calcul des temperatures tolerees')
         ages = []
 
         for time in range(len(temp)): #nb de lignes => nb de jours
@@ -786,22 +785,22 @@ class data:
             temp[time] = a*SCL + b
 
         if cut==False :
-            print '  - Plot, cut=False'
+            print('  - Plot, cut=False')
             if mean==False:
-                print '   - Mean = False => courbes temperature'
+                print('   - Mean = False => courbes temperature')
                 for n in range(len(traj)): 
                     ### Courbes des temperatures en fonction de l'age 
-                    print n, t[-1,n]      
+                    print(n, t[-1,n]      )
                     p = plt.plot(ages, t[:,n], '-', lw=0.5)
                     
                 if (showcurve==True):
-                    print '   - Plot curve = True'
-                    print '?    ', len(ages)
-                    print '?    ', len(temp)
+                    print('   - Plot curve = True')
+                    print('?    ', len(ages))
+                    print('?    ', len(temp))
                     p4 = plt.plot(ages, temp, '--',lw=8, c='k')
                     #legend((p,p4),('Temperature for each traj', 'Death curve'), loc='best') 
             else:
-                print '   - Mean = True => mean temperature ; - 2STD ; +2STD'
+                print('   - Mean = True => mean temperature ; - 2STD ; +2STD')
                 p3stdtemp = np.zeros(len(ages))
                 m3stdtemp = np.zeros(len(ages))
                 meantemp = np.zeros(len(ages))
@@ -814,9 +813,9 @@ class data:
                 p3 = plt.plot(ages,m3stdtemp,':', lw =1, c='k')
                 plt.fill_between(ages,m3stdtemp,p3stdtemp,color='#CCCCCC',alpha=0.6)
                 if (showcurve==True):
-                    print '   - Plot curve = True'
-                    print '?    ', len(ages)
-                    print '?    ', len(temp)
+                    print('   - Plot curve = True')
+                    print('?    ', len(ages))
+                    print('?    ', len(temp))
                     p4 = plt.plot(ages, temp, '--',lw=4, c='r')
                 #legend((p1,p2,p3,p4), ('Mean', 'Mean + 2 Std', 'Mean - 2 Std', 'Death curve')) 
                 #legend((p1,p4), ('Mean SST', 'Minimum tolerated temperature')) 
@@ -829,11 +828,11 @@ class data:
             grid(True)
 
         else:
-            print '  - Plot, cut=True'
+            print('  - Plot, cut=True')
             dead =[]
             for n in range(len(traj)):   
                 ### Courbes des temperatures en fonction de l'age
-                #print 'Particle ', n
+                #print('Particle ', n)
                 tempn = t[:,n]
 
                 ind = np.where(np.array(tempn) < np.array(temp))
@@ -851,9 +850,9 @@ class data:
                 else:
                     first = len(tempn)
 
-                #print 'ind',len(ind[0]), ind
-                #print 'temp',len(t[ind,n])
-                #print 'tempn', len(temp[ind])               
+                #print('ind',len(ind[0]), ind)
+                #print('temp',len(t[ind,n]))
+                #print('tempn', len(temp[ind])               )
 
                 tempn = tempn[0:first]
                 ages_first = ages[0:first]
@@ -861,17 +860,17 @@ class data:
                 plt.plot(ages_first, tempn, '-', lw=0.5)
             
             if (showcurve==True):
-                print '   - Plot curve = True'
-                print '?    ', len(ages)
-                print '?    ', len(temp)
+                print('   - Plot curve = True')
+                print('?    ', len(ages))
+                print('?    ', len(temp))
                 plt.plot(ages, temp, '--',lw=8, c='k')
                 
             xlabel('Age (years)')
             ylabel('Temperature ( C)')
             title(titre)
             grid(True)
-            print len(dead), ' dead particles'
-            #print dead
+            print(len(dead), ' dead particles')
+            #print(dead)
             left = len(traj) - len(dead)
             return left
 
@@ -1022,7 +1021,7 @@ class data:
         if month!='all':
             month = self.traj_month(month)
 
-            print 'No of particles', len(month)
+            print('No of particles', len(month))
 
         # testing if particles in month went through zone
         if zone == 0:
@@ -1045,19 +1044,19 @@ class data:
             traj22 = self.list_traj_through_zone(zone=22,traj=month,time=time)
             traj26 = self.list_traj_through_zone(zone=26,traj=month,time=time)
             """
-            print 'traj11',traj11
-            print 'traj25',traj25
-            print 'traj07',traj07
-            print 'traj04',traj04
-            print 'traj10',traj10
-            print 'traj15',traj15
-            print 'traj23',traj23
-            print 'traj27',traj27
-            print 'traj18',traj18
-            print 'traj01',traj01
-            print 'traj29',traj29
-            print 'traj22',traj22
-            print 'traj26',traj26    
+            print('traj11',traj11)
+            print('traj25',traj25)
+            print('traj07',traj07)
+            print('traj04',traj04)
+            print('traj10',traj10)
+            print('traj15',traj15)
+            print('traj23',traj23)
+            print('traj27',traj27)
+            print('traj18',traj18)
+            print('traj01',traj01)
+            print('traj29',traj29)
+            print('traj22',traj22)
+            print('traj26',traj26    )
             """
 
             # Particles that have never been in any zones
@@ -1081,7 +1080,7 @@ class data:
             alltrajzones=np.hstack((alltrajzones,traj22))
             alltrajzones=np.hstack((alltrajzones,traj26))
 
-            print 'alltrajzones ok'
+            print('alltrajzones ok')
             alltrajzones=list(np.unique(alltrajzones))
 
             if month=='all':
@@ -1094,50 +1093,50 @@ class data:
                 nullzone.remove(alltrajzones[i])
             
             nullzone = np.array(nullzone)
-            print 'nullzone', len(nullzone)
-            print 'alltrajzones', len(alltrajzones)
+            print('nullzone', len(nullzone))
+            print('alltrajzones', len(alltrajzones))
 
             if hist==False:
                 if percent==False:
-                    print 'Mau', len(traj11)
-                    print 'Reu', len(traj16)
-                    print 'Rod', len(traj14)
-                    print 'Tro', len(traj25)
-                    print 'Sey', len(traj07)
-                    print 'Ald', len(traj04)
-                    print 'May', len(traj02)
-                    print 'Com', len(traj08)
-                    print 'Glo', len(traj10)
-                    print 'Eur', len(traj15)
-                    print 'Jdn', len(traj23)
-                    print 'ME', len(traj27)
-                    print 'MSW', len(traj18)
-                    print 'MNW', len(traj01)
-                    print 'SA', len(traj29)
-                    print 'Moz', len(traj22)
-                    print 'Ken', len(traj26)
-                    print 'Som', len(traj14)
-                    print 'Null', len(nullzone)
+                    print('Mau', len(traj11))
+                    print('Reu', len(traj16))
+                    print('Rod', len(traj14))
+                    print('Tro', len(traj25))
+                    print('Sey', len(traj07))
+                    print('Ald', len(traj04))
+                    print('May', len(traj02))
+                    print('Com', len(traj08))
+                    print('Glo', len(traj10))
+                    print('Eur', len(traj15))
+                    print('Jdn', len(traj23))
+                    print('ME', len(traj27))
+                    print('MSW', len(traj18))
+                    print('MNW', len(traj01))
+                    print('SA', len(traj29))
+                    print('Moz', len(traj22))
+                    print('Ken', len(traj26))
+                    print('Som', len(traj14))
+                    print('Null', len(nullzone))
                 else:
-                    print 'Mau', 100*len(traj11)/percent
-                    print 'Reu', 100*len(traj16)/percent
-                    print 'Rod', 100*len(traj14)/percent
-                    print 'Tro', 100*len(traj25)/percent
-                    print 'Sey', 100*len(traj07)/percent
-                    print 'Ald', 100*len(traj04)/percent
-                    print 'May', 100*len(traj02)/percent
-                    print 'Com', 100*len(traj08)/percent
-                    print 'Glo', 100*len(traj10)/percent
-                    print 'Eur', 100*len(traj15)/percent
-                    print 'Jdn', 100*len(traj23)/percent
-                    print 'ME', 100*len(traj27)/percent
-                    print 'MSW', 100*len(traj18)/percent
-                    print 'MNW', 100*len(traj01)/percent
-                    print 'SA', 100*len(traj29)/percent
-                    print 'Moz', 100*len(traj22)/percent
-                    print 'Ken', 100*len(traj26)/percent
-                    print 'Som', 100*len(traj14)/percent
-                    print 'Null', 100*len(nullzone)/percent
+                    print('Mau', 100*len(traj11)/percent)
+                    print('Reu', 100*len(traj16)/percent)
+                    print('Rod', 100*len(traj14)/percent)
+                    print('Tro', 100*len(traj25)/percent)
+                    print('Sey', 100*len(traj07)/percent)
+                    print('Ald', 100*len(traj04)/percent)
+                    print('May', 100*len(traj02)/percent)
+                    print('Com', 100*len(traj08)/percent)
+                    print('Glo', 100*len(traj10)/percent)
+                    print('Eur', 100*len(traj15)/percent)
+                    print('Jdn', 100*len(traj23)/percent)
+                    print('ME', 100*len(traj27)/percent)
+                    print('MSW', 100*len(traj18)/percent)
+                    print('MNW', 100*len(traj01)/percent)
+                    print('SA', 100*len(traj29)/percent)
+                    print('Moz', 100*len(traj22)/percent)
+                    print('Ken', 100*len(traj26)/percent)
+                    print('Som', 100*len(traj14)/percent)
+                    print('Null', 100*len(nullzone)/percent)
 
             else:
                 # STARTING PLOT #
@@ -1153,7 +1152,7 @@ class data:
                 ind=1
 
                 if (percent==False):
-                    print 'percent=False'
+                    print('percent=False')
                     p1=plt.bar(ind+0*width,len(traj11),width,color=colormany[0])
                     p15=plt.bar(ind+1*width,len(traj16),width,color=colormany[14])
                     p16=plt.bar(ind+2*width,len(traj14),width,color=colormany[15])
@@ -1179,7 +1178,7 @@ class data:
                         plt.ylim(0,10200)
 
                 else:
-                    print 'percent=True'
+                    print('percent=True')
                     p1=plt.bar(ind+0*width,100*len(traj11)/percent,width,color=colormany[0])
                     p15=plt.bar(ind+1*width,100*len(traj16)/percent,width,color=colormany[14])
                     p16=plt.bar(ind+2*width,100*len(traj14)/percent,width,color=colormany[15])
@@ -1232,19 +1231,19 @@ class data:
             
             # Compteur jours
             compt_days = np.zeros(len(trajzone))
-            print 'len(trajzone)', len(trajzone)
-            print 'trajzone', trajzone
+            print('len(trajzone)', len(trajzone))
+            print('trajzone', trajzone)
             table = np.array(self.geotracer.table)
-            print 'table.shape', table.shape
+            print('table.shape', table.shape)
             #set_printoptions(threshold=nan) # non truncated array
-            print 'table', table
+            print('table', table)
 
             for t in trajzone:
-                print t
+                print(t)
                 tab = np.array(table[:][t])
-                print tab
+                print(tab)
                 ind = np.where(tab==zone)
-                print ind
+                print(ind)
                 compt_days[t] = len(ind[0]) 
                 
 
@@ -1257,7 +1256,7 @@ class data:
                 born_sup = min(compt_days) + (i+1)*pas
                 axis[i+1] = int(born_sup)
             axis[-1] = int(max(compt_days))+1
-            print 'axis', axis
+            print('axis', axis)
 
             # table
             table = np.zeros(precision)
@@ -1271,7 +1270,7 @@ class data:
             
             table = [int(table[i]) for i in range(len(table))]
             table = np.array(table)
-            print 'table histo', table
+            print('table histo', table)
 
             # histogram
             n, bins, patches = plt.hist(compt_days, precision, facecolor='#FFCC00')
@@ -1308,7 +1307,7 @@ class data:
         if month!='all':
             month = self.traj_month(month)
 
-            print 'No of particles', len(month)
+            print('No of particles', len(month))
 
         # testing if particles in month went through zone
         traj19 = self.list_traj_through_zone(zone=19,traj=month,time=time)
@@ -1322,24 +1321,24 @@ class data:
 
         if hist==False:
             if percent==False:
-                print 'Oth', len(traj19)
-                print 'IOE', len(traj24)
-                print 'IOS', len(traj30)
-                print 'ION', len(traj17)
-                print 'MoS', len(traj28)
-                print 'MoN', len(traj03)
-                print 'Mas', len(traj21)
-                print 'Sey', len(traj13)
+                print('Oth', len(traj19))
+                print('IOE', len(traj24))
+                print('IOS', len(traj30))
+                print('ION', len(traj17))
+                print('MoS', len(traj28))
+                print('MoN', len(traj03))
+                print('Mas', len(traj21))
+                print('Sey', len(traj13))
  
             else:
-                print 'Oth', 100*len(traj19)/percent
-                print 'IOE', 100*len(traj24)/percent
-                print 'IOS', 100*len(traj30)/percent
-                print 'ION', 100*len(traj17)/percent
-                print 'MoS', 100*len(traj28)/percent
-                print 'MoN', 100*len(traj03)/percent
-                print 'Mas', 100*len(traj21)/percent
-                print 'Sey', 100*len(traj13)/percent
+                print('Oth', 100*len(traj19)/percent)
+                print('IOE', 100*len(traj24)/percent)
+                print('IOS', 100*len(traj30)/percent)
+                print('ION', 100*len(traj17)/percent)
+                print('MoS', 100*len(traj28)/percent)
+                print('MoN', 100*len(traj03)/percent)
+                print('Mas', 100*len(traj21)/percent)
+                print('Sey', 100*len(traj13)/percent)
 
 
         else:
@@ -1356,7 +1355,7 @@ class data:
             ind=1
 
             if (percent==False):
-                print 'percent=False'
+                print('percent=False')
                 p24=plt.bar(ind+0*width,len(traj24),width,color=colormany[0])
                 p30=plt.bar(ind+1*width,len(traj30),width,color=colormany[14])
                 p17=plt.bar(ind+2*width,len(traj17),width,color=colormany[15])
@@ -1372,7 +1371,7 @@ class data:
                     plt.ylim(0,10200)
 
             else:
-                print 'percent=True'
+                print('percent=True')
                 p24=plt.bar(ind+0*width,100*len(traj24)/percent,width,color=colormany[0])
                 p30=plt.bar(ind+1*width,100*len(traj30)/percent,width,color=colormany[14])
                 p17=plt.bar(ind+2*width,100*len(traj17)/percent,width,color=colormany[15])
@@ -1434,21 +1433,21 @@ class data:
 
         if hist==False:
             if percent==False:
-                print 'Chi', len(traj1)
-                print 'NP', len(traj2)
-                print 'SP', len(traj3)
-                print 'IO', len(traj4)
-                print 'Ind', len(traj5)
-                print 'Cel', len(traj6)
+                print('Chi', len(traj1))
+                print('NP', len(traj2))
+                print('SP', len(traj3))
+                print('IO', len(traj4))
+                print('Ind', len(traj5))
+                print('Cel', len(traj6))
 
  
             else:
-                print 'Chi', 100*len(traj1)/percent
-                print 'NP', 100*len(traj2)/percent
-                print 'SP', 100*len(traj3)/percent
-                print 'IO', 100*len(traj4)/percent
-                print 'Ind', 100*len(traj5)/percent
-                print 'Cel', 100*len(traj6)/percent   
+                print('Chi', 100*len(traj1)/percent)
+                print('NP', 100*len(traj2)/percent)
+                print('SP', 100*len(traj3)/percent)
+                print('IO', 100*len(traj4)/percent)
+                print('Ind', 100*len(traj5)/percent)
+                print('Cel', 100*len(traj6)/percent   )
 
         else:
             # STARTING PLOT #
@@ -1464,7 +1463,7 @@ class data:
             ind=1
 
             if (percent==False):
-                print 'percent=False'
+                print('percent=False')
                 p1=plt.bar(ind+0*width,len(traj1),width,color=colormany[0])
                 p2=plt.bar(ind+1*width,len(traj2),width,color=colormany[14])
                 p3=plt.bar(ind+2*width,len(traj3),width,color=colormany[15])
@@ -1479,7 +1478,7 @@ class data:
                 #plt.ylim(0,450)
 
             else:
-                print 'percent=True'
+                print('percent=True')
                 p1=plt.bar(ind+0*width,100*len(traj1)/percent,width,color=colormany[0])
                 p2=plt.bar(ind+1*width,100*len(traj2)/percent,width,color=colormany[14])
                 p3=plt.bar(ind+2*width,100*len(traj3)/percent,width,color=colormany[15])
@@ -1527,16 +1526,16 @@ class data:
         cold_death = len(t[:,0])*np.ones(len(traj)) # dead particles
         counter = 0
 
-        print '  - Parcours des particules pour voir leur mortalite'
+        print('  - Parcours des particules pour voir leur mortalite')
 
         if tolerance==False:
-            print 'tolerance = False'
+            print('tolerance = False')
             for part in range(len(traj)):
                 test_temp = np.where(t[:,part] < Tmin)
                 if len(test_temp)>0:
                     cold_death[part] = test_temp[0]
         else:
-            print 'tolerance =', tolerance
+            print('tolerance =', tolerance)
             """
             for part in range(len(traj)):
                 for time_ind in range(len(t[:,part])):
@@ -1557,12 +1556,12 @@ class data:
                         if (ind[i+tolerance-1]==ind[i]+tolerance-1):
                             cold_death[part]=ind[i]
                             break
-            #print 'cold_death', cold_death
+            #print('cold_death', cold_death)
         
         #set_printoptions(threshold=nan)
 
         if plot==True: 
-            print '   - Plot' 
+            print('   - Plot' )
             ### Plots the time of death of each particle
             #plt.plot(traj, cold_death, '-', lw=1)
             #xlabel('Particle number')
@@ -1587,7 +1586,7 @@ class data:
                     plt.plot(range(len(t[:,0])), 100*compt/len(traj), '-', lw=2, color=colormany[many])
                     legend('JFMAMJJASOND',loc='best')
                     plt.ylim(0,103)
-                    print '% living: ', 100*compt[-1]/len(traj)
+                    print('% living: ', 100*compt[-1]/len(traj))
                 else:            
                     plt.plot(range(len(t[:,0])), compt, '-', lw=2, color=colormany[many])
                     legend('JFMAMJJASOND',loc='best')
@@ -1678,16 +1677,16 @@ class data:
 
         #Critical temperatures for different ages
 
-        print '  - Calcul des temperatures tolerees'
+        print('  - Calcul des temperatures tolerees')
         
         for time in range(len(temp)): #nb de lignes => nb de jours
             age = float(time) / 365.0 ## age en années.
-            #print 'age:', age
+            #print('age:', age)
             ####SCL = Linf*(1-exp(-k*(age-age0)))
-            #print 'SCL:', SCL
+            #print('SCL:', SCL)
             temp[time] = 13.0 + 11.4*exp(-k*(age-age0)) ## Vecteur avec les températures tolérées pour chaque insant.
 
-        print '  - Parcours des particules pour voir leur mortalite'
+        print('  - Parcours des particules pour voir leur mortalite')
         if tolerance==False:
             for part in range(len(traj)): ##PARTICULES
                 for time_ind in range(len(temp)): ##TIME
@@ -1713,7 +1712,7 @@ class data:
 
         #set_printoptions(threshold=nan)
         if plot==True: 
-            print '   - Plot' 
+            print('   - Plot' )
             ### Plots the time of death of each particle
             #plt.plot(traj, cold_death, '-', lw=1)
             #xlabel('Particle number')
@@ -1723,7 +1722,7 @@ class data:
 
             ### Courbes du nombre de tortues en vie en fonction de l'age
             compt = np.zeros(len(temp))
-            print len(temp)
+            print(len(temp))
             for time_ind in range(len(temp)):
                 for turt in range(len(traj)):
                     if (cold_death[turt] > time_ind):
@@ -1761,12 +1760,12 @@ class data:
         traj = []
         for zone in [1,4,5,6]:
             traj_zone = self.list_traj_in_zone_at(zone=zone,year=year,traj=traject)
-            print 'Zone ', zone, 'Turtles', len(traj)
+            print('Zone ', zone, 'Turtles', len(traj))
             traj = np.hstack((traj,traj_zone))
         traj = np.array(traj,dtype=int)
         traj = np.unique(traj)
-        print 'Zone concatenee ; Turtles', len(traj)
-        print traj
+        print('Zone concatenee ; Turtles', len(traj))
+        print(traj)
 
         #Positions and temperature loading
         x = self.x.table[:, traj]
@@ -1791,29 +1790,29 @@ class data:
 
         #Critical temperatures for different ages
         #temp[10] => age = 9 days
-        print '  - Calcul des temperatures tolerees'
+        print('  - Calcul des temperatures tolerees')
         for time in range(len(temp)): #nb de lignes => nb de jours
             age = float(time) / 365.0
-            #print 'age:', age
+            #print('age:', age)
             SCL = Linf*(1-exp(-k*(age-age0)))
-            #print 'SCL:', SCL
+            #print('SCL:', SCL)
             temp[time] = a*SCL + b
 
-        print '  - Parcours des particules pour voir leur mortalite'
+        print('  - Parcours des particules pour voir leur mortalite')
         for part in range(len(traj)):
-            #print part
+            #print(part)
             for time_ind in range(len(temp)):
                 if (temp[time_ind] > t[time_ind,part]):
-                    #print ntraj, 'temp[time_ind]', temp[time_ind], 't[time_ind,part]', t[time_ind,part]
+                    #print(ntraj, 'temp[time_ind]', temp[time_ind], 't[time_ind,part]', t[time_ind,part])
                     cold_death[part] = time_ind
                     counter = counter + 1
-                    #print counter
+                    #print(counter)
                     break
         # OK !
         
         #set_printoptions(threshold=nan)
         if plot==True: 
-            print '   - Plot' 
+            print('   - Plot' )
             ### Plots the time of death of each particle
             #plt.plot(traj, cold_death, '-', lw=1)
             #xlabel('Particle number')
@@ -1842,7 +1841,7 @@ class data:
             traj = self.list_traj_in_zone_at(zone=zone,year=year,traj=traject)
             ntraj = len(traj)
             ind = np.zeros(ntraj)
-            print 'Zone ', zone, 'Turtles', len(traj)
+            print('Zone ', zone, 'Turtles', len(traj))
 
             #Positions and temperature loading
             x = self.x.table[:, traj]
@@ -1867,29 +1866,29 @@ class data:
 
             #Critical temperatures for different ages
             #temp[10] => age = 9 days
-            print '  - Calcul des temperatures tolerees'
+            print('  - Calcul des temperatures tolerees')
             for time in range(len(temp)): #nb de lignes => nb de jours
                 age = float(time) / 365.0
-                #print 'age:', age
+                #print('age:', age)
                 SCL = Linf*(1-exp(-k*(age-age0)))
-                #print 'SCL:', SCL
+                #print('SCL:', SCL)
                 temp[time] = a*SCL + b
 
-            print '  - Parcours des particules pour voir leur mortalite'
+            print('  - Parcours des particules pour voir leur mortalite')
             for part in range(len(traj)):
-                #print part
+                #print(part)
                 for time_ind in range(len(temp)):
                     if (temp[time_ind] > t[time_ind,part]):
-                        #print ntraj, 'temp[time_ind]', temp[time_ind], 't[time_ind,part]', t[time_ind,part]
+                        #print(ntraj, 'temp[time_ind]', temp[time_ind], 't[time_ind,part]', t[time_ind,part])
                         cold_death[part] = time_ind
                         counter = counter + 1
-                        #print counter
+                        #print(counter)
                         break
             # OK !
             
             #set_printoptions(threshold=nan)
             if plot==True: 
-                print '   - Plot' 
+                print('   - Plot' )
                 ### Plots the time of death of each particle
                 #plt.plot(traj, cold_death, '-', lw=1)
                 #xlabel('Particle number')
@@ -1951,7 +1950,7 @@ class data:
             var = self.pp.table
             nb_filtre=10*year
         else:
-            print 'variable '+str(nom_var)+' non prise en charge\n,' +\
+            print('variable '+str(nom_var)+' non prise en charge\n,' +\)
             exit()
 
         # important indexes
@@ -2007,7 +2006,7 @@ class data:
         lsens = []
 
         if len(lats) != len(lons):
-            print 'Les vecteurs de longitude/latitude doivent etre de meme taille'
+            print('Les vecteurs de longitude/latitude doivent etre de meme taille')
             exit()
 
         if closed==True and not (lats[0] == lats[-1] and lons[0] == lons[-1]):
@@ -2022,7 +2021,7 @@ class data:
 
 
             if(latA == latC and lonA == lonC):
-                print 'Deux points consecutifs doivent etre distincts !'
+                print('Deux points consecutifs doivent etre distincts !')
                 exit()
 
             # Equation de la droite :
@@ -2066,9 +2065,9 @@ class data:
                 lsens = lsens+len(ind)*[(seg+1)]
 
                 if(len(ind)>0):
-                    print 'Age : ' + str(i) + ' jour(s)'
-                    print ' particule(s) (sens +1) :'
-                    print ' '+str(ind)
+                    print('Age : ' + str(i) + ' jour(s)')
+                    print(' particule(s) (sens +1) :')
+                    print(' '+str(ind))
 
                 # trajectoires dans le sens "negatif" -1
                 ind = np.ma.where((pos < 0) & (det1*det2 < 0.0) & (det3*det4 < 0.0) \
@@ -2078,16 +2077,16 @@ class data:
                 lsens = lsens+len(ind)*[-(seg+1)]
 
                 if(len(ind)>0):
-                    print 'Age : ' + str(i) + ' jour(s)'
-                    print ' particule(s) (sens -1) :'
-                    print ' '+str(ind)
+                    print('Age : ' + str(i) + ' jour(s)')
+                    print(' particule(s) (sens -1) :')
+                    print(' '+str(ind))
 
             # difference entre le nombre de trajectoires qui traversent dans un
             # sens ou dans l'autre. Cela donne une idee de la tendance qu'on les
             # trajectoires a faire "demi-tour" une fois la ligne traversee pour 
             # revenir du cote initial, ou plutot a ne pas revenir sur leur pas
             # une fois la ligne franchie
-            print 'Differentiel = '+str(np.sum(np.array(lsens)))
+            print('Differentiel = '+str(np.sum(np.array(lsens))))
 
         return np.array(ltime),np.array(lind),np.array(lsens)
 
@@ -2232,18 +2231,18 @@ class data_map(data):
         traj, age, cold_death = self.cold_selection(traj=traj,age=age,agemin=agemin,agemax=agemax,cold=cold,Tmin_adult=Tmin_adult,Tmin_hatch=Tmin_hatch, tolerance=tolerance, traj_mortes=traj_mortes)
 
         lturt = len(traj)
-        print 'Number of survivors :', lturt
+        print('Number of survivors :', lturt)
 
         traj = np.array(traj).tolist() ##tolist() convert to a standard python list.
         
         if traj == []:
-            print '\n traj==[] : Aucune trajectoire a afficher'
+            print('\n traj==[] : Aucune trajectoire a afficher')
             return lturt
 
         age = np.array(age).tolist()
         
         if age == []:
-            print '\n age==[] : Aucune trajectoire a afficher'
+            print('\n age==[] : Aucune trajectoire a afficher')
             exit()
 
 
@@ -2252,12 +2251,12 @@ class data_map(data):
         if points_death==True:
 
 
-            print 'points_death=True'
-            print 'cold_death', cold_death
-            print 'traj', traj
+            print('points_death=True')
+            print('cold_death', cold_death)
+            print('traj', traj)
 
             if cold_death == []:
-                print '\n cold_death==[] : Aucune particule morte'
+                print('\n cold_death==[] : Aucune particule morte')
                 exit()
 
             # Recup des part mortes avant agemax
@@ -2273,9 +2272,9 @@ class data_map(data):
            
             ##trajm = trajex[indm]
             
-            print 'trajm', trajm
-            print len(trajm)
-            ##print len(indm)
+            print('trajm', trajm)
+            print(len(trajm))
+            ##print(len(indm))
             
 
             nb_traj = np.size(trajm)
@@ -2283,7 +2282,7 @@ class data_map(data):
             final_point_x = np.zeros(nb_traj)
             final_point_y = np.zeros(nb_traj)
     
-            print 'FINAL POINT'                
+            print('FINAL POINT'                )
             for t in range(nb_traj):
                 indicec=int(cold_death[t]) ##indicec correspond à l'age entier de chaque particule.
                 indicouz=np.where(cold_death>=365*agemax-1)
@@ -2296,53 +2295,53 @@ class data_map(data):
             final_point_x = np.array(final_point_x)
             final_point_y = np.array(final_point_y)
 
-            print 'x', final_point_x
-            print 'y', final_point_y
+            print('x', final_point_x)
+            print('y', final_point_y)
 
-            print 'IND'
+            print('IND')
             indx = np.where(final_point_x != 0)
             indy = np.where(final_point_y != 0)
-            print 'indx', indx[0]
-            print 'indy', indy[0]
+            print('indx', indx[0])
+            print('indy', indy[0])
 
             indx = [int(i) for i in indx[0]] ## Indices des particules pour lesquelles les positions ne sont pas nulles
             indy = [int(i) for i in indy[0]]
 
-            print 'final_point_x'
+            print('final_point_x')
             final_point_x = final_point_x[indx]
             final_point_y = final_point_y[indy]
 
-            print 'plot'
+            print('plot')
             p=self.map.plot(final_point_x, final_point_y, lw=0.0, markersize=5, marker='x', c='r')
             
             return nb_traj
 
         # On map, displays best routes for pp (criteria to be chosen)
         if pp_routes==True:
-            print 'pp=True'
-            print 'cold_death', cold_death
-            print 'traj', traj # survivantes, ok 
+            print('pp=True')
+            print('cold_death', cold_death)
+            print('traj', traj # survivantes, ok )
 
             nb_traj = np.size(traj)
             nb_output = np.size(age)
 
             compt_pp = np.zeros(nb_traj)
 
-            print 'COMPT PP et SEUIL'
+            print('COMPT PP et SEUIL')
             moy = 0                
             for p in range(nb_traj):
                 for t in range(nb_output):
                     compt_pp[p] = compt_pp[p] + self.pp.table[t,traj[p]]
                 moy = moy + compt_pp[p]
-            print 'compt_pp', compt_pp
+            print('compt_pp', compt_pp)
             
-            print 'max', max(compt_pp)
+            print('max', max(compt_pp))
 
             # Criteria
             seuil = max(compt_pp) - 15000
             #seuil = moy/nb_traj
             #seuil = 11239.17 #moyenne des 4 trajectoires
-            print 'seuil', seuil
+            print('seuil', seuil)
         
              
             indinf = np.where(compt_pp <= seuil)
@@ -2354,60 +2353,60 @@ class data_map(data):
             trajinf = traj[indinf]
             trajsup = traj[indsup]
 
-            print 'trajinf', len(traj[indinf]), traj[indinf]
-            print 'trajsup', len(traj[indsup]), traj[indsup]
+            print('trajinf', len(traj[indinf]), traj[indinf])
+            print('trajsup', len(traj[indsup]), traj[indsup])
 
-            print 'self.x.table.shape', self.x.table.shape
-            print 'self.y.table.shape', self.y.table.shape
+            print('self.x.table.shape', self.x.table.shape)
+            print('self.y.table.shape', self.y.table.shape)
 
-            print 'age', age
+            print('age', age)
 
             xinf = self.x.table[:,trajinf][age,:]
             yinf = self.y.table[:,trajinf][age,:]
             xsup = self.x.table[:,trajsup][age,:]
             ysup = self.y.table[:,trajsup][age,:]
 
-            print 'xinf',xinf.shape, xinf
-            print 'yinf',yinf.shape, yinf
-            print 'xsup',xsup.shape, xsup
-            print 'ysup',ysup.shape, ysup
+            print('xinf',xinf.shape, xinf)
+            print('yinf',yinf.shape, yinf)
+            print('xsup',xsup.shape, xsup)
+            print('ysup',ysup.shape, ysup)
 
-            print 'plot'
+            print('plot')
             p1=self.map.plot(xinf, yinf, ls='-', ms='.', c='b', lw=lw, markersize=ms)
-            print 'p1 ok'
+            print('p1 ok')
             p2=self.map.plot(xsup, ysup, ls='-', ms='.', c='r', lw=0.8, markersize=ms)
-            print 'p2 ok'
+            print('p2 ok')
 
             return nb_traj
 
         # On map, displays best routes for temperature (criteria to be chosen)
         if temp_routes==True:
-            print 'temp=True'
-            print 'cold_death', cold_death
-            print 'traj', traj # survivantes, ok 
+            print('temp=True')
+            print('cold_death', cold_death)
+            print('traj', traj # survivantes, ok )
 
             nb_traj = np.size(traj)
             nb_output = np.size(age)
 
             compt_temp = np.zeros(nb_traj)
 
-            print 'COMPT temp et SEUIL'
+            print('COMPT temp et SEUIL')
             moy = 0                
             for p in range(nb_traj):
                 for t in range(nb_output):
                     compt_temp[p] = compt_temp[p] + self.temp.table[t,traj[p]]
                 moy = moy + compt_temp[p]
-            print 'compt_temp', compt_temp
+            print('compt_temp', compt_temp)
             compt_temp = compt_temp/360
-            print 'compt_temp_norm', compt_temp
+            print('compt_temp_norm', compt_temp)
             
-            print 'max', max(compt_temp)
+            print('max', max(compt_temp))
 
             # Criteria
             seuil = max(compt_temp) - 0.25
             #seuil = moy/nb_traj
             #seuil = 11239.17 #moyenne des 4 trajectoires
-            print 'seuil', seuil
+            print('seuil', seuil)
         
              
             indinf = np.where(compt_temp <= seuil)
@@ -2419,29 +2418,29 @@ class data_map(data):
             trajinf = traj[indinf]
             trajsup = traj[indsup]
 
-            print 'trajinf', len(traj[indinf]), traj[indinf]
-            print 'trajsup', len(traj[indsup]), traj[indsup]
+            print('trajinf', len(traj[indinf]), traj[indinf])
+            print('trajsup', len(traj[indsup]), traj[indsup])
 
-            print 'self.x.table.shape', self.x.table.shape
-            print 'self.y.table.shape', self.y.table.shape
+            print('self.x.table.shape', self.x.table.shape)
+            print('self.y.table.shape', self.y.table.shape)
 
-            print 'age', age
+            print('age', age)
 
             xinf = self.x.table[:,trajinf][age,:]
             yinf = self.y.table[:,trajinf][age,:]
             xsup = self.x.table[:,trajsup][age,:]
             ysup = self.y.table[:,trajsup][age,:]
 
-            print 'xinf',xinf.shape, xinf
-            print 'yinf',yinf.shape, yinf
-            print 'xsup',xsup.shape, xsup
-            print 'ysup',ysup.shape, ysup
+            print('xinf',xinf.shape, xinf)
+            print('yinf',yinf.shape, yinf)
+            print('xsup',xsup.shape, xsup)
+            print('ysup',ysup.shape, ysup)
 
-            print 'plot'
+            print('plot')
             p1=self.map.plot(xinf, yinf, ls='-', ms='.', c='b', lw=lw, markersize=ms)
-            print 'p1 ok'
+            print('p1 ok')
             p2=self.map.plot(xsup, ysup, ls='-', ms='.', c='r', lw=0.8, markersize=ms)
-            print 'p2 ok'
+            print('p2 ok')
 
             return nb_traj                           
         
@@ -2491,34 +2490,34 @@ class data_map(data):
         # Affichage
         if var is None:
             if lw == 0.0:
-                print 'x', x
-                print 'y', y
+                print('x', x)
+                print('y', y)
                 p=self.map.scatter(x, y, s=ms, c=col, edgecolor='none', alpha=alpha, vmin=vmin, vmax=vmax)
             else:
                 p=self.map.plot(x, y, ls='-', ms='.', c=col, lw=lw, markersize=ms)
         else:
            
             ##
-            print 'NB_TRAJ= ',nb_traj
-            print 'NB_JOURS= ',nb_output
+            print('NB_TRAJ= ',nb_traj)
+            print('NB_JOURS= ',nb_output)
             flag=np.zeros((2191,5000))
-	    print 'Dimensions du flag : ', np.shape(flag)
+	    print('Dimensions du flag : ', np.shape(flag))
             ##PARTIE MODIFIEE PAR ROMAIN
             ##On donne une valeur au drapeau pour chaque jours et pour toutes les particules==> 1 lorsque la particule est morte
             if traj_mortes==True:
                 for indice in range(nb_traj):  
 	            if cold_death[indice] < agemax*365+1:
-                        print 'COLD_DEATH[INDICE] NUMERO  ',indice,' = ', cold_death[indice]
+                        print('COLD_DEATH[INDICE] NUMERO  ',indice,' = ', cold_death[indice])
                         flag[int(cold_death[indice]):,indice]=1      
-                        print flag[:,indice]
-                        print 'SHAPE = ',np.shape(flag)
+                        print(flag[:,indice])
+                        print('SHAPE = ',np.shape(flag))
             indd = np.where((self.map.llcrnrlon < np.array(x)) & (np.array(x) < self.map.urcrnrlon) & (self.map.llcrnrlat < np.array(y)) & (np.array(y) < self.map.urcrnrlat) & (np.array(flag)==1))
 
-            print 'LEN(INDD[0]) = ',len(indd[0]), 'LEN(X) = ', len(x)           
-            print 'SHAPE INDD[0] = ',np.shape(indd[0])
-            print 'FORME DE X', np.shape(x)
-            print 'FORMAT DU FLAG = ',np.shape(flag)
-            print 'FORME DE INDD = ',np.shape(indd)
+            print('LEN(INDD[0]) = ',len(indd[0]), 'LEN(X) = ', len(x)           )
+            print('SHAPE INDD[0] = ',np.shape(indd[0]))
+            print('FORME DE X', np.shape(x))
+            print('FORMAT DU FLAG = ',np.shape(flag))
+            print('FORME DE INDD = ',np.shape(indd))
 
             p=self.map.scatter(x[indd], y[indd], c=col[indd], s=ms, edgecolor='none', alpha=alpha)
             
@@ -2558,7 +2557,7 @@ class data_map(data):
 
             for zone in [2, 3, 4, 1]: # bleu au dessus
                 jlist=self.list_traj_in_zone_at(zone,year)
-                print len(jlist)
+                print(len(jlist))
                 if len(jlist) == 0:
                     continue
 
@@ -2583,7 +2582,7 @@ class data_map(data):
                                      s = ms, edgecolor='none', c = color[zone-1])
 
                 print('   => zone '+str(zone)+' completed')
-                print str(len(jlist)) + ' trajectoires tracees'
+                print(str(len(jlist)) + ' trajectoires tracees')
 
         elif nb_zones==6:
             #for zone in [2, 3, 4, 5, 6, 1]: # bleu au dessus
@@ -2591,7 +2590,7 @@ class data_map(data):
 
             for zone in [4,5,6,1]:
                 jlist=self.list_traj_in_zone_at(zone,year)
-                print len(jlist)
+                print(len(jlist))
                 if len(jlist) == 0:
                     continue
 
@@ -2616,11 +2615,11 @@ class data_map(data):
                                      s = ms, edgecolor='none', c = color[0])
 
                 print('   => zone '+str(zone)+' completed')
-                print str(len(jlist)) + ' trajectoires tracees'
+                print(str(len(jlist)) + ' trajectoires tracees')
 
             for zone in [2, 3]: # bleu au dessus
                 jlist=self.list_traj_in_zone_at(zone,year)
-                print len(jlist)
+                print(len(jlist))
                 if len(jlist) == 0:
                     continue
 
@@ -2645,7 +2644,7 @@ class data_map(data):
                                      s = ms, edgecolor='none', c = color[zone-1])
 
                 print('   => zone '+str(zone)+' completed')
-                print str(len(jlist)) + ' trajectoires tracees'
+                print(str(len(jlist)) + ' trajectoires tracees')
 
 
     def zones_season(self,year=1,season=1):
@@ -2696,26 +2695,26 @@ class data_map(data):
             nind = lind[np.where(lsens==-i)]
             nind_traj=np.unique(lind[np.where(lsens==-i)])
 
-            # print statistics
+            # print(statistics)
             if debug==True or debug == 'full':
-                print ''
-                print ' segment ' + chr(65+i-1)
-                print '============================================'
-                print str(len(ind))+' traversee(s) de haut en bas ('+str(len(np.unique(ind)))+' trajectoires distinctes)'
+                print('')
+                print(' segment ' + chr(65+i-1))
+                print('============================================')
+                print(str(len(ind))+' traversee(s) de haut en bas ('+str(len(np.unique(ind)))+' trajectoires distinctes)')
                 ltime_downwards = ltime[np.where(lsens==i)] # indices des particules qui traversent de haut en bas
                 if debug == 'full':
                     for age in np.unique(ltime_downwards):
-                        print ' age : '+str(age)+' jour(s), '+str(np.size(np.where(ltime_downwards==age)))+' particule(s)'
-                print '============================================'
-                print str(len(nind))+' traversee(s) de bas en haut ('+str(len(np.unique(nind)))+' trajectoires distinctes)'
+                        print(' age : '+str(age)+' jour(s), '+str(np.size(np.where(ltime_downwards==age)))+' particule(s)')
+                print('============================================')
+                print(str(len(nind))+' traversee(s) de bas en haut ('+str(len(np.unique(nind)))+' trajectoires distinctes)')
                 ltime_upwards = ltime[np.where(lsens==-i)] # indices des particules qui traversent de bas en haut
                 if debug == 'full':
                     for age in np.unique(ltime_upwards):
-                        print ' age : '+str(age)+' jour(s), '+str(np.size(np.where(ltime_upwards==age)))+' particule(s)'
-                print '============================================'
-                print '  Soit '+str(len(ind)+len(nind))+' traversee(s) de particules non distinctes au total'
-                print '       '+str(len(np.unique(ind.tolist()+nind.tolist())))+' trajectoires distinctes'
-                print ''
+                        print(' age : '+str(age)+' jour(s), '+str(np.size(np.where(ltime_upwards==age)))+' particule(s)')
+                print('============================================')
+                print('  Soit '+str(len(ind)+len(nind))+' traversee(s) de particules non distinctes au total')
+                print('       '+str(len(np.unique(ind.tolist()+nind.tolist())))+' trajectoires distinctes')
+                print('')
 
             # display
             if len(ind_traj) > 0:
@@ -2738,12 +2737,12 @@ class data_map(data):
         regularly throughout the year)
         """
 
-        print ''
+        print('')
 
         if traj=='all':
             traj=range(self.ntraj)
 
-        print str(len(traj)) + ' trajectoires'
+        print(str(len(traj)) + ' trajectoires')
         init_t = self.init_t[...,traj]
         xpos = self.x.table[...,traj]
         ypos = self.y.table[...,traj]
@@ -2754,7 +2753,7 @@ class data_map(data):
             else:
                 ind = np.where((init_t>=(365*s+30*(month-1)))&(init_t<(365*s+30*month)))[0]
             if ind!=[]:
-                print '  season '+str(s+1)+', trajectories '+str(ind[0])+' to '+str(ind[-1])
+                print('  season '+str(s+1)+', trajectories '+str(ind[0])+' to '+str(ind[-1]))
                 self.map.plot(xpos[:,ind],ypos[:,ind],ls='-',lw=lw,c=color[s],alpha=1,zorder=0)
             self.map.plot(-1000,-1000,ls='-', c=color[s], label='year '+str(2002+s) + ' (' +str(len(ind)) + ')') # dummy (for legend)
 
@@ -2915,7 +2914,7 @@ class data_map(data):
         # Filtrage des particules echouees
         if showcrash == False:
             ind = np.ma.where(np.ma.min(tab_dist[-5:], axis=0) != np.ma.max(tab_dist[-5:], axis=0))[0]
-            #print str(len(ind_traj) - len(ind)) + ' particules echouees'
+            #print(str(len(ind_traj) - len(ind)) + ' particules echouees')
             tab_dist = tab_dist[:, ind]
             tracer = tracer[:, ind]
             ind_traj = ind_traj[ind]
@@ -2945,7 +2944,7 @@ class data_map(data):
 
         ## Affichage
         if ntraj == 0:
-            print "\n Pas de trajectoire a afficher, sortie"
+            print("\n Pas de trajectoire a afficher, sortie")
             exit()
 
 
@@ -2979,7 +2978,7 @@ class data_map(data):
             plt.xlabel('temps en jours')
             plt.ylabel('distance (km)')
 
-            print "\n"+str(ntraj) + " trajectoires tracees sur " + str(self.ntraj)
+            print("\n"+str(ntraj) + " trajectoires tracees sur " + str(self.ntraj))
 
         return fig, ind_traj
 
@@ -2995,12 +2994,12 @@ class data_map(data):
         traj = np.arange(0, self.ntraj)
         x = self.x.table[:, traj][0, :]
         y = self.y.table[:, traj][0, :]
-        print 'init_x', x
-        print 'init_y', y
+        print('init_x', x)
+        print('init_y', y)
         if plot:
             p=self.map.plot(x, y, lw=0.0, markersize=2, marker='o', c='b')
             if (lon_island is not None) and (lat_island is not None):
-                print 'island plotted'
+                print('island plotted')
                 p=self.map.plot(lon_island,lat_island, marker='p', markersize=15, color='#FFFFFF', markeredgecolor='k', markeredgewidth=4)
         return x,y
 

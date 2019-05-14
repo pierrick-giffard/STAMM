@@ -35,8 +35,8 @@ output_file = sys.argv[2]
 #input_dir = '../../input/'
 #output_dir = '../../output/'
 
-print output_file
-print input_file
+print(output_file)
+print(input_file)
 #Read input parameters in namelist file
 param = IO.read_namelist(input_file)
 
@@ -79,9 +79,9 @@ nstop = int(param['nsteps_simu']+np.max(t_init))+1
 """
 Initialisation of object of class TurtleClass, containing informations on all turtles at current time (position, ambient temperature, SCL...) 
 """
-print "SPECIES", param['species']
+print("SPECIES", param['species'])
 if param['species']=='leatherback':
-    print "ok species"
+    print("ok species")
     pop = tc.Leatherback(x_init, y_init, t_init, nsteps_simu, key_alltracers, mode)
 elif param['species']=='green':
     pop = tc.Green(x_init, y_init, t_init, nsteps_simu, key_alltracers, mode) 
@@ -146,8 +146,10 @@ date = np.zeros((nsteps_simu+1,nturtles))	#
 
 i=0			#
 
-for step in xrange(nstart-1,nstop-1):
-    print "Step ", step
+########### Compute fonction age Jones
+
+for step in range(nstart-1,nstop-1):
+    print("Step ", step)
 
     # Loop on time if not enough input files
     step = step - (2557*(int(step/2557.)))+1 
@@ -156,7 +158,7 @@ for step in xrange(nstart-1,nstop-1):
     Loop on active turtles
     """
     
-    for j in xrange(nturtles):
+    for j in range(nturtles):
         #Activate turtle if current time > initial time (day start at 12am, turtles are released at 12pm -> +0.5). Turtle out of domain stay where they are
         if (pop.t_init[j]<step+0.5) & (pop.state[j]!=2) & (pop.state[j]!=3):
             pop.state[j]=1
@@ -180,7 +182,7 @@ for step in xrange(nstart-1,nstop-1):
         origin=729390
         # 2002-01-01
         #origin=730851
-        print "Day ", jour.fromordinal(origin-1 + step)
+        print("Day ", jour.fromordinal(origin-1 + step))
         t1=time.clock()
 
         """
@@ -206,13 +208,13 @@ for step in xrange(nstart-1,nstop-1):
 
 
         TotalTransport.compute_TotalTransport(param['alpha'],param['c_prefix_pp'])
-        TotalTransport.Advection2D(tstep)
-	"""
+        TotalTransport.Advection2D(tstep)   
+        """
         Update position and caracteristics of active turtles
         """
         #Save initial temperature for first loop
         if key_alltracers == True:
-            for j in xrange(nturtles):
+            for j in range(nturtles):
                 if (pop.t_init[j]==step+0.5):
                     pop.Tenv[0,j] = Temp.values[pop.j0[j],pop.i0[j]]
 
@@ -223,16 +225,15 @@ for step in xrange(nstart-1,nstop-1):
             pop.UpDatePP(PP)
 
         t2=time.clock()
-        print 'Done in '+str(t2-t1)+' sec. \n'
-
-	"""
-	Compute date instead of turtles age
-	"""
-	if i<nsteps_simu+1:
-		print i			#
-		for a in xrange(nturtles):		#
-			date[i,a] = t_init[a]+i+0.5	#
-        i=i+1				#
+        print('Done in '+str(t2-t1)+' sec. \n') 
+    """
+    Compute date instead of turtles age
+    """
+    if i<(nsteps_simu+1):
+        print(i)
+        for a in range(nturtles):
+            date[i,a] = t_init[a]+i+0.5
+        i=i+1
 	
 
 """
@@ -245,16 +246,16 @@ Save output :
 - if in 'active' mode, habitat along trajectories at all time
 """
 
-print '*******************'
-print '==> Saving results '
-print '*******************'
+print('*******************')
+print('==> Saving results ')
+print('*******************')
 
 title=output_file
-IO.FillNetcdfFile(param,title,x_init,y_init,t_init,pop.x,pop.y,t,pop.trajlon,pop.trajlat,pop.age,date,pop.traji0,pop.trajj0,pop.u_current,pop.v_current,pop.Tenv,pop.PP,pop.habT,pop.habPP,pop.hab,pop.xgrad,pop.ygrad,pop.u_swim,pop.v_swim,pop.u_tot,pop.v_tot)
+IO.FillNetcdfFile(param,title,x_init,y_init,t_init,pop.x,pop.y,t,pop.trajlon,pop.trajlat,pop.age,date,pop.traji0,pop.trajj0,pop.u_current,pop.v_current,pop.Tenv,pop.PP,pop.habT,pop.habPP,pop.hab,pop.xgrad,pop.ygrad,pop.u_swim,pop.v_swim,pop.u_tot,pop.v_tot, pop.SCL)
 
-print '\n'
-print '****************************************************'
-print '==> Results saved in : \n'+str(title)
-print '****************************************************'
+print('\n')
+print('****************************************************')
+print('==> Results saved in : \n'+str(title))
+print('****************************************************')
 
 

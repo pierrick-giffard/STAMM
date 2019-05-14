@@ -70,7 +70,7 @@ def DontReachSide(position,grad,interp,TimeExit,index1,index2):
             new=position + interp*TimeExit*float(1+0.5*grad*TimeExit)
 	
 	if ((new<float(min(index1,index2))) or (new>float(max(index1,index2)))):
-            print "bad value position corrected"
+            print("bad value position corrected")
             new=np.round(new)
 	
 	return new
@@ -169,9 +169,9 @@ def Advect2D(x,y,i0,j0,deltaT,zontr,mertr,mesh,turtle):
 		#Sometimes, t may be negative. If time is negligible (<1s), it is only a numerical precision issue. Otherwise there is a problem and program stops.
 		if (TimeExit<=0):
 			if (abs(tfac*TimeExit)>1):
-				print 't negative'
-				print "F : ",tx,zontr(j0-1,i2-1,turtle),zontr(j0-1,i1-1,turtle), Finterp
-				print "G : ",ty,mertr(j2-1,i0-1,turtle),mertr(j1-1,i0-1,turtle)
+				print('t negative')
+				print("F : ",tx,zontr(j0-1,i2-1,turtle),zontr(j0-1,i1-1,turtle), Finterp)
+				print("G : ",ty,mertr(j2-1,i0-1,turtle),mertr(j1-1,i0-1,turtle))
 				quit()
 			else:
 				TimeExit=0.
@@ -235,7 +235,7 @@ def Advect2D(x,y,i0,j0,deltaT,zontr,mertr,mesh,turtle):
                     
 		#Temporarily for particles reaching north boundary
 		if ynew>=ydim:
-			print "Turtle reached north boundary, shifting to one cell south"
+			print("Turtle reached north boundary, shifting to one cell south")
 			ynew = ynew -1
 			j0 = j0-1
 
@@ -244,8 +244,8 @@ def Advect2D(x,y,i0,j0,deltaT,zontr,mertr,mesh,turtle):
 		Coast crashes. This should never happen!!
 		"""
 		if (mesh.mask[j0-1,i0-1]==0) & (TotalTime<deltaT):
-			print "coast crash turtle n. : ", turtle, "at x = ", xnew, ", y = ", ynew, "i1 = ", i1, "i2 = ", i2, "j1 = ", j1, "j2 = ", j2
-			print "TimeExit = ", TimeExit, Finterp, Ginterp
+			print("coast crash turtle n. : ", turtle, "at x = ", xnew, ", y = ", ynew, "i1 = ", i1, "i2 = ", i2, "j1 = ", j1, "j2 = ", j2)
+			print("TimeExit = ", TimeExit, Finterp, Ginterp)
 			quit()
 
 	
