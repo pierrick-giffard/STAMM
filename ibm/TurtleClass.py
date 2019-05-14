@@ -18,6 +18,7 @@ from scipy import misc
 from mod_fx_fy import fx_fy as sf
 
 
+
 class Turtle():
     
     def __init__(self,x_init,y_init,t_init,nsteps, key_alltracers, mode):
@@ -125,22 +126,22 @@ class Turtle():
         Call Fortran 90/95 subroutines fx & fy 
          """
         active_turtles = np.where(self.state==1)[0]
-        #print active_turtles
+        #print(active_turtles)
         if len(active_turtles)>0:
             x = self.x[active_turtles]+1
             y = self.y[active_turtles]+1
             lon, lat = np.zeros(self.nturtles,dtype='float64'), np.zeros(self.nturtles,dtype='float64')
             lon[active_turtles], lat[active_turtles] = sf.fx(x,y,grid.glamu,grid.key_periodic,grid.overlap), sf.fy(x,y,grid.gphiv,grid.key_periodic)
-            #print self.tind           
+            #print(self.tind           )
             for j in active_turtles:
                 i=self.tind[j]
                 self.traji0[i,j] = np.int32(self.i0[j])
                 self.trajj0[i,j] = np.int32(self.j0[j])
                 self.trajlon[i,j] = lon[j]
-                #print 'lon', lon[j]
+                #print('lon', lon[j])
                 self.trajlat[i,j] = lat[j]
-                #print 'lat', lat[j]
-                #print 'distance lon', ((self.trajlon[i,j]*np.pi/180.)-(self.trajlon[i-1,j]*np.pi/180.))*6371.*np.cos(((self.trajlat[i,j]+self.trajlat[i-1,j])/2.)*np.pi/180.)
+                #print('lat', lat[j])
+                #print('distance lon', ((self.trajlon[i,j]*np.pi/180.)-(self.trajlon[i-1,j]*np.pi/180.))*6371.*np.cos(((self.trajlat[i,j]+self.trajlat[i-1,j])/2.)*np.pi/180.))
 
 
 
@@ -187,7 +188,7 @@ class Leatherback(Turtle):
         """
         
         self.SCL = 1.43*(1-np.exp(-0.226*(self.age_now/365.+0.17)))
-
+            
     def compute_M(self):
         """
         Compute all turtles mass(kg)
@@ -446,7 +447,7 @@ class Green(Turtle):
         food_hab = min(PP/PPmax,1)
 
         if Total==True:
-	    return T_hab
+	        return T_hab
             #return T_hab*food_hab
         else:
             return T_hab, food_hab
@@ -496,7 +497,7 @@ class Loggerhead(Turtle):
         #Besoin annuels en valeur absolue
         self.PPmax = 0.195*(((1-np.exp(-0.0981*((self.age_now)/365.+0.36)))**(1.5))*(np.exp(-0.0981*((self.age_now/365.)+0.36))))/(1-(1-np.exp(-0.0981*((self.age_now/365.)+0.36)))**(0.195))
         self.PPmax = self.PPmax*float(Fa)
-        print self.PPmax      
+        print(self.PPmax)
 
     def compute_vmax(self,vscale):
         

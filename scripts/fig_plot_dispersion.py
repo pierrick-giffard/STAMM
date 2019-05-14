@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 import os, sys
 import numpy as np
@@ -40,13 +40,13 @@ class data:
         # loading data
         self.lon=infile.variables['traj_lon'][:,:]
         self.lon=np.float32(self.lon)
-        print '   => longitude loaded',self.lon.shape
+        print('   => longitude loaded',self.lon.shape)
         self.lat=infile.variables['traj_lat'][:,:]
         self.lat=np.float32(self.lat)
-        print '   => latitude loaded',self.lat.shape
+        print('   => latitude loaded',self.lat.shape)
         self.traj_time = infile.variables['traj_time'][:,:]
         self.traj_time = np.float32(self.traj_time)
-        print '   => traj_time loaded'
+        print('   => traj_time loaded')
 
         self.init_t=np.float32(infile.variables['init_t'][:])
 
@@ -58,7 +58,7 @@ class data:
         self.nb_year=(self.nb_output-1)/365. # for daily outputs
         self.lat0=np.mean(self.lat[0,:])
         self.lon0=np.mean(self.lon[0,:])
-        print 'Zone de depart : ' + str(self.lat0) + ', ' + str(self.lon0)
+        print('Zone de depart : ' + str(self.lat0) + ', ' + str(self.lon0))
 
         #Center longitudes
         self.lon = np.where(self.lon<=self.lon0-180,self.lon+360,self.lon)
@@ -116,6 +116,7 @@ def display_trajectories(dataFile,f,ax,lw=0.005, ms=0.04, col='b', alpha=0.5,sho
         x = np.array([l+(((1-np.sign(l))/2)*360) for l in x]) 
         # Lorsque les particules dépassent greenwich on ajoute 360 (elles passent de 359 à 361 plutot que de 359 à 1, par exemple en mediterranée)
         x[np.where(x<200)]=x[np.where(x<200)]+360
+        
 
     colmin = None
     colmax = None
@@ -144,6 +145,7 @@ def display_trajectories(dataFile,f,ax,lw=0.005, ms=0.04, col='b', alpha=0.5,sho
 
     else:
         p=ax.scatter(xbis, ybis, c=col, s=ms, edgecolor='none', vmin=colmin, vmax=colmax, alpha=alpha)
+
 
     #Shows starting point
     dataFile.lon = np.array([l+(((1-np.sign(l))/2)*360) for l in dataFile.lon])
