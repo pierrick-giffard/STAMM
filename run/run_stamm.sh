@@ -15,8 +15,8 @@
 # namelist=/homelocal/otitaud/gitlab/lmtl-wp4/config/namelists/namelist_glorys2v4_npp_R2018_vgpm_actif
 
 # Test
-outdir=/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/run/actif_vgpm/test
-namelist=/homelocal/otitaud/gitlab/lmtl-wp4/config/namelists/namelist_glorys2v4_npp_R2018_vgpm_actif
+#outdir=/Volumes/EPC/glorys1/Output
+#namelist=../../glorys1/namelists/namelist_Atl_18y_leatherback_actives_PP
 
 
 ## Passif VGPM with reference initial positions
@@ -42,12 +42,13 @@ cp -v ${namelist} ${outdir}
 
 cp -v ${init_file} ${outdir}
 
-/usr/bin/python2 ../stamm/IBM2D.py $namelist $outfile
-res=$?
+python3 ../stamm/IBM2D.py $namelist $outfile
+res=$? 
+
 
 if [[ "${res}" = "0" ]]; then
     echo "creating figure"
-    ../scripts/fig_plot_dispersion.py ${outfile}
+    python3 ../scripts/fig_plot_dispersion.py ${outfile}
 else
     echo "STAMM failed"
 fi
