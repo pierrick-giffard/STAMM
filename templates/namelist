@@ -3,9 +3,9 @@
     type ='x/y'
     nturtles = 50
     tstep = 86400
-    nsteps_simu = 10
+    nsteps_simu = 1500
     species = 'Leatherback'
-    mode = 'active' 
+    mode = 'passive' 
     alpha = 3e6
     vscale= 1.2
     Fa=50.
@@ -19,36 +19,36 @@
     pivot ='T'
 /
 &ZONALCRT
-    c_dir_zo ='/data/FSHML/Tortues/LMTL-WP4/forcings/nc/stamm/dddd/'
-    c_prefix_zo ='mercatorglorys2v4_'
+    c_dir_zo ='/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/forcings/dddd/phys/'
+    c_prefix_zo ='mercatorglorys2v4_U_'
     ind0_zo =1
     indn_zo =2619
     maxsize_zo =4
-    c_suffix_zo ='_U.nc'
+    c_suffix_zo ='.nc'
     nc_var_zo ='u'
     nc_lon_zo = 'longitude'
     nc_lat_zo = 'latitude'
     nc_att_mask_zo = 'mask'
 /
 &MERIDCRT
-    c_dir_me ='/data/FSHML/Tortues/LMTL-WP4/forcings/nc/stamm/dddd/'
-    c_prefix_me ='mercatorglorys2v4_'
+    c_dir_me ='/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/forcings/dddd/phys/'
+    c_prefix_me ='mercatorglorys2v4_V_'
     ind0_me =1
     indn_me =2619
     maxsize_me =4
-    c_suffix_me ='_V.nc'
+    c_suffix_me ='.nc'
     nc_var_me ='v'
     nc_lon_me = 'longitude'
     nc_lat_me = 'latitude'
     nc_att_mask_me = 'mask'
 /
 &TEMPERATURE
-    c_dir_te ='/data/FSHML/Tortues/LMTL-WP4/forcings/nc/stamm/dddd/'
-    c_prefix_te ='mercatorglorys2v4_'
+    c_dir_te ='/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/forcings/dddd/phys/'
+    c_prefix_te ='mercatorglorys2v4_T_'
     ind0_te =1
     indn_te =2619
     maxsize_te =4
-    c_suffix_te ='_T.nc'
+    c_suffix_te ='.nc'
     nc_var_te ='temperature'
     nc_lon_te = 'longitude'
     nc_lat_te = 'latitude'
