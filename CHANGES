@@ -1,5 +1,12 @@
 # STAMM CHANGES
 
-## STAMM-1.0.0 
+## STAMM-2.0.0
+
+* Switch to python3
+* Update namelist template
+* Add different compling scripts
+* Add CECILL-C License
+
+## STAMM-1.0.0
 
 Initial version (python2)
