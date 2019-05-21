@@ -7,8 +7,8 @@
 # You also have to edit the namelist to specify passive or active and initial positions
 
 # # Passif VGPM with initial positions computed from new forcings
-# outdir=/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/run/passif_vgpm/
-# namelist=/homelocal/otitaud/gitlab/lmtl-wp4/config/namelists/namelist_glorys2v4_npp_R2018_vgpm_passif
+#outdir=/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/run/passif_vgpm/
+#namelist=/homelocal/otitaud/gitlab/lmtl-wp4/config/namelists/namelist_glorys2v4_npp_R2018_vgpm_passif
 
 # Active VGPM with initial positions computed from new forcings (mmolC)
 # outdir=/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/run/actif_vgpm/
@@ -22,6 +22,9 @@
 ## Passif VGPM with reference initial positions
 # outdir=/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/run/passif_vgpm_refpos/
 # namelist=/homelocal/otitaud/gitlab/lmtl-wp4/config/namelists/namelist_glorys2v4_npp_R2018_vgpm_passif.refpos
+
+outdir=/data/FSHML/Tortues/Test_python3/passif/
+namelist=/data/FSHML/Tortues/Test_python3/passif/namelist_test_passif_python3
 
 
 # Execution
@@ -42,7 +45,7 @@ cp -v ${namelist} ${outdir}
 
 cp -v ${init_file} ${outdir}
 
-python3 ../stamm/IBM2D.py $namelist $outfile
+python3 ../ibm/IBM2D.py $namelist $outfile
 res=$? 
 
 
