@@ -251,7 +251,7 @@ print('==> Saving results ')
 print('*******************')
 
 title=output_file
-IO.FillNetcdfFile(param,title,x_init,y_init,t_init,pop.x,pop.y,t,pop.trajlon,pop.trajlat,pop.age,date,pop.traji0,pop.trajj0,pop.u_current,pop.v_current,pop.Tenv,pop.PP,pop.habT,pop.habPP,pop.hab,pop.xgrad,pop.ygrad,pop.u_swim,pop.v_swim,pop.u_tot,pop.v_tot, pop.SCL)
+IO.FillNetcdfFile(param,title,x_init,y_init,t_init,pop.x,pop.y,t,pop.trajlon,pop.trajlat,pop.age,date,pop.traji0,pop.trajj0,pop.u_current,pop.v_current,pop.Tenv,pop.PP,pop.habT,pop.habPP,pop.hab,pop.xgrad,pop.ygrad,pop.u_swim,pop.v_swim,pop.u_tot,pop.v_tot)
 
 print('\n')
 print('****************************************************')
