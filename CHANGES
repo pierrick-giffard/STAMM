@@ -6,6 +6,7 @@
 * Update namelist template
 * Add different compling scripts
 * Add CECILL-C License
+* Add hardcoded origin date to chose between 01.01.2002 (730851; first date of GLORYS1 forcings) and 01.01.1998 (729390; first date of GLORYS2 forcings) 
 
 ## STAMM-1.0.0
 

@@ -136,7 +136,7 @@ def display_trajectories(dataFile,f,ax,lw=0.005, ms=0.04, col='b', alpha=0.5,sho
     #Sample points if too many to avoid long computations
     nsample = int(1e6)
     if len(xbis) > nsample:
-        rand_ind = random.sample(xrange(len(xbis)),nsample)
+        rand_ind = random.sample(range(len(xbis)),nsample)
         sort_ind = rand_ind.sort()
         x = xbis[rand_ind]
         y = ybis[rand_ind]

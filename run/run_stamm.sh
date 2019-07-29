@@ -23,8 +23,8 @@
 # outdir=/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/run/passif_vgpm_refpos/
 # namelist=/homelocal/otitaud/gitlab/lmtl-wp4/config/namelists/namelist_glorys2v4_npp_R2018_vgpm_passif.refpos
 
-outdir=/data/FSHML/Tortues/Test_python3/passif/
-namelist=/data/FSHML/Tortues/Test_python3/passif/namelist_test_passif_python3
+outdir=/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/run/actif_vgpm_cor_param_2002_2008_GLO2_F090_speedIndepHabitat/
+namelist=/data/FSHML/Tortues/LMTL-WP4/mercatorglorys2v4_1998_2015/run/actif_vgpm_cor_param_2002_2008_GLO2_F090_speedIndepHabitat/namelist_glorys2v4_npp_R2018_vgpm_actif
 
 
 # Execution
@@ -56,3 +56,4 @@ else
     echo "STAMM failed"
 fi
         
+echo "Valeur de la date d'origine : 730851 (01.01.2002); Vitesse indépendante de l'habitat (vswim = vmax*0.5*cos(theta))" > $outdir/README

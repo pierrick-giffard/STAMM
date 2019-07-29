@@ -223,8 +223,8 @@ class Transport():
                     xswim = vmax*xgrad
 
                 else :
-                                	xswim = vmax*(1-h)*cos(self.theta[turtle])
-                    #xswim = vmax*cos(self.theta[turtle])
+                    #xswim = vmax*(1-h)*cos(self.theta[turtle])
+                    xswim = vmax*0.5*cos(self.theta[turtle])
 
                 #print('XSWIM',xswim)
                 

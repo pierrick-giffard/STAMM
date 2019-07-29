@@ -179,9 +179,9 @@ for step in range(nstart-1,nstop-1):
 
     if (len(active_turtles)>0):
         # 1998-01-01
-        origin=729390
+        #origin=729390
         # 2002-01-01
-        #origin=730851
+        origin=730851
         print("Day ", jour.fromordinal(origin-1 + step))
         t1=time.clock()
 
