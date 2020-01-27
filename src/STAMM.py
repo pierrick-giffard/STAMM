@@ -23,8 +23,8 @@ import sys
 
 #Personal libraries
 import IOlib as IO
-import Swimming_Velocity as sv
-# import TurtleClass as tc
+import Kernels as ke
+import TurtleClass as tc
 
 # =============================================================================
 # INITIALIZATION
@@ -80,25 +80,22 @@ lon_init, lat_init, t_init = IO.read_positions(param)
 
 
 ##################### PARTICLE SET #######################################
-class turtle(JITParticle): #Leatherback?
-    T = Variable('T', initial=fieldset.T)
-    u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
-    v_swim = Variable('v_swim', to_write=True, dtype=np.float32)
-    
+turtle = tc.define_Turtle_Class(fieldset)
 pset = ParticleSet(fieldset, pclass=turtle, lon=lon_init, lat=lat_init,time=0)
 
 
-################## ADDITIONAL KERNELS ###############################
+# =============================================================================
+# 
+# =============================================================================
 def SampleP(particle, fieldset, time): 
     particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
 
 k_sample = pset.Kernel(SampleP)
   
-def compute_swimming_velocity(particle,fieldset,time):
-    return 0.,0.
 
 def add_swimming_velocity(particle,fieldset,time):
-    particle.u_swim, particle.v_swim = compute_swimming_velocity(particle,fieldset,time)
+    particle.u_swim, particle.v_swim = 0., 0.
+    #print(particle.age)
     
     
 k_swim = pset.Kernel(add_swimming_velocity)
