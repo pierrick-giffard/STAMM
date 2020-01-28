@@ -55,6 +55,8 @@ mode = param['mode']
 alpha = param['alpha']
 #Boolean, True if all tracers are to be used
 key_alltracers = param['key_alltracers']
+#Species
+species = param['species']
 
 # =============================================================================
 # DATA tmp !!!!!!!!!!!!!
@@ -69,7 +71,9 @@ variables = {'U': 'vozocrtx','V': 'vomecrty','T': 'votemper'}
 dimensions = {'lon': 'glamf', 'lat': 'gphif', 'time': 'time_counter'}   #need f nodes 
 
 
-##################### FIELDSET #######################################
+# =============================================================================
+# FIELDSET
+# =============================================================================
 fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, allow_time_extrapolation=True, deferred_load=True)  #time_periodic=delta(days=365)
 
  
@@ -79,29 +83,24 @@ fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, allow_time_ext
 lon_init, lat_init, t_init = IO.read_positions(param)
 
 
-##################### PARTICLE SET #######################################
+# =============================================================================
+# CLASS AND PARTICLESET
+# =============================================================================
 turtle = tc.define_Turtle_Class(fieldset)
 pset = ParticleSet(fieldset, pclass=turtle, lon=lon_init, lat=lat_init,time=0)
 
 
 # =============================================================================
-# 
+# KERNELS
 # =============================================================================
-def SampleP(particle, fieldset, time): 
-    particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
+adv_scheme = 'RK4' #tmp
+adv_kernel = ke.define_advection_kernel(pset, mode, adv_scheme)
+additional_kernels = ke.define_additional_kernels(pset, mode, species)
+kernels = ke.sum_kernels(adv_kernel, additional_kernels)
+ 
 
-k_sample = pset.Kernel(SampleP)
-  
-
-def add_swimming_velocity(particle,fieldset,time):
-    particle.u_swim, particle.v_swim = 0., 0.
-    #print(particle.age)
     
     
-k_swim = pset.Kernel(add_swimming_velocity)
-
-kernels = pset.Kernel(AdvectionRK4) + k_swim + k_sample
-
 ##################### OUTPUT FILE #######################################
 t_output=24 #tmp
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(hours=t_output))
