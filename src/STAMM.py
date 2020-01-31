@@ -94,16 +94,7 @@ lon_init, lat_init, t_init = IO.read_positions(param)
 turtle = tc.define_Turtle_Class(fieldset)
 pset = ParticleSet(fieldset, pclass=turtle, lon=lon_init, lat=lat_init,time=t_init)
 
-for p in pset:  
-    p.vscale = param['vscale']
-    p.P0 = param['P0']
-    p.dx = 10000 #tmp, dx for gradient calculation
-    p.alpha = alpha
-    if mode == 'active':
-        p.mode = 1
-    elif mode == 'passive':
-        p.mode = 0
-    p.tstep = tstep
+fc.initialization(pset, param)
 
 # =============================================================================
 # KERNELS
