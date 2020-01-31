@@ -14,17 +14,20 @@ February 2020.
 # =============================================================================
 #Python libraries
 from parcels import FieldSet, ParticleSet, JITParticle, ParticleFile, plotTrajectoriesFile, Variable,ErrorCode,Field
-from parcels import AdvectionRK4
 import numpy as np
 from datetime import timedelta as delta
 from glob import glob
 import time
 import sys
+import netCDF4 as nc
+import matplotlib.pyplot as plt
 
 #Personal libraries
 import IOlib as IO
-import Kernels as ke
 import TurtleClass as tc
+import Advection_kernel as adv
+import Additional_kernels as add
+import Turtle_kernels as tk
 
 # =============================================================================
 # INITIALIZATION
@@ -65,9 +68,10 @@ data_path = '/homelocal/pgiffard/test_PARCELS/PSY_025degORCA/test_anna/'
 mesh_mask = data_path+'mesh_hgr_PSY4V3_deg.nc'
 filenames = {'U': {'lon': mesh_mask, 'lat': mesh_mask, 'data': data_path+'ORCA025deg_PSY4V3R1_1dAV_gridU_y2018m12d29.nc'},
             'V': {'lon': mesh_mask, 'lat': mesh_mask, 'data': data_path+'ORCA025deg_PSY4V3R1_1dAV_gridV_y2018m12d29.nc'},
-            'T': {'lon': mesh_mask, 'lat': mesh_mask, 'data': data_path+'ORCA025deg_PSY4V3R1_1dAV_gridT_y2018m12d29.nc'}}
-
-variables = {'U': 'vozocrtx','V': 'vomecrty','T': 'votemper'}
+            'T': {'lon': mesh_mask, 'lat': mesh_mask, 'data': data_path+'ORCA025deg_PSY4V3R1_1dAV_gridT_y2018m12d29.nc'},
+            'NPP': {'lon': mesh_mask, 'lat': mesh_mask, 'data': data_path+'mercatorpsy4v3_deg_GLO_20181225_2D.nc'}}
+#add NPP
+variables = {'U': 'vozocrtx','V': 'vomecrty','T': 'votemper','NPP': 'npp'}
 dimensions = {'lon': 'glamf', 'lat': 'gphif', 'time': 'time_counter'}   #need f nodes 
 
 
@@ -87,27 +91,45 @@ lon_init, lat_init, t_init = IO.read_positions(param)
 # CLASS AND PARTICLESET
 # =============================================================================
 turtle = tc.define_Turtle_Class(fieldset)
-pset = ParticleSet(fieldset, pclass=turtle, lon=lon_init, lat=lat_init,time=0)
+pset = ParticleSet(fieldset, pclass=turtle, lon=lon_init, lat=lat_init,time=t_init)
 
+for p in pset:  
+    p.vscale = param['vscale']
+    p.P0 = param['P0']
+    p.dx = 10000 #tmp, dx for gradient calculation
+    p.alpha = alpha
 
 # =============================================================================
 # KERNELS
 # =============================================================================
 adv_scheme = 'RK4' #tmp
-adv_kernel = ke.define_advection_kernel(pset, mode, adv_scheme)
-additional_kernels = ke.define_additional_kernels(pset, mode, species)
-kernels = ke.sum_kernels(adv_kernel, additional_kernels)
- 
-
-    
+grid_type = 'standard'#tmp
+#
+k_adv = adv.define_advection_kernel(pset, mode, adv_scheme)
+k_turtle = tk.define_turtle_kernels(pset, mode, species)
+k_add = add.define_additional_kernels(fieldset, pset, key_alltracers, param['key_periodic'], grid_type) 
+#
+kernels = add.sum_kernels(k_adv, k_turtle, k_add)
+   
     
 ##################### OUTPUT FILE #######################################
 t_output=24 #tmp
+
+
+
+
+# =============================================================================
+# COMPUTATION
+# =============================================================================
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(hours=t_output))
-
-
-################## COMPUTATION #####################################
 pset.execute(kernels, runtime=delta(seconds=nsteps_simu*tstep), dt=delta(seconds=tstep),output_file=output_file)
 
 ################## PLOT #####################################
 plotTrajectoriesFile(OutputFile)
+# test = nc.Dataset('/homelocal/pgiffard/SRC/STAMM/EXP/PARCELS/namelist.nc')
+# traj_lat = np.squeeze(test.variables['lat'])
+# print(traj_lat.shape)
+# plt.figure()
+# for k in range(nturtles):
+#     plt.plot(traj_lat)
+# plt.show()

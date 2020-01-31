@@ -5,17 +5,34 @@ Created on Mon Jan 27 18:05:20 2020
 
 @author: pgiffard
 """
-from parcels import FieldSet, ParticleSet, JITParticle, ParticleFile, plotTrajectoriesFile, Variable,ErrorCode,Field
+from parcels import JITParticle, Variable
 import numpy as np
 
 
 def define_Turtle_Class(fieldset):
     class turtle(JITParticle):
+        #Sampling
         T = Variable('T', initial=fieldset.T)
+        NPP = Variable('NPP', initial=fieldset.NPP)
+        #Constants
+        dx = Variable('dx', to_write=False, dtype=np.float32)
+        P0 = Variable('P0', to_write=False, dtype=np.float32)
+        vscale = Variable('vscale', to_write=False, dtype=np.float32)
+        deg = Variable('deg', to_write=False, dtype=np.float32, initial=111195)#1degree = 111,195 km approx
+        alpha = Variable('alpha', to_write=False, dtype=np.float32)
+        #Swimming        
+        SCL = Variable('SCL', to_write=False, dtype=np.float32)
+        M = Variable('M', to_write=False, dtype=np.float32)
+        vmax = Variable('vmax', to_write=False, dtype=np.float32)
+        age = Variable('age', to_write=True, dtype=np.float32, initial=0.)
+        PPmax = Variable('PPmax', to_write=False, dtype=np.float32)       
+        habT = Variable('habT', to_write=True, dtype=np.float32)
+        habPP = Variable('habPP', to_write=True, dtype=np.float32)
+        hab = Variable('hab', to_write=True, dtype=np.float32)
+        theta = Variable('theta', to_write=False, dtype=np.float32)
         u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
         v_swim = Variable('v_swim', to_write=True, dtype=np.float32)
-        SCL = Variable('SCL', to_write=True, dtype=np.float32)
-        M = Variable('M', to_write=True, dtype=np.float32)
-        vmax = Variable('vmax', to_write=True, dtype=np.float32)
-        age = Variable('age', to_write=True, dtype=np.float32)
+        xgradh = Variable('xgradh', to_write=True, dtype=np.float32)
+        ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
+
     return turtle

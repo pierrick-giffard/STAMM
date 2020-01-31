@@ -337,7 +337,7 @@ def read_positions(param):
             print('WARNING - time_periodic is greater than the number of files: Loop over time when last one is reached')
             param['time_periodic'] = param['nsteps_max']
             
-    time.sleep(3) #pause so that user can read warnings    
+    #time.sleep(3) #pause so that user can read warnings    
 
 
     # #Initial cell cannot be on land
