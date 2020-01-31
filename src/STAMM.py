@@ -28,6 +28,7 @@ import TurtleClass as tc
 import Advection_kernel as adv
 import Additional_kernels as add
 import Turtle_kernels as tk
+import Functions as fc
 
 # =============================================================================
 # INITIALIZATION
@@ -98,6 +99,11 @@ for p in pset:
     p.P0 = param['P0']
     p.dx = 10000 #tmp, dx for gradient calculation
     p.alpha = alpha
+    if mode == 'active':
+        p.mode = 1
+    elif mode == 'passive':
+        p.mode = 0
+    p.tstep = tstep
 
 # =============================================================================
 # KERNELS
@@ -123,6 +129,8 @@ t_output=24 #tmp
 # =============================================================================
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(hours=t_output))
 pset.execute(kernels, runtime=delta(seconds=nsteps_simu*tstep), dt=delta(seconds=tstep),output_file=output_file)
+
+
 
 ################## PLOT #####################################
 plotTrajectoriesFile(OutputFile)

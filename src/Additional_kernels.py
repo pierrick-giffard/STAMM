@@ -5,8 +5,9 @@ Created on Wed Jan 29 08:53:40 2020
 
 @author: pgiffard
 """
+import math
 
-def SampleP(particle, fieldset, time): 
+def SampleTracers(particle, fieldset, time): 
     particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
     particle.NPP = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
             
@@ -20,6 +21,33 @@ def periodicBC(particle, fieldset, time):
 
 
 
+def TotalDistance(particle, fieldset, time):
+    # Calculate the distance in latitudinal direction (using 1.11e2 kilometer per degree latitude)
+    particle.lat_dist = (particle.lat - particle.prev_lat) * particle.deg
+    # Calculate the distance in longitudinal direction, using cosine(latitude) - spherical earth
+    particle.lon_dist = (particle.lon - particle.prev_lon) * particle.deg * math.cos(particle.lat * math.pi / 180)
+    # Calculate the total Euclidean distance travelled by the particle
+    particle.distance += math.sqrt(math.pow(particle.lon_dist, 2) + math.pow(particle.lat_dist, 2))
+
+    particle.prev_lon = particle.lon  # Set the stored values for next iteration.
+    particle.prev_lat = particle.lat
+
+
+
+def CurrentVelocity(particle, fieldset, time):
+    """
+    Compute current mean velocity during a tstep.
+    In active mode, correct if V swim is constant over the time step.
+    Compute first TotalDistance, then CurrentVelocity.
+    """
+    if particle.mode == 1: #active
+        particle.u_current = particle.lon_dist / particle.tstep - particle.u_swim
+        particle.v_current = particle.lat_dist / particle.tstep - particle.v_swim
+    
+    elif particle.mode == 0: #passive
+        particle.u_current = particle.lon_dist / particle.tstep
+        particle.v_current = particle.lat_dist / particle.tstep
+
 
 def define_additional_kernels(fieldset, pset, key_alltracers, key_periodic, grid_type):
     """
@@ -30,14 +58,14 @@ def define_additional_kernels(fieldset, pset, key_alltracers, key_periodic, grid
         -key_periodic: True for east/west periodicity
         -grid_type: 'orca' or 'standard'
     """
-    kernels_list = []
+    kernels_list = [TotalDistance, CurrentVelocity]
     if key_alltracers:
-        kernels_list.append(SampleP)
+        kernels_list.append(SampleTracers)
     
     if key_periodic:
         kernels_list.append(periodicBC)
         if grid_type == 'orca':
-            #give halos east and west
+            #give halos east and west: how to do it?????
             a=1
         elif grid_type == 'standard':
             try:
@@ -52,6 +80,8 @@ def define_additional_kernels(fieldset, pset, key_alltracers, key_periodic, grid
         k=pset.Kernel(k)
     return kernels_list
         
+
+
 
 def sum_kernels(k_adv, k_turtle, k_add):
     """

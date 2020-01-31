@@ -129,13 +129,19 @@ def compute_habitat(particle, fieldset, time):
     h_right = T_hab[2] * food_hab[2]
     h_bot = T_hab[3] * food_hab[3]
     h_top = T_hab[4] * food_hab[4]
-    #
     """
     Habitat gradient
     """ 
     particle.xgradh = (h_right - h_left)/(2 * particle.dx)
     particle.ygradh = (h_top - h_bot)/(2 * particle.dx)
-    
+    """
+    Safety checks
+    """ 
+    #Ensure habitat is set to 0 on land
+    # if fieldset.LandMask == 0:
+    #         T_hab = 0
+    #         food_hab = 0
+
 
 
 def compute_swimming_direction(particle, fieldset, time):
