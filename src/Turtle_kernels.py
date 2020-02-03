@@ -36,8 +36,8 @@ def compute_habitat(particle, fieldset, time):
     Save xgradh and ygradh.
     """
     #Convert dx to lon and lat
-    dx_lon =  particle.dx * cos(particle.lat * math.pi / 180) / particle.deg
-    dx_lat =  particle.dx / particle.deg
+    dx_lon =  particle.grad_dx * cos(particle.lat * math.pi / 180) / particle.deg
+    dx_lat =  particle.grad_dx / particle.deg
     #
     """
     Get 5 T and 5 NPP
@@ -132,8 +132,8 @@ def compute_habitat(particle, fieldset, time):
     """
     Habitat gradient
     """ 
-    particle.xgradh = (h_right - h_left)/(2 * particle.dx)
-    particle.ygradh = (h_top - h_bot)/(2 * particle.dx)
+    particle.xgradh = (h_right - h_left)/(2 * particle.grad_dx)
+    particle.ygradh = (h_top - h_bot)/(2 * particle.grad_dx)
     """
     Safety checks
     """ 
@@ -211,15 +211,17 @@ def SCL_green(particle, fieldset, time):
 
 
                 
-def define_turtle_kernels(pset, mode, species):
+def define_turtle_kernels(pset, param):
     """
     Function that defines additional kernel that will be used for computation.
     Parameters:
         -pset: ParticleSet
-        -mode: active or passive
-        -species: leatherback or loggerhead
-        -key_alltracers: if True, sample T and NPP
+        -param: needs mode (active or passive) and species (leatherback, loggerhead or green)
     """
+    #
+    mode = param['mode']
+    species = param['species']
+    #
     kernels_list = []   
     if mode == 'active':       
         if species == 'leatherback':
@@ -242,8 +244,8 @@ def define_turtle_kernels(pset, mode, species):
         kernels_list.append(TurtleAge)#last kernel
 
         
-    for k in kernels_list:
-        k=pset.Kernel(k)
+    for k in range(len(kernels_list)):
+        kernels_list[k]=pset.Kernel(kernels_list[k]) 
     return kernels_list
 
 

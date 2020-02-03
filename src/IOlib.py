@@ -2,21 +2,18 @@
 # -*- coding: utf-8 -*-
 """
 
-Module description : All input/output functions to read :
+Module description : All input functions to read :
 - input parameters in namelist file
 - initial positions
-- external variables files (U,V,T...)
-- grid parameters
-and write output file.
+
+
 
 
 """
 
 import numpy as np
-import netCDF4 as nc
 import csv
 import sys
-import time
 import datetime
 
 
@@ -31,66 +28,38 @@ def read_namelist(filename):
     """
 
     items = {'init_file':'',
-             'type':'x/y',
              'nturtles':'',
-             'tstep':'86400',
+             'tstep':'',
              'nsteps_simu':'',
              'time_periodic':'False',
+             't_output':'',
+             'adv_scheme':'RK4',
              'species':'',
              'mode':'active',
              'alpha':'',
              'vscale':'',
              'P0':'',
-             'nsteps_max':'',
-             'key_periodic':'',
-             'overlap':'0',
-             'key_jfold':'',
-             'pivot':'T',
-             'c_dir_zo':'',
-             'c_prefix_zo':'',
-             'ind0_zo':'',
-             'indn_zo':'',
-             'maxsize_zo':'',
-             'c_suffix_zo':'.nc',
-             'nc_var_zo':'',
-             'nc_lon_zo':'',
-             'nc_lat_zo':'',
-             'c_dir_me':'',
-             'c_prefix_me':'',
-             'ind0_me':'',
-             'indn_me':'',
-             'maxsize_me':'',
-             'c_suffix_me':'.nc',
-             'nc_var_me':'',
-             'c_dir_te':'',
-             'c_prefix_te':'',
-             'ind0_te':'',
-             'indn_te':'',
-             'maxsize_te':'',
-             'c_suffix_te':'.nc',
-             'nc_var_te':'',
-             'c_dir_pp':'',
-             'c_prefix_pp':'',
-             'ind0_pp':'',
-             'indn_pp':'',
-             'maxsize_pp':'',
-             'c_suffix_pp':'.nc',
-             'nc_var_pp':'',
-             'dir_mesh':'',
-             'fn_mesh':'',
-             'nc_var_xx_tt':'',
-             'nc_var_xx_uu':'',
-             'nc_var_yy_tt':'',
-             'nc_var_yy_vv':'',
-             'nc_var_e2u':'',
-             'nc_var_e1v':'',
-             'nc_var_e1t':'',
-             'nc_var_e2t':'',
-             'nc_var_tmask':'',
-             'key_CenteredGrid':'',
+             'grad_dx':'',
+             'periodicBC':'True',
              'key_alltracers':'True',
-             'time_origin':'',
              'key_bounce':'False',
+             'grid_type':'',
+             'U_files':'',
+             'V_files':'',
+             'mesh_phy':'',
+             'lon_phy':'',
+             'lat_phy':'',
+             'time_var_phy':'',
+             'U_var':'',
+             'V_var':'',
+             'mesh_food':'',
+             'lon_food':'',
+             'lat_food':'',
+             'time_var_food':'',
+             'T_files':'',
+             'food_files':'',
+             'T_var':'',
+             'food_var':''
              }
 
     namelist = open(filename,'r')
@@ -113,22 +82,15 @@ def read_namelist(filename):
     All items are read as strings, they must be converted to correct type
     """
     #Convert integers
-    for key in ['nturtles','nsteps_simu','overlap','ind0_zo','indn_zo','maxsize_zo','ind0_me','indn_me','maxsize_me']:
+    for key in ['nturtles','nsteps_simu','t_output','tstep']:
         try:
             items[key] = int(items[key])
         except ValueError:
             sys.exit("ERROR : %s must be integer" %(key))
  
         
-    #convert floats
-    for key in ['tstep']:
-        try:
-            items[key] = float(items[key])
-        except ValueError:
-            sys.exit("ERROR : %s must be float" %(key))
-
-    #convert booleans
-    for key in ['key_periodic','key_jfold','key_CenteredGrid','key_alltracers','key_bounce']:
+    #Convert booleans
+    for key in ['periodicBC','key_alltracers','key_bounce']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:
@@ -141,24 +103,18 @@ def read_namelist(filename):
 
     #Check mode
     items['mode'] = items['mode'].lower()
-    if items['mode'] not in ['passive','active','diffusion']:
-        sys.exit("ERROR : mode must be 'passive', 'active' or 'diffusion'")
+    if items['mode'] not in ['passive','active']:
+        sys.exit("ERROR : mode must be 'passive' or 'active'")
         
     
-    #Check pivot
-    if items['pivot']!='T' and items['pivot']!='F':
-        sys.exit("ERROR : pivot must be 'T' or 'F'")
-
-    #optional items
-    if items['key_alltracers'] == True:
-        for key in ['ind0_te','indn_te','maxsize_te','ind0_pp','indn_pp','maxsize_pp']:
-            try:
-                items[key] = int(items[key])
-            except ValueError:
-                sys.exit("ERROR : %s must be integer" %(key))
-
-    for key in ['alpha','vscale','P0']:
-        if items['mode']=='active':
+    #Active items
+    if items['mode']=='active':
+        try:
+            items['grad_dx'] = float(items['grad_dx'])
+        except ValueError:
+            sys.exit("ERROR : %s must be float" %('grad_dx'))
+        #
+        for key in ['alpha','vscale','P0']:        
             try:
                 items[key] = float(items[key])
             except ValueError:
@@ -166,7 +122,7 @@ def read_namelist(filename):
         else:
             items[key] = 0.
     
-     #time_periodic
+    #Time periodic
     if items['time_periodic'] == 'False':
         items['time_periodic'] = False
     else:
@@ -174,21 +130,7 @@ def read_namelist(filename):
             items['time_periodic'] = int(items['time_periodic'])
         except ValueError:
             sys.exit("ERROR: time_periodic must be integer or set to False")
-            
-   
-    #time_origin
-    try:
-        items['time_origin'] = datetime.datetime.strptime(items['time_origin'], '%Y/%m/%d')
-    except:
-        print("\n WARNING: time_origin has to be in format YYYY/MM/DD, time won't be printed \n")
-        items['time_origin'] = False
-    
-    #nsteps_max
-    if items['key_alltracers'] == True:
-        items['nsteps_max'] = min(items['indn_zo'], items['indn_me'], items['indn_te'], items['indn_pp'])
-    else:
-        items['nsteps_max'] = min(items['indn_zo'], items['indn_me'])
-    
+               
     
     return items
 
@@ -198,16 +140,15 @@ def check_param(param,output_file):
     """
     Checks if all needed arguments are present.
     """
-    param_check = {'init_file', 'nturtles', 'nsteps_simu', 'species', 'mode', 'key_alltracers', 'overlap',\
-                   'pivot', 'key_CenteredGrid', 'key_periodic', 'key_jfold',\
-                   'c_dir_zo', 'c_prefix_zo', 'ind0_zo', 'indn_zo', 'maxsize_zo', 'c_suffix_zo', 'nc_var_zo',\
-                   'c_dir_me', 'c_prefix_me', 'ind0_me', 'indn_me', 'maxsize_me', 'c_suffix_me', 'nc_var_me'}
+    param_check = {'init_file', 'nturtles', 'nsteps_simu', 't_output', 'species', 'mode', 'key_alltracers',\
+                   'periodicBC', 'tstep', 'adv_scheme','grid_type',\
+                   'U_files', 'V_files', 'mesh_phy', 'lon_phy', 'lat_phy', 'time_var_phy', 'U_var','V_var'}
     
     if param['key_alltracers'] == True:
-        param_check = set(list({'c_dir_te', 'c_prefix_te', 'ind0_te', 'indn_te', 'maxsize_te', 'c_suffix_te', 'nc_var_te',\
-                  'c_dir_pp', 'c_prefix_pp', 'ind0_pp', 'indn_pp', 'maxsize_pp', 'c_suffix_pp', 'nc_var_pp'}) + list(param_check))
+        param_check = set(list({'T_files','food_files', 'T_var', 'food_var',\
+                                'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
-        param_check = set(list({'P0', 'alpha', 'vscale'}) + list(param_check))
+        param_check = set(list({'P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
         
         
     for key in param.keys():
@@ -219,70 +160,6 @@ def check_param(param,output_file):
         raise ValueError('In active mode key_alltracers has to be True')
     
 
-
-def fx_inv(lon,lat,lon_mat,lat_mat):
-    """
-    This function gets the x,y position on grid corresponding to longitude and latitude
-        lon : f, longitude
-        lat : f, latitude
-        lon_mat : matrix containing the value of the longitude at each grid point
-        lat_mat : matrix containing the value of the latitude at each grid point
-    """
-
-    lon_min = np.min(lon_mat)
-    lon_max = np.max(lon_mat)
-    lat_min = np.min(lat_mat)
-    lat_max = np.max(lat_mat)
-
-    # Compute position of nearest point on grid
-    if ((lon> lon_max) or (lon< lon_min) or (lat>lat_max) or (lat<lat_min)):
-        print("Longitude or latitude out of range, must be between ", np.min(lon_mat), " & ", np.max(lon_mat), " for longitude and ", np.min(lat_mat), " & ", np.max(lat_mat), " for latitude")
-        return 
-    else:
-        distance = (lon-lon_mat)**2+(lat-lat_mat)**2
-        inds = np.argmin(distance)     
-        #argmin compute index of the flattened array (array.flat()), unravel_index gives the corresponding indexes of the 2D array
-        i2,i1 = np.unravel_index(inds,distance.shape) 
-
-    # Compute position of 4 neighbours on grid
-        #   nw ---- ne  i2+1
-        #   |        |
-        #   |        |
-        #   |        |
-        #   sw ---- se  i2
-        #   i1    i1+1
-
-    if (lon>=lon_mat[i2,i1]):
-        if (lat>=lat_mat[i2,i1]):
-            sw = i2,i1
-            nw = i2+1,i1
-            se = i2,i1+1
-            ne = i2+1,i1+1
-        else:
-            nw = i2,i1
-            sw = i2-1,i1
-            se = i2-1,i1+1
-            ne = i2,i1+1
-    else:
-        if (lat>=lat_mat[i2,i1]):
-            sw = i2,i1-1
-            nw = i2+1,i1-1
-            se = i2,i1
-            ne = i2+1,i1
-        else:
-            nw = i2,i1-1
-            sw = i2-1,i1-1
-            se = i2-1,i1
-            ne = i2,i1
-
-    a = lon - lon_mat[sw]
-    b = lat - lat_mat[sw]
-    xsize = lon_mat[se] - lon_mat[sw]
-    ysize = lat_mat[nw] - lat_mat[sw]
-        #Weighted barycentre of the 4 neighbour points (cell can be trapezoidal in Orca)
-    i = (xsize-a)/xsize*(ysize-b)/ysize*sw[1] + (xsize-a)/xsize*b/ysize*nw[1] + a/xsize*(ysize-b)/ysize*se[1] + a/xsize*b/ysize*ne[1]+1
-    j = (xsize-a)/xsize*(ysize-b)/ysize*sw[0] + (xsize-a)/xsize*b/ysize*nw[0] + a/xsize*(ysize-b)/ysize*se[0] + a/xsize*b/ysize*ne[0]+1
-    return i,j
 
 
 def read_positions(param):
@@ -307,6 +184,8 @@ def read_positions(param):
     if nturtles > lines:
         print("ERROR - There are not enough initial positions for intended simulation. Add more lines to initial positions file or choose a lower nturtles.")
         sys.exit(1)
+    elif nturtles < lines:
+        print('\n WARNING - There are more initial positions than turtles.')
 
     x_init = np.zeros(nturtles,dtype='float32')
     y_init = np.zeros(nturtles,dtype='float32')
@@ -324,18 +203,18 @@ def read_positions(param):
 
 
     #Check that number of days to be simulated does not exceed max number of input files
-    ind_max = param['nsteps_simu']+np.max(t_init)
-    if ind_max > param['nsteps_max']:
-        if param['time_periodic'] == False:
-            print('WARNING - There are not enough input files: Loop over time when last one is reached')
-            print('WARNING - max(t_init) = %d ' % np.max(t_init))
-            print('WARNING - nsteps_max  = %d ' % (param['nsteps_max']))
-            print('WARNING - nsteps_simu = %d, should be less than %d ' % (param['nsteps_simu'],param['nsteps_max']-np.max(t_init)))
-            param['time_periodic'] = param['nsteps_max']
+    # ind_max = param['nsteps_simu']+np.max(t_init)
+    # if ind_max > param['nsteps_max']:
+    #     if param['time_periodic'] == False:
+    #         print('WARNING - There are not enough input files: Loop over time when last one is reached')
+    #         print('WARNING - max(t_init) = %d ' % np.max(t_init))
+    #         print('WARNING - nsteps_max  = %d ' % (param['nsteps_max']))
+    #         print('WARNING - nsteps_simu = %d, should be less than %d ' % (param['nsteps_simu'],param['nsteps_max']-np.max(t_init)))
+    #         param['time_periodic'] = param['nsteps_max']
         
-        elif param['time_periodic'] > ind_max:
-            print('WARNING - time_periodic is greater than the number of files: Loop over time when last one is reached')
-            param['time_periodic'] = param['nsteps_max']
+    #     elif param['time_periodic'] > ind_max:
+    #         print('WARNING - time_periodic is greater than the number of files: Loop over time when last one is reached')
+    #         param['time_periodic'] = param['nsteps_max']
             
     #time.sleep(3) #pause so that user can read warnings    
 

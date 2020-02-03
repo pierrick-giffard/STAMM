@@ -51,22 +51,23 @@ def Euler_swim(particle, fieldset, time):
             
     
 
-def define_advection_kernel(pset, mode, adv_scheme):
+def define_advection_kernel(pset, param):
     """
     Function that defines the kernel that will be used for advection.
     Parameters:
         -pset: ParticleSet
-        -mode: active or passive
-        -adv_scheme: RK4 or Euler
+        -param: needs mode (active or passive) and adv_scheme (RK4 or Euler)
     Return: the advection kernel (kernel object)
     """
+    mode = param['mode']
+    adv_scheme = param['adv_scheme']
+    #passive
     if mode == 'passive':
         if adv_scheme == 'RK4':
             adv_kernel = AdvectionRK4
         elif adv_scheme == 'Euler':
             adv_kernel = AdvectionEE
-            
-       
+    #active
     elif mode == 'active':
         if adv_scheme == 'RK4':
             adv_kernel = RK4_swim 

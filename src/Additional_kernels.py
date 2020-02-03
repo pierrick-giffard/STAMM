@@ -13,7 +13,7 @@ def SampleTracers(particle, fieldset, time):
             
 
 
-def periodicBC(particle, fieldset, time):
+def Periodic(particle, fieldset, time):
     if particle.lon < fieldset.halo_west:
         particle.lon += fieldset.halo_east - fieldset.halo_west
     elif particle.lon > fieldset.halo_east:
@@ -49,24 +49,27 @@ def CurrentVelocity(particle, fieldset, time):
         particle.v_current = particle.lat_dist / particle.tstep
 
 
-def define_additional_kernels(fieldset, pset, key_alltracers, key_periodic, grid_type):
+def define_additional_kernels(fieldset, pset, param):
     """
     Parameters:
         -fieldset
         -pset
-        -key_alltracers: if True, T and NPP are sampled
-        -key_periodic: True for east/west periodicity
-        -grid_type: 'orca' or 'standard'
+        -param: needs key_alltracers (if True, T and NPP are sampled),
+        periodicBC (True for east/west periodicity) and grid_type ('orca' or 'standard')
     """
+    key_alltracers = param['key_alltracers']
+    periodicBC = param['periodicBC']
+    grid_type = param['grid_type']
+    #
     kernels_list = [TotalDistance, CurrentVelocity]
     if key_alltracers:
         kernels_list.append(SampleTracers)
     
-    if key_periodic:
-        kernels_list.append(periodicBC)
+    if periodicBC:
+        kernels_list.append(Periodic)
         if grid_type == 'orca':
             #give halos east and west: how to do it?????
-            a=1
+            a=1#give the first and the last column?
         elif grid_type == 'standard':
             try:
                 fieldset.add_constant('halo_west', fieldset.U.grid.lon[0,0])
@@ -74,12 +77,12 @@ def define_additional_kernels(fieldset, pset, key_alltracers, key_periodic, grid
             except:
                 fieldset.add_constant('halo_west', fieldset.U.grid.lon[0])
                 fieldset.add_constant('halo_east', fieldset.U.grid.lon[-1])
-            
+            #
             fieldset.add_periodic_halo(zonal=True)
-    for k in kernels_list:
-        k=pset.Kernel(k)
-    return kernels_list
-        
+    #
+    for k in range(len(kernels_list)):
+        kernels_list[k]=pset.Kernel(kernels_list[k])  
+    return kernels_list    
 
 
 
@@ -88,10 +91,19 @@ def sum_kernels(k_adv, k_turtle, k_add):
     Sums all the kernels and returns the summed kernel.
     """
     kernels = k_adv
+    print_kernels = [k_adv.funcname]
     for k in k_add:
         kernels = kernels + k
+        print_kernels.append(k.funcname)
     for k in k_turtle: #TurtleAge has to be the last kernel
         kernels = kernels + k
+        print_kernels.append(k.funcname)
+    #
+    print('****************************************************')
+    print("These kernels will be used for computation: \n")
+    for k in print_kernels:
+        print(k, "\n")
+    print('****************************************************')
     
     return kernels
         

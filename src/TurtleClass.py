@@ -9,11 +9,20 @@ from parcels import JITParticle, Variable
 import numpy as np
 from operator import attrgetter
 
-def define_Turtle_Class(fieldset):
+def define_Turtle_Class(fieldset, param):
     class turtle(JITParticle):
+        #Constants
+        grad_dx = Variable('grad_dx', to_write=False, dtype=np.float32)
+        P0 = Variable('P0', to_write=False, dtype=np.float32)
+        vscale = Variable('vscale', to_write=False, dtype=np.float32)
+        deg = Variable('deg', to_write=False, dtype=np.float32, initial=111195)#1degree = 111,195 km approx
+        alpha = Variable('alpha', to_write=False, dtype=np.float32)
+        mode = Variable('mode', to_write=False, dtype=np.float32)
+        tstep = Variable('tstep', to_write=False, dtype=np.float32)
         #Sampling
-        T = Variable('T', initial=fieldset.T)
-        NPP = Variable('NPP', initial=fieldset.NPP)
+        if param['key_alltracers']:
+            T = Variable('T', initial=fieldset.T)
+            NPP = Variable('NPP', initial=fieldset.NPP)
         #Passive
         distance = Variable('distance', to_write=True, initial=0., dtype=np.float32)
         lat_dist = Variable('lat_dist', to_write=False, initial=0., dtype=np.float32)
@@ -22,15 +31,7 @@ def define_Turtle_Class(fieldset):
         prev_lat = Variable('prev_lat', to_write=False, dtype=np.float32, initial=attrgetter('lat'))
         u_current = Variable('u_current', to_write=True, dtype=np.float32)
         v_current = Variable('v_current', to_write=True, dtype=np.float32)
-        #Constants
-        dx = Variable('dx', to_write=False, dtype=np.float32)
-        P0 = Variable('P0', to_write=False, dtype=np.float32)
-        vscale = Variable('vscale', to_write=False, dtype=np.float32)
-        deg = Variable('deg', to_write=False, dtype=np.float32, initial=111195)#1degree = 111,195 km approx
-        alpha = Variable('alpha', to_write=False, dtype=np.float32)
-        mode = Variable('mode', to_write=False, dtype=np.float32)
-        tstep = Variable('tstep', to_write=False, dtype=np.float32)
-        #Swimming        
+        #Active
         SCL = Variable('SCL', to_write=False, dtype=np.float32)
         M = Variable('M', to_write=False, dtype=np.float32)
         vmax = Variable('vmax', to_write=False, dtype=np.float32)
