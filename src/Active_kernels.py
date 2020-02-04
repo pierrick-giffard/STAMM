@@ -17,8 +17,6 @@ from parcels import random
 
 
 
-
-
 """
 SHARED KERNELS
 """
@@ -157,6 +155,11 @@ def compute_habitat(particle, fieldset, time):
     # if fieldset.LandMask == 0:
     #         T_hab = 0
     #         food_hab = 0
+    if particle.hab < 0:
+        a=particle.habT
+        b=particle.habPP
+        c=particle.hab
+        print(a,b,c)
 
 
 
@@ -171,7 +174,7 @@ def compute_swimming_direction(particle, fieldset, time):
     if theta0 < 0:
         theta0 = 2 * math.pi + theta0 #theta0 has to be between 0 and 2*pi
     
-    grad = sqrt(particle.xgradh**2+particle.ygradh**2)
+    grad = sqrt(math.pow(particle.xgradh, 2) + math.pow(particle.ygradh, 2))
     
     #Compute theta
     particle.theta = random.vonmisesvariate(theta0,particle.alpha*grad)
@@ -186,6 +189,7 @@ def compute_swimming_velocity(particle, fieldset, time):
     """
     particle.u_swim = particle.vmax * (1-particle.hab) * cos(particle.theta)
     particle.v_swim = particle.vmax * (1-particle.hab) * sin(particle.theta)
+    
       
 """
 LEATHERBACK
@@ -238,7 +242,7 @@ def define_turtle_kernels(pset, param):
     mode = param['mode']
     species = param['species']
     #
-    kernels_list = []   
+    kernels_list = [] 
     if mode == 'active':       
         if species == 'leatherback':
             kernels_list.append(SCL_leath)      

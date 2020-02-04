@@ -27,8 +27,8 @@ def define_Turtle_Class(fieldset, param):
         distance = Variable('distance', to_write=True, initial=0., dtype=np.float32)
         lat_dist = Variable('lat_dist', to_write=False, initial=0., dtype=np.float32)
         lon_dist= Variable('lon_dist', to_write=False, initial=0., dtype=np.float32)
-        prev_lon = Variable('prev_lon', to_write=False, dtype=np.float32, initial=attrgetter('lon'))
-        prev_lat = Variable('prev_lat', to_write=False, dtype=np.float32, initial=attrgetter('lat'))
+        prev_lon = Variable('prev_lon', to_write=True, dtype=np.float32, initial=attrgetter('lon'))#tmp
+        prev_lat = Variable('prev_lat', to_write=True, dtype=np.float32, initial=attrgetter('lat'))#tmp
         u_current = Variable('u_current', to_write=True, dtype=np.float32)
         v_current = Variable('v_current', to_write=True, dtype=np.float32)
         #Active
