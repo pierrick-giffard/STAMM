@@ -12,7 +12,6 @@ Define kernels needed for computation.
 
 from math import exp, sqrt, cos, sin, atan2
 import math
-import numpy as np
 from parcels import random
 
 
@@ -23,10 +22,6 @@ from parcels import random
 """
 SHARED KERNELS
 """
-def TurtleAge(particle, fieldset, time):
-   "Age in days. Needs to be the last kernel to actualize the age at the end of the timestep"
-   particle.age += particle.dt/86400.
-
   
 def compute_habitat(particle, fieldset, time):
     """
@@ -53,6 +48,25 @@ def compute_habitat(particle, fieldset, time):
           fieldset.NPP[time, particle.depth, particle.lat, particle.lon + dx_lon],#right
           fieldset.NPP[time, particle.depth, particle.lat - dx_lat, particle.lon],#bottom
           fieldset.NPP[time, particle.depth, particle.lat + dx_lat, particle.lon]]#top
+    """
+    Check temperature values
+    """
+    if T0[0] < 0. or T0[0] > 100:
+        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon,particle.lat))
+        T0[0] = 0
+    if T0[1] < 0. or T0[1] > 100:
+        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon-dx_lon,particle.lat))
+        T0[1] = 0
+    if T0[2] < 0. or T0[2] > 100:
+        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon+dx_lon,particle.lat))
+        T0[2] = 0
+    if T0[3] < 0. or T0[3] > 100:
+        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon,particle.lat-dx_lat))
+        T0[3] = 0
+    if T0[4] < 0. or T0[4] > 100:
+        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon,particle.lat+dx_lat))
+        T0[4] = 0
+    
     """
     Temperature habitat
     """
@@ -91,40 +105,42 @@ def compute_habitat(particle, fieldset, time):
     """
     food_hab = [0, 0, 0, 0, 0] #position, left, right, bottom and top
     #
-    if NPP0[0] < 0:
-        print('WARNING: NPP negative at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat))
+    if NPP0[0] < 0 or NPP0[0] > 100000:
+        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat))
         food_hab[0] = 0
     else:
         food_hab[0] = min(NPP0[0]/particle.PPmax,1)
     #
-    if NPP0[1] < 0:
-        print('WARNING: NPP negative at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat))
+    if NPP0[1] < 0 or NPP0[1] > 100000:
+        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon-dx_lon,particle.lat))
         food_hab[1] = 0
     else:
         food_hab[1] = min(NPP0[1]/particle.PPmax,1)
     #
-    if NPP0[2] < 0:
-        print('WARNING: NPP negative at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat))
+    if NPP0[2] < 0 or NPP0[2] > 100000:
+        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon+dx_lon,particle.lat))
         food_hab[2] = 0
     else:
         food_hab[2] = min(NPP0[2]/particle.PPmax,1)
     #
-    if NPP0[3] < 0:
-        print('WARNING: NPP negative at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat))
+    if NPP0[3] < 0 or NPP0[3] > 100000:
+        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat-dx_lat))
         food_hab[3] = 0
     else:
         food_hab[3] = min(NPP0[3]/particle.PPmax,1)
     #
-    if NPP0[4] < 0:
-        print('WARNING: NPP negative at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat))
+    if NPP0[4] < 0 or NPP0[4] > 100000:
+        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat+dx_lat))
         food_hab[4] = 0
     else:
         food_hab[4] = min(NPP0[4]/particle.PPmax,1)
     #
     """
     Total habitat
-    """   
-    particle.hab = T_hab[0] * food_hab[0]
+    """
+    particle.habT = T_hab[0]
+    particle.habPP = food_hab[0]
+    particle.hab = particle.habT * particle.habPP
     h_left = T_hab[1] * food_hab[1]
     h_right = T_hab[2] * food_hab[2]
     h_bot = T_hab[3] * food_hab[3]
@@ -241,7 +257,6 @@ def define_turtle_kernels(pset, param):
         kernels_list.append(compute_habitat)
         kernels_list.append(compute_swimming_direction)
         kernels_list.append(compute_swimming_velocity)
-        kernels_list.append(TurtleAge)#last kernel
 
         
     for k in range(len(kernels_list)):

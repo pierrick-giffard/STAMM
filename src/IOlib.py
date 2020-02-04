@@ -30,7 +30,7 @@ def read_namelist(filename):
     items = {'init_file':'',
              'nturtles':'',
              'tstep':'',
-             'nsteps_simu':'',
+             'ndays_simu':'',
              'time_periodic':'False',
              't_output':'',
              'adv_scheme':'RK4',
@@ -82,7 +82,7 @@ def read_namelist(filename):
     All items are read as strings, they must be converted to correct type
     """
     #Convert integers
-    for key in ['nturtles','nsteps_simu','t_output','tstep']:
+    for key in ['nturtles','ndays_simu','t_output','tstep']:
         try:
             items[key] = int(items[key])
         except ValueError:
@@ -109,18 +109,11 @@ def read_namelist(filename):
     
     #Active items
     if items['mode']=='active':
-        try:
-            items['grad_dx'] = float(items['grad_dx'])
-        except ValueError:
-            sys.exit("ERROR : %s must be float" %('grad_dx'))
-        #
-        for key in ['alpha','vscale','P0']:        
+        for key in ['alpha','vscale','P0','grad_dx']:        
             try:
                 items[key] = float(items[key])
             except ValueError:
                 sys.exit("ERROR : %s must be float" %(key))
-        else:
-            items[key] = 0.
     
     #Time periodic
     if items['time_periodic'] == 'False':
@@ -140,7 +133,7 @@ def check_param(param,output_file):
     """
     Checks if all needed arguments are present.
     """
-    param_check = {'init_file', 'nturtles', 'nsteps_simu', 't_output', 'species', 'mode', 'key_alltracers',\
+    param_check = {'init_file', 'nturtles', 'ndays_simu', 't_output', 'species', 'mode', 'key_alltracers',\
                    'periodicBC', 'tstep', 'adv_scheme','grid_type',\
                    'U_files', 'V_files', 'mesh_phy', 'lon_phy', 'lat_phy', 'time_var_phy', 'U_var','V_var'}
     
@@ -203,13 +196,13 @@ def read_positions(param):
 
 
     #Check that number of days to be simulated does not exceed max number of input files
-    # ind_max = param['nsteps_simu']+np.max(t_init)
+    # ind_max = param['ndays_simu']+np.max(t_init)
     # if ind_max > param['nsteps_max']:
     #     if param['time_periodic'] == False:
     #         print('WARNING - There are not enough input files: Loop over time when last one is reached')
     #         print('WARNING - max(t_init) = %d ' % np.max(t_init))
     #         print('WARNING - nsteps_max  = %d ' % (param['nsteps_max']))
-    #         print('WARNING - nsteps_simu = %d, should be less than %d ' % (param['nsteps_simu'],param['nsteps_max']-np.max(t_init)))
+    #         print('WARNING - ndays_simu = %d, should be less than %d ' % (param['ndays_simu'],param['nsteps_max']-np.max(t_init)))
     #         param['time_periodic'] = param['nsteps_max']
         
     #     elif param['time_periodic'] > ind_max:

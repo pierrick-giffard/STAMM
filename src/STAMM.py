@@ -22,8 +22,8 @@ import sys
 import IOlib as IO
 import TurtleClass as tc
 import Advection_kernel as adv
-import Additional_kernels as add
-import Turtle_kernels as tk
+import Passive_kernels as pk
+import Active_kernels as ak
 import Functions as fc
 
 # =============================================================================
@@ -43,17 +43,16 @@ IO.check_param(param,OutputFile)
 #Time step in seconds
 tstep = param['tstep']
 #Number of time steps
-nsteps_simu = param['nsteps_simu']
+ndays_simu = param['ndays_simu']
 #Output frequency
 t_output = param['t_output']
-
 
  
 # =============================================================================
 # Read initial positions and time
 # =============================================================================
 lon_init, lat_init, t_init = IO.read_positions(param)
-
+t_init *= 86400 #from days to seconds
 
 # =============================================================================
 # FIELDSET, CLASS AND PARTICLESET
@@ -68,17 +67,17 @@ fc.initialization(pset, param)
 # KERNELS
 # =============================================================================
 k_adv = adv.define_advection_kernel(pset, param)
-k_turtle = tk.define_turtle_kernels(pset, param)
-k_add = add.define_additional_kernels(fieldset, pset, param) 
+k_active = ak.define_turtle_kernels(pset, param)
+k_passive = pk.define_passive_kernels(fieldset, pset, param) 
 #
-kernels = add.sum_kernels(k_adv, k_turtle, k_add)
-   
+kernels = pk.sum_kernels(k_adv, k_active, k_passive)
+
     
 # =============================================================================
 # COMPUTATION
 # =============================================================================
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(seconds=t_output))
-pset.execute(kernels, runtime=delta(seconds=nsteps_simu*tstep), dt=delta(seconds=tstep),output_file=output_file)
+pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),output_file=output_file)
 
 
 tt=time.time()-t0
