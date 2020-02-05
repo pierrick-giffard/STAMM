@@ -13,7 +13,7 @@ February 2020.
 # IMPORTS
 # =============================================================================
 #Python libraries
-from parcels import ParticleSet, plotTrajectoriesFile
+from parcels import ParticleSet, plotTrajectoriesFile, ErrorCode
 from datetime import timedelta as delta
 import time
 import sys
@@ -46,8 +46,9 @@ tstep = param['tstep']
 ndays_simu = param['ndays_simu']
 #Output frequency
 t_output = param['t_output']
+#Temporal loop over data for time_periodic days
+time_periodic = param['time_periodic'] 
 
- 
 # =============================================================================
 # Read initial positions and time
 # =============================================================================
@@ -77,7 +78,9 @@ kernels = pk.sum_kernels(k_adv, k_active, k_passive)
 # COMPUTATION
 # =============================================================================
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(seconds=t_output))
-pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),output_file=output_file)
+pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
+             output_file=output_file,\
+             recovery={ErrorCode.ErrorOutOfBounds: pk.DeleteParticle})#time_periodic=delta(days=time_periodic),
 
 
 tt=time.time()-t0

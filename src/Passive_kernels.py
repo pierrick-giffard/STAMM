@@ -54,6 +54,11 @@ def CurrentVelocity(particle, fieldset, time):
         particle.v_current = particle.lat_dist / particle.tstep
 
 
+def DeleteParticle(particle, fieldset, time):
+    print("Particle deleted at lon,lat = %f,%f and time = %f"%(particle.lon,particle.lat,time))
+    particle.delete()
+    
+    
 def define_passive_kernels(fieldset, pset, param):
     """
     Parameters:
