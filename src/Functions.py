@@ -61,11 +61,12 @@ def build_fieldset(param):
         dimensions = {'U': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']},
                       'V': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}} 
     #Fieldset
+    print('****************************************************')
+    print("Building FieldSet and ParticleSet...")
+    print('****************************************************')
     fieldset = FieldSet.from_netcdf(filenames, variables, dimensions)  #time_periodic=delta(days=365), allow_time_extrapolation=True
     
-    print('****************************************************')
-    print("Fieldset built")
-    print('****************************************************')
+    
     
     return fieldset
 

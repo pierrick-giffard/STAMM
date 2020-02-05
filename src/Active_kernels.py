@@ -49,20 +49,20 @@ def compute_habitat(particle, fieldset, time):
     """
     Check temperature values
     """
-    if T0[0] < 0. or T0[0] > 100:
-        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon,particle.lat))
+    if T0[0] < -10. or T0[0] > 100:
+        print("WARNING: Incorrect temperature at lon,lat = %f,%f and time = %f: set to 0"%(particle.lon,particle.lat,time))
         T0[0] = 0
-    if T0[1] < 0. or T0[1] > 100:
-        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon-dx_lon,particle.lat))
+    if T0[1] < -10. or T0[1] > 100:
+        print("WARNING: Incorrect temperature at lon,lat = %f,%f and time = %f: set to 0"%(particle.lon-dx_lon,particle.lat,time))
         T0[1] = 0
-    if T0[2] < 0. or T0[2] > 100:
-        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon+dx_lon,particle.lat))
+    if T0[2] < -10. or T0[2] > 100:
+        print("WARNING: Incorrect temperature at lon,lat = %f,%f and time = %f: set to 0"%(particle.lon+dx_lon,particle.lat,time))
         T0[2] = 0
-    if T0[3] < 0. or T0[3] > 100:
-        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon,particle.lat-dx_lat))
+    if T0[3] < -10. or T0[3] > 100:
+        print("WARNING: Incorrect temperature at lon,lat = %f,%f and time = %f: set to 0"%(particle.lon,particle.lat-dx_lat,time))
         T0[3] = 0
-    if T0[4] < 0. or T0[4] > 100:
-        print("Incorrect temperature value at lon,lat = %f,%f: set to 0"%(particle.lon,particle.lat+dx_lat))
+    if T0[4] < -10. or T0[4] > 100:
+        print("WARNING: Incorrect temperature at lon,lat = %f,%f and time = %f: set to 0"%(particle.lon,particle.lat+dx_lat,time))
         T0[4] = 0
     
     """
@@ -104,31 +104,31 @@ def compute_habitat(particle, fieldset, time):
     food_hab = [0, 0, 0, 0, 0] #position, left, right, bottom and top
     #
     if NPP0[0] < 0 or NPP0[0] > 100000:
-        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat))
+        print('WARNING: NPP out of range at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon,particle.lat,time))
         food_hab[0] = 0
     else:
         food_hab[0] = min(NPP0[0]/particle.PPmax,1)
     #
     if NPP0[1] < 0 or NPP0[1] > 100000:
-        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon-dx_lon,particle.lat))
+        print('WARNING: NPP out of range at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon-dx_lon,particle.lat,time))
         food_hab[1] = 0
     else:
         food_hab[1] = min(NPP0[1]/particle.PPmax,1)
     #
     if NPP0[2] < 0 or NPP0[2] > 100000:
-        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon+dx_lon,particle.lat))
+        print('WARNING: NPP out of range at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon+dx_lon,particle.lat,time))
         food_hab[2] = 0
     else:
         food_hab[2] = min(NPP0[2]/particle.PPmax,1)
     #
     if NPP0[3] < 0 or NPP0[3] > 100000:
-        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat-dx_lat))
+        print('WARNING: NPP out of range at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon,particle.lat-dx_lat,time))
         food_hab[3] = 0
     else:
         food_hab[3] = min(NPP0[3]/particle.PPmax,1)
     #
     if NPP0[4] < 0 or NPP0[4] > 100000:
-        print('WARNING: NPP out of range at lon,lat = %f,%f: set to 0'%(particle.lon,particle.lat+dx_lat))
+        print('WARNING: NPP out of range at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon,particle.lat+dx_lat,time))
         food_hab[4] = 0
     else:
         food_hab[4] = min(NPP0[4]/particle.PPmax,1)
