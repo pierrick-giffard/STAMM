@@ -58,7 +58,18 @@ def DeleteParticle(particle, fieldset, time):
     print("\n")
     print("Particle [%d] deleted at lon,lat = %f,%f and time = %f"%(particle.id,particle.lon,particle.lat,time))
     particle.delete()
-    
+
+
+
+def UndoMove(particle, fieldset, time):
+    (u, v) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
+    if fabs(u) < 1e-14 and fabs(v) < 1e-14: #does not work with abs
+        print("Particle [%d] is on land at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
+        print(" => It is sent back to its last position")
+        particle.lon = particle.prev_lon
+        particle.lat = particle.prev_lat
+
+        
     
 def define_passive_kernels(fieldset, pset, param):
     """
@@ -71,7 +82,7 @@ def define_passive_kernels(fieldset, pset, param):
     key_alltracers = param['key_alltracers']
     periodicBC = param['periodicBC']
     #
-    kernels_list = [Distance, CurrentVelocity]
+    kernels_list = [UndoMove, Distance, CurrentVelocity]
     if key_alltracers:
         kernels_list.append(SampleTracers)
     

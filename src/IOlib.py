@@ -138,7 +138,7 @@ def check_param(param,output_file):
     """
     Checks if all needed arguments are present.
     """
-    param_check = {'init_file', 'nturtles', 'ndays_simu', 't_output', 'species', 'mode', 'key_alltracers',\
+    param_check = {'init_file', 'nturtles', 'ndays_simu', 't_output', 'mode', 'key_alltracers',\
                    'periodicBC', 'tstep', 'adv_scheme','grid_type',\
                    'U_dir', 'V_dir', 'mesh_phy', 'lon_phy', 'lat_phy', 'time_var_phy', 'U_var','V_var',
                    'U_suffix', 'V_suffix','ystart'}
@@ -147,7 +147,7 @@ def check_param(param,output_file):
         param_check = set(list({'T_dir','food_dir', 'T_var', 'food_var','T_suffix', 'food_suffix',\
                                 'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
-        param_check = set(list({'P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
+        param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
         
         
     for key in param.keys():
@@ -167,7 +167,9 @@ def read_positions(param):
     - param : dictionnary containing all items of the namelist, output of read_namelist
     Returns: lon_init, lat_init, t_init initial positions and initial times relative to first data date.
     """
-
+    print('****************************************************')
+    print("Read initial positions in file", param['init_file'])
+    print('****************************************************')
     nturtles = param['nturtles']
 
     #Count number of lines and check if there are enough positions 
@@ -181,19 +183,17 @@ def read_positions(param):
     init.close()
 
     if nturtles > lines:
-        print("ERROR - There are not enough initial positions for intended simulation. Add more lines to initial positions file or choose a lower nturtles.")
+        print("   ERROR - There are not enough initial positions for intended simulation. Add more lines to initial positions file or choose a lower nturtles.")
         sys.exit(1)
     elif nturtles < lines:
-        print('\n WARNING - There are more initial positions than turtles.')
+        print('   WARNING - There are more initial positions than turtles. \n')
 
     x_init = np.zeros(nturtles,dtype='float32')
     y_init = np.zeros(nturtles,dtype='float32')
     t_init = np.zeros(nturtles,dtype='float32')
 
     
-    print('****************************************************')
-    print("Read initial positions in file: \n ", param['init_file'])
-    print('****************************************************')
+
     init = open(param['init_file'],'r')
     x_init, y_init, t_init = np.loadtxt(init,usecols=(0,1,3),unpack=True)
     x_init, y_init, t_init = x_init[:nturtles], y_init[:nturtles], t_init[:nturtles] 

@@ -12,10 +12,9 @@ February 2020.
 # IMPORTS
 # =============================================================================
 #Python libraries
-from parcels import ParticleSet, plotTrajectoriesFile, ErrorCode
+from parcels import plotTrajectoriesFile, ErrorCode
 from datetime import timedelta as delta
 import sys
-import numpy as np
 
 #Personal libraries
 import IOlib as IO
@@ -53,9 +52,10 @@ lon_init, lat_init, t_init = IO.read_positions(param)
 # =============================================================================
 # FIELDSET, CLASS AND PARTICLESET
 # =============================================================================
-fieldset = fc.build_fieldset(param, t_init)
+fieldset = fc.create_fieldset(param, t_init)
 turtle = tc.define_Turtle_Class(fieldset,param)
-pset = ParticleSet(fieldset, pclass=turtle, lon=lon_init, lat=lat_init, time = (t_init - int(np.min(t_init))) * 86400)
+pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init)
+
 #
 fc.initialization(pset, param)
 
@@ -83,5 +83,5 @@ pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
 # =============================================================================
 # PLOT
 # =============================================================================
-output_file.export()  # only for last parcels version
+output_file.export()  # only for parcels version > 2.1
 plotTrajectoriesFile(OutputFile)
