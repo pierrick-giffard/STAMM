@@ -44,8 +44,10 @@ def read_namelist(filename):
              'key_alltracers':'True',
              'key_bounce':'False',
              'grid_type':'',
-             'U_files':'',
-             'V_files':'',
+             'U_dir':'',
+             'U_suffix':'',
+             'V_dir':'',
+             'V_suffix':'',
              'mesh_phy':'',
              'lon_phy':'',
              'lat_phy':'',
@@ -56,10 +58,13 @@ def read_namelist(filename):
              'lon_food':'',
              'lat_food':'',
              'time_var_food':'',
-             'T_files':'',
-             'food_files':'',
+             'T_dir':'',
+             'T_suffix':'',
+             'food_dir':'',
+             'food_suffix':'',
              'T_var':'',
-             'food_var':''
+             'food_var':'',
+             'ystart':''
              }
 
     namelist = open(filename,'r')
@@ -82,7 +87,7 @@ def read_namelist(filename):
     All items are read as strings, they must be converted to correct type
     """
     #Convert integers
-    for key in ['nturtles','ndays_simu','t_output','tstep']:
+    for key in ['nturtles','ndays_simu','t_output','tstep','ystart']:
         try:
             items[key] = int(items[key])
         except ValueError:
@@ -135,10 +140,11 @@ def check_param(param,output_file):
     """
     param_check = {'init_file', 'nturtles', 'ndays_simu', 't_output', 'species', 'mode', 'key_alltracers',\
                    'periodicBC', 'tstep', 'adv_scheme','grid_type',\
-                   'U_files', 'V_files', 'mesh_phy', 'lon_phy', 'lat_phy', 'time_var_phy', 'U_var','V_var'}
+                   'U_dir', 'V_dir', 'mesh_phy', 'lon_phy', 'lat_phy', 'time_var_phy', 'U_var','V_var',
+                   'U_suffix', 'V_suffix','ystart'}
     
     if param['key_alltracers'] == True:
-        param_check = set(list({'T_files','food_files', 'T_var', 'food_var',\
+        param_check = set(list({'T_dir','food_dir', 'T_var', 'food_var','T_suffix', 'food_suffix',\
                                 'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
         param_check = set(list({'P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
@@ -153,7 +159,7 @@ def check_param(param,output_file):
         raise ValueError('In active mode key_alltracers has to be True')
     
 
-
+    
 
 def read_positions(param):
     """

@@ -3,9 +3,8 @@
 """
 Main code of STAMM.
 Need parcels version 2.0.0.
-The function AdvectionRK4 has to be modified.
 
-Authors: Pierrick Giffard, Philippe Gaspar at Mercator Ocean.
+Author: Pierrick Giffard in Philippe Gaspar team at Mercator Ocean.
 February 2020.
 """
 
@@ -15,8 +14,8 @@ February 2020.
 #Python libraries
 from parcels import ParticleSet, plotTrajectoriesFile, ErrorCode
 from datetime import timedelta as delta
-import time
 import sys
+import numpy as np
 
 #Personal libraries
 import IOlib as IO
@@ -29,9 +28,6 @@ import Functions as fc
 # =============================================================================
 # PARAMETERS
 # =============================================================================
-#Initial time
-t0=time.time()
-
 #Users arguments
 namelist = sys.argv[1]
 OutputFile = sys.argv[2]
@@ -53,14 +49,13 @@ time_periodic = param['time_periodic']
 # Read initial positions and time
 # =============================================================================
 lon_init, lat_init, t_init = IO.read_positions(param)
-t_init *= 86400 #from days to seconds
 
 # =============================================================================
 # FIELDSET, CLASS AND PARTICLESET
 # =============================================================================
-fieldset = fc.build_fieldset(param)
+fieldset = fc.build_fieldset(param, t_init)
 turtle = tc.define_Turtle_Class(fieldset,param)
-pset = ParticleSet(fieldset, pclass=turtle, lon=lon_init, lat=lat_init,time=t_init)
+pset = ParticleSet(fieldset, pclass=turtle, lon=lon_init, lat=lat_init, time = (t_init - int(np.min(t_init))) * 86400)
 #
 fc.initialization(pset, param)
 
@@ -80,13 +75,13 @@ kernels = pk.sum_kernels(k_adv, k_active, k_passive)
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(seconds=t_output))
 pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
              output_file=output_file,\
-             recovery={ErrorCode.ErrorOutOfBounds: pk.DeleteParticle})#time_periodic=delta(days=time_periodic),
+             recovery={ErrorCode.ErrorOutOfBounds: pk.DeleteParticle})
 
 
-tt=time.time()-t0
-print('\n')
-print('Total execution time: '+ str(delta(seconds=int(tt))))
-print('\n')
 
-################## PLOT #####################################
+
+# =============================================================================
+# PLOT
+# =============================================================================
+output_file.export()  # only for last parcels version
 plotTrajectoriesFile(OutputFile)

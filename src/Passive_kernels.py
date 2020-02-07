@@ -55,7 +55,8 @@ def CurrentVelocity(particle, fieldset, time):
 
 
 def DeleteParticle(particle, fieldset, time):
-    print("Particle deleted at lon,lat = %f,%f and time = %f"%(particle.lon,particle.lat,time))
+    print("\n")
+    print("Particle [%d] deleted at lon,lat = %f,%f and time = %f"%(particle.id,particle.lon,particle.lat,time))
     particle.delete()
     
     
@@ -64,12 +65,11 @@ def define_passive_kernels(fieldset, pset, param):
     Parameters:
         -fieldset
         -pset
-        -param: needs key_alltracers (if True, T and NPP are sampled),
-        periodicBC (True for east/west periodicity) and grid_type ('orca' or 'standard')
+        -param: needs key_alltracers (if True, T and NPP are sampled) and
+        periodicBC (True for east/west periodicity)
     """
     key_alltracers = param['key_alltracers']
     periodicBC = param['periodicBC']
-    grid_type = param['grid_type']
     #
     kernels_list = [Distance, CurrentVelocity]
     if key_alltracers:
@@ -77,18 +77,6 @@ def define_passive_kernels(fieldset, pset, param):
     
     if periodicBC:
         kernels_list.append(Periodic)
-        if grid_type == 'orca':
-            #give halos east and west: how to do it?????
-            a=1#give the first and the last column?
-        elif grid_type == 'standard':
-            try:
-                fieldset.add_constant('halo_west', fieldset.U.grid.lon[0,0])
-                fieldset.add_constant('halo_east', fieldset.U.grid.lon[0,-1])
-            except:
-                fieldset.add_constant('halo_west', fieldset.U.grid.lon[0])
-                fieldset.add_constant('halo_east', fieldset.U.grid.lon[-1])
-            #
-            fieldset.add_periodic_halo(zonal=True)
     #
     kernels_list.append(IncrementAge)
     #       
