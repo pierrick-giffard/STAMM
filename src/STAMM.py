@@ -51,11 +51,12 @@ lon_init, lat_init, t_init = IO.read_positions(param)
 # FIELDSET, CLASS AND PARTICLESET
 # =============================================================================
 fieldset = fc.create_fieldset(param, t_init)
+fc.initialization(fieldset, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
 pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init) 
 
-#
-fc.initialization(pset, param)
+
+
 
 # =============================================================================
 # KERNELS

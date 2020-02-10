@@ -144,20 +144,20 @@ def create_particleset(fieldset, pclass, lon, lat, t_init):
     return pset
 
 
-def initialization(pset, param):
+def initialization(fieldset, param):
     """
-    Links constant parameters to particle in order to use them within kernels.
+    Links constant parameters to fieldset in order to use them within kernels.
     """
-    for p in pset:  
-        p.vscale = param['vscale']
-        p.P0 = param['P0']
-        p.grad_dx = param['grad_dx']
-        p.alpha = param['alpha']
-        if param['mode'] == 'active':
-            p.mode = 1
-        elif param['mode'] == 'passive':
-            p.mode = 0
-        p.tstep = param['tstep']
+    fieldset.tstep = param['tstep']
+    fieldset.deg = 111195 #1degree = 111,195 km approx
+    if param['mode'] == 'active':
+        fieldset.mode = 1
+        fieldset.vscale = param['vscale']
+        fieldset.P0 = param['P0']
+        fieldset.grad_dx = param['grad_dx']
+        fieldset.alpha = param['alpha']
+    elif param['mode'] == 'passive':
+        fieldset.mode = 0
 
 
 # =============================================================================

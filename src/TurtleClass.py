@@ -11,14 +11,6 @@ from operator import attrgetter
 
 def define_Turtle_Class(fieldset, param):
     class turtle(JITParticle):
-        #Constants
-        grad_dx = Variable('grad_dx', to_write=False, dtype=np.float32)
-        P0 = Variable('P0', to_write=False, dtype=np.float32)
-        vscale = Variable('vscale', to_write=False, dtype=np.float32)
-        deg = Variable('deg', to_write=False, dtype=np.float32, initial=111195)#1degree = 111,195 km approx
-        alpha = Variable('alpha', to_write=False, dtype=np.float32)
-        mode = Variable('mode', to_write=False, dtype=np.float32)
-        tstep = Variable('tstep', to_write=False, dtype=np.float64)
         #Sampling
         if param['key_alltracers']:
             T = Variable('T', initial=fieldset.T)

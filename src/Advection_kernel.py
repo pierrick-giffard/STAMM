@@ -14,8 +14,8 @@ def RK4_swim(particle, fieldset, time):
     Swimming velocity is supposed constant during the whole timestep.
     """
     #From m/s to °/s
-    u_swim = particle.u_swim * math.cos(particle.lat * math.pi / 180) / particle.deg
-    v_swim = particle.v_swim / particle.deg
+    u_swim = particle.u_swim * math.cos(particle.lat * math.pi / 180) / fieldset.deg
+    v_swim = particle.v_swim / fieldset.deg
     #   
     (u1, v1) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
     u1 += u_swim
@@ -40,14 +40,15 @@ def RK4_swim(particle, fieldset, time):
     particle.lat += (v1 + 2*v2 + 2*v3 + v4) / 6. * particle.dt
 
 
+
 def Euler_swim(particle, fieldset, time):
     """
     Advection of particles using Explicit Euler (aka Euler Forward) integration.
     Swimming velocity is added to the current velocity.
     """
     #From m/s to °/s
-    u_swim = particle.u_swim * math.cos(particle.lat * math.pi / 180) / particle.deg
-    v_swim = particle.v_swim / particle.deg
+    u_swim = particle.u_swim * math.cos(particle.lat * math.pi / 180) / fieldset.deg
+    v_swim = particle.v_swim / fieldset.deg
     #
     (u1, v1) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
     u1 += u_swim
