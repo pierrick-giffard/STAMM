@@ -1,16 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Jan 31 15:56:33 2020
 
-@author: pgiffard
 """
+Functions needed to:
+    -create FieldSet
+    -create ParticleSet
+    -define kernels to be used    
+"""
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+#Python libraries
 from glob import glob
-from parcels import FieldSet, ParticleSet
+from parcels import FieldSet, ParticleSet, AdvectionRK4, AdvectionEE
 from datetime import timedelta, date
 import numpy as np
 import time
 
+#Personal libraries
+import Advection_kernel as adv
+import Passive_kernels as pk
+import Active_kernels as ak
+import Leatherback as leath
+import Loggerhead as log
+
+
+
+# =============================================================================
+# FIELDSET
+# =============================================================================
 def create_fieldset(param, t_init):
     """
     Build fieldset from data files, dimensions and variables.
@@ -90,7 +109,7 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False
     del(files[ndays_simu+2:])    
     #
     if files == []:
-        print('   Years not in file names, loading the whole dataset.')
+        print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01 of ystart. \n')
         files = sorted(glob(f_dir + '/*' + f_suffix))
         del(files[:int(np.min(t_init))+1])
     #
@@ -103,6 +122,10 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False
     return files
 
 
+
+# =============================================================================
+# PARTICLESET
+# =============================================================================
 def create_particleset(fieldset, pclass, lon, lat, t_init):
     print('\n')
     print('****************************************************')
@@ -111,7 +134,8 @@ def create_particleset(fieldset, pclass, lon, lat, t_init):
     #
     t0 = time.time()
     #
-    pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = (t_init - int(np.min(t_init))) * 86400)
+    t_release = (t_init - int(np.min(t_init))) * 86400
+    pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
     #Time
     tt=time.time()-t0
     print('\n')
@@ -135,4 +159,123 @@ def initialization(pset, param):
             p.mode = 0
         p.tstep = param['tstep']
 
+
+# =============================================================================
+# DEFINE KERNELS
+# =============================================================================
+def define_advection_kernel(pset, param):
+    """
+    Function that defines the kernel that will be used for advection.
+    Parameters:
+        -pset: ParticleSet
+        -param: needs mode (active or passive) and adv_scheme (RK4 or Euler)
+    Return: the advection kernel (kernel object)
+    """
+    mode = param['mode']
+    adv_scheme = param['adv_scheme']
+    #passive
+    if mode == 'passive':
+        if adv_scheme == 'RK4':
+            adv_kernel = AdvectionRK4
+        elif adv_scheme == 'Euler':
+            adv_kernel = AdvectionEE
+    #active
+    elif mode == 'active':
+        if adv_scheme == 'RK4':
+            adv_kernel = adv.RK4_swim 
+        elif adv_scheme == 'Euler':
+            adv_kernel = adv.Euler_swim
     
+    return pset.Kernel(adv_kernel)
+
+
+
+def define_passive_kernels(fieldset, pset, param):
+    """
+    Parameters:
+        -fieldset
+        -pset
+        -param: needs key_alltracers (if True, T and NPP are sampled) and
+        periodicBC (True for east/west periodicity)
+    """
+    key_alltracers = param['key_alltracers']
+    periodicBC = param['periodicBC']
+    #
+    kernels_list = [pk.UndoMove, pk.Distance, pk.CurrentVelocity]
+    if key_alltracers:
+        kernels_list.append(pk.SampleTracers)
+    
+    if periodicBC:
+        kernels_list.append(pk.Periodic)
+    #
+    kernels_list.append(pk.IncrementAge)
+    #       
+    for k in range(len(kernels_list)):
+        kernels_list[k]=pset.Kernel(kernels_list[k])  
+    return kernels_list
+
+
+
+def define_active_kernels(pset, param):
+    """
+    Function that defines additional kernel that will be used for computation.
+    Parameters:
+        -pset: ParticleSet
+        -param: needs mode (active or passive) and species (leatherback, loggerhead or green)
+    """
+    #
+    mode = param['mode']
+    species = param['species']
+    #
+    kernels_list = [] 
+    if mode == 'active':      
+        if species == 'leatherback':
+            file = leath
+        elif species == 'loggerhead':
+            file = log
+
+        kernels_list.append(file.compute_SCL)      
+        kernels_list.append(file.compute_Mass)
+        kernels_list.append(file.compute_PPmax)
+        kernels_list.append(file.compute_vmax)      
+        kernels_list.append(ak.compute_habitat)
+        kernels_list.append(ak.compute_swimming_direction)
+        kernels_list.append(ak.compute_swimming_velocity)
+
+        
+    for k in range(len(kernels_list)):
+        kernels_list[k]=pset.Kernel(kernels_list[k]) 
+    return kernels_list
+
+
+
+def sum_kernels(k_adv, k_active, k_passive):
+    """
+    Sums all the kernels and returns the summed kernel.
+    WARNING: The position is important.
+    """
+    if k_active != []:
+        kernels = k_active[0]
+        print_kernels = [k_active[0].funcname]
+        #
+        for k in k_active[1:]:
+            kernels = kernels + k
+            print_kernels.append(k.funcname)
+        kernels += k_adv
+        print_kernels.append(k_adv.funcname)
+    #    
+    else:   
+        kernels = k_adv
+        print_kernels = [k_adv.funcname]
+    #
+    for k in k_passive:
+        kernels = kernels + k
+        print_kernels.append(k.funcname)
+    #
+    print('****************************************************')
+    print("These kernels will be used for computation: \n")
+    for k in print_kernels:
+        print(k, "\n")
+    print('****************************************************')
+    
+    return kernels   

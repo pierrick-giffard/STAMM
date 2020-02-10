@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Main code of STAMM.
-Need parcels version 2.0.0.
+Validated with parcels version 2.1.4.
 
-Author: Pierrick Giffard in Philippe Gaspar team at Mercator Ocean.
+Author: Pierrick Giffard working in Philippe Gaspar's team at Mercator Ocean.
 February 2020.
 """
 
@@ -19,9 +19,7 @@ import sys
 #Personal libraries
 import IOlib as IO
 import TurtleClass as tc
-import Advection_kernel as adv
 import Passive_kernels as pk
-import Active_kernels as ak
 import Functions as fc
 
 # =============================================================================
@@ -54,7 +52,7 @@ lon_init, lat_init, t_init = IO.read_positions(param)
 # =============================================================================
 fieldset = fc.create_fieldset(param, t_init)
 turtle = tc.define_Turtle_Class(fieldset,param)
-pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init)
+pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init) 
 
 #
 fc.initialization(pset, param)
@@ -62,11 +60,11 @@ fc.initialization(pset, param)
 # =============================================================================
 # KERNELS
 # =============================================================================
-k_adv = adv.define_advection_kernel(pset, param)
-k_active = ak.define_turtle_kernels(pset, param)
-k_passive = pk.define_passive_kernels(fieldset, pset, param) 
+k_adv = fc.define_advection_kernel(pset, param)
+k_active = fc.define_active_kernels(pset, param)
+k_passive = fc.define_passive_kernels(fieldset, pset, param) 
 #
-kernels = pk.sum_kernels(k_adv, k_active, k_passive)
+kernels = fc.sum_kernels(k_adv, k_active, k_passive)
 
     
 # =============================================================================

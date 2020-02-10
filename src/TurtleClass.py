@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jan 27 18:05:20 2020
-
-@author: pgiffard
+Define particle class with useful variables.
 """
+
+
 from parcels import JITParticle, Variable
 import numpy as np
 from operator import attrgetter

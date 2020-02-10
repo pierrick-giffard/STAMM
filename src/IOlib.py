@@ -1,20 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-
-Module description : All input functions to read :
-- input parameters in namelist file
-- initial positions
-
-
-
-
+Functions to read namelist and initial positions
 """
 
 import numpy as np
 import csv
 import sys
-import datetime
 
 
 def read_namelist(filename):
@@ -23,8 +15,6 @@ def read_namelist(filename):
     read_namelist(filename) -> items
     - filename : str, name of the namelist file
     - items : dictionnary
-
-    For more information on the items, read 'IBM-tutorial' file 
     """
 
     items = {'init_file':'',
@@ -200,35 +190,5 @@ def read_positions(param):
     init.close()
         
 
-
-    #Check that number of days to be simulated does not exceed max number of input files
-    # ind_max = param['ndays_simu']+np.max(t_init)
-    # if ind_max > param['nsteps_max']:
-    #     if param['time_periodic'] == False:
-    #         print('WARNING - There are not enough input files: Loop over time when last one is reached')
-    #         print('WARNING - max(t_init) = %d ' % np.max(t_init))
-    #         print('WARNING - nsteps_max  = %d ' % (param['nsteps_max']))
-    #         print('WARNING - ndays_simu = %d, should be less than %d ' % (param['ndays_simu'],param['nsteps_max']-np.max(t_init)))
-    #         param['time_periodic'] = param['nsteps_max']
-        
-    #     elif param['time_periodic'] > ind_max:
-    #         print('WARNING - time_periodic is greater than the number of files: Loop over time when last one is reached')
-    #         param['time_periodic'] = param['nsteps_max']
-            
-    #time.sleep(3) #pause so that user can read warnings    
-
-
-    # #Initial cell cannot be on land
-    # i0 = np.int32(x_init) + 1
-    # j0 = np.int32(y_init) + 1
-
-    # position_on_mask = mask[j0,i0]
-    
-    # land = np.where(position_on_mask==0)[0]
-    
-    # if len(land) != 0:
-    #     print("ERROR : found positions on land:")
-    #     print(str(land))
-    #     quit()
 
     return x_init, y_init, t_init

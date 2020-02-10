@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Define the advection kernel.
-In active mode, the swimming velocity is added to the current velocity.
+Define advection kernels with added swimming velocity.
 """
 
-from parcels import AdvectionRK4, AdvectionEE
 import math
 
 
@@ -59,27 +57,4 @@ def Euler_swim(particle, fieldset, time):
             
     
 
-def define_advection_kernel(pset, param):
-    """
-    Function that defines the kernel that will be used for advection.
-    Parameters:
-        -pset: ParticleSet
-        -param: needs mode (active or passive) and adv_scheme (RK4 or Euler)
-    Return: the advection kernel (kernel object)
-    """
-    mode = param['mode']
-    adv_scheme = param['adv_scheme']
-    #passive
-    if mode == 'passive':
-        if adv_scheme == 'RK4':
-            adv_kernel = AdvectionRK4
-        elif adv_scheme == 'Euler':
-            adv_kernel = AdvectionEE
-    #active
-    elif mode == 'active':
-        if adv_scheme == 'RK4':
-            adv_kernel = RK4_swim 
-        elif adv_scheme == 'Euler':
-            adv_kernel = Euler_swim
-    
-    return pset.Kernel(adv_kernel)
+
