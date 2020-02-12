@@ -18,8 +18,8 @@ def compute_habitat(particle, fieldset, time):
     Save xgradh and ygradh.
     """
     #Convert dx to lon and lat
-    dx_lon =  particle.grad_dx * cos(particle.lat * math.pi / 180) / particle.deg
-    dx_lat =  particle.grad_dx / particle.deg
+    dx_lon =  fieldset.grad_dx * cos(particle.lat * math.pi / 180) / fieldset.deg
+    dx_lat =  fieldset.grad_dx / fieldset.deg
     #
     """
     Get 5 T and 5 NPP
@@ -59,6 +59,7 @@ def compute_habitat(particle, fieldset, time):
     """
     Topt = 24. - 0.21*sqrt(particle.M)
     Tmin = 24. - 1.05*sqrt(particle.M)
+    particle.Tmin = Tmin
     #
     T_hab = [0, 0, 0, 0, 0] #position, left, right, bottom and top
     #
@@ -135,8 +136,8 @@ def compute_habitat(particle, fieldset, time):
     """
     Habitat gradient
     """ 
-    particle.xgradh = (h_right - h_left)/(2 * particle.grad_dx)
-    particle.ygradh = (h_top - h_bot)/(2 * particle.grad_dx)
+    particle.xgradh = (h_right - h_left)/(2 * fieldset.grad_dx)
+    particle.ygradh = (h_top - h_bot)/(2 * fieldset.grad_dx)
     """
     Safety checks
     """ 
@@ -155,7 +156,8 @@ def compute_habitat(particle, fieldset, time):
             
 def compute_SCL(particle, fieldset, time):
     "Compute Straight Carapace Length"
-    particle.SCL = 1.43*(1-exp(-0.226*(particle.age/365.+0.17)))  
+    particle.SCL = 1.43*(1-exp(-0.226*(particle.age/365.+0.17)))
+
             
             
 def compute_Mass(particle, fieldset, time):
@@ -171,7 +173,7 @@ def compute_PPmax(particle, fieldset, time):
     #Besoin annuels en valeur absolue
 
     PPmax = 266.80368*(((1-exp(-0.299*(particle.age/365.+0.17)))**(2.86-1))*(exp(-0.299*(particle.age/365.+0.17))))/(1-(1-exp(-0.299*(particle.age/365.+0.17)))**(2.86*0.0328))
-    particle.PPmax = PPmax/(2835.24/particle.P0)
+    particle.PPmax = PPmax/(2835.24/fieldset.P0)
   
              
 def compute_vmax(particle, fieldset, time):
@@ -179,4 +181,25 @@ def compute_vmax(particle, fieldset, time):
     Compute maximum speed at current age.
     Ref : Gaspar, P., Benson, S., Dutton, P., Réveillère, A., Jacob, G., Meetoo, C., Dehecq, A., Fossette, S., 2012. Oceanic dispersal of juvenile leatherback turtles: going beyond passive drift modeling. Marine Ecology Progress Series.
     """
-    particle.vmax = particle.vscale*(particle.SCL**0.126)    
+    particle.vmax = fieldset.vscale*(particle.SCL**0.126)
+
+    
+def cold_induced_mortality(particle, fieldset, time):
+    """
+    Increment particle.lethargy_time if T < Tmin.
+    If particle.lethargy_time > cold_resistance, then delete particle.
+    """
+    if fieldset.T[time, particle.depth, particle.lat, particle.lon] < particle.Tmin:
+        particle.lethargy_time += fieldset.tstep
+        if particle.lethargy_time > fieldset.cold_resistance:
+            particle.cold_death = 1
+            particle.delete()
+    else:
+        particle.lethargy_time = 0
+
+        
+        
+
+        
+        
+        

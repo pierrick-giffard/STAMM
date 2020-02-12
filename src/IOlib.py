@@ -54,7 +54,9 @@ def read_namelist(filename):
              'food_suffix':'',
              'T_var':'',
              'food_var':'',
-             'ystart':''
+             'ystart':'',
+             'cold_death':'False',
+             'cold_resistance':'30'
              }
 
     namelist = open(filename,'r')
@@ -77,7 +79,7 @@ def read_namelist(filename):
     All items are read as strings, they must be converted to correct type
     """
     #Convert integers
-    for key in ['nturtles','ndays_simu','t_output','tstep','ystart']:
+    for key in ['nturtles','ndays_simu','t_output','tstep','ystart','cold_resistance']:
         try:
             items[key] = int(items[key])
         except ValueError:
@@ -85,7 +87,7 @@ def read_namelist(filename):
  
         
     #Convert booleans
-    for key in ['periodicBC','key_alltracers','key_bounce']:
+    for key in ['periodicBC','key_alltracers','key_bounce', 'cold_death']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:

@@ -69,10 +69,10 @@ def create_fieldset(param, t_init):
     #Fieldset
     if param['time_periodic']:
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions,\
-                                    time_periodic=timedelta(days=param['time_periodic']),\
-                                    field_chunksize=(400, 400)) 
+                                    time_periodic=timedelta(days=param['time_periodic']))#,\
+                                    #field_chunksize=(800, 800)) 
     else:
-        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, field_chunksize=(400, 400)) 
+        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions)#, field_chunksize=(800, 800))
     #East/West periodicity
     if param['periodicBC']:
         if param['grid_type'] == 'standard':
@@ -109,7 +109,7 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False
     del(files[ndays_simu+2:])    
     #
     if files == []:
-        print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01 of ystart. \n')
+        print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%ystart)
         files = sorted(glob(f_dir + '/*' + f_suffix))
         del(files[:int(np.min(t_init))+1])
     #
@@ -126,7 +126,7 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False
 # =============================================================================
 # PARTICLESET
 # =============================================================================
-def create_particleset(fieldset, pclass, lon, lat, t_init):
+def create_particleset(fieldset, pclass, lon, lat, t_init, param):
     print('\n')
     print('****************************************************')
     print("Building ParticleSet...")
@@ -136,11 +136,16 @@ def create_particleset(fieldset, pclass, lon, lat, t_init):
     #
     t_release = (t_init - int(np.min(t_init))) * 86400
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
+#    if param['key_alltracers']:
+#        #T and NPP initialization
+#        print('   Running with dt=0 to initialize T and NPP: \n')
+#        pset.execute(pk.SampleTracers, dt=0)
     #Time
     tt=time.time()-t0
     print('\n')
     print(' => ParticleSet created in: '+ str(timedelta(seconds=int(tt))))
     print('\n')
+    
     return pset
 
 
@@ -150,14 +155,13 @@ def initialization(fieldset, param):
     """
     fieldset.tstep = param['tstep']
     fieldset.deg = 111195 #1degree = 111,195 km approx
+    fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
     if param['mode'] == 'active':
-        fieldset.mode = 1
         fieldset.vscale = param['vscale']
         fieldset.P0 = param['P0']
         fieldset.grad_dx = param['grad_dx']
         fieldset.alpha = param['alpha']
-    elif param['mode'] == 'passive':
-        fieldset.mode = 0
+
 
 
 # =============================================================================
@@ -200,8 +204,13 @@ def define_passive_kernels(fieldset, pset, param):
     """
     key_alltracers = param['key_alltracers']
     periodicBC = param['periodicBC']
+    mode = param['mode']
     #
-    kernels_list = [pk.UndoMove, pk.Distance, pk.CurrentVelocity]
+    kernels_list = [pk.UndoMove, pk.Distance]
+    if mode == 'passive':
+        kernels_list.append(pk.CurrentVelocityPassive)
+    elif mode == 'active':
+        kernels_list.append(pk.CurrentVelocityActive)
     if key_alltracers:
         kernels_list.append(pk.SampleTracers)
     
@@ -238,10 +247,11 @@ def define_active_kernels(pset, param):
         kernels_list.append(file.compute_Mass)
         kernels_list.append(file.compute_PPmax)
         kernels_list.append(file.compute_vmax)      
-        kernels_list.append(ak.compute_habitat)
+        kernels_list.append(file.compute_habitat)
         kernels_list.append(ak.compute_swimming_direction)
         kernels_list.append(ak.compute_swimming_velocity)
-
+    if param['cold_death']:
+        kernels_list.append(file.cold_induced_mortality)
         
     for k in range(len(kernels_list)):
         kernels_list[k]=pset.Kernel(kernels_list[k]) 

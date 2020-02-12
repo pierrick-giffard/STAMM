@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Main code of STAMM.
-Validated with parcels version 2.1.4.
+Main code of STAMM, the Sea Turtle Active Movement Model.
+Tested with parcels version 2.1.4.
 
 Author: Pierrick Giffard working in Philippe Gaspar's team at Mercator Ocean.
 February 2020.
@@ -15,6 +15,7 @@ February 2020.
 from parcels import plotTrajectoriesFile, ErrorCode
 from datetime import timedelta as delta
 import sys
+import time
 
 #Personal libraries
 import IOlib as IO
@@ -22,6 +23,8 @@ import TurtleClass as tc
 import Passive_kernels as pk
 import Functions as fc
 
+#Initial time
+t0=time.time()
 # =============================================================================
 # PARAMETERS
 # =============================================================================
@@ -51,9 +54,22 @@ lon_init, lat_init, t_init = IO.read_positions(param)
 # FIELDSET, CLASS AND PARTICLESET
 # =============================================================================
 fieldset = fc.create_fieldset(param, t_init)
+
+#Only for PSY deg equator and greenwich problem
+fieldset.U.grid.lon[:,720] = 0 #tmp for PSYdeg
+fieldset.U.grid.lat[320,:] = 0 #tmp for PSYdeg
+fieldset.V.grid.lon[:,720] = 0 #tmp for PSYdeg
+fieldset.V.grid.lat[320,:] = 0 #tmp for PSYdeg
+
+if param['key_alltracers']:
+    fieldset.T.grid.lon[:,720] = 0 #tmp for PSYdeg
+    fieldset.T.grid.lat[320,:] = 0 #tmp for PSYdeg
+    fieldset.NPP.grid.lon[:,720] = 0 #tmp for PSYdeg
+    fieldset.NPP.grid.lat[320,:] = 0 #tmp for PSYdeg
+
 fc.initialization(fieldset, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
-pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init) 
+pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init, param) 
 
 
 
@@ -76,7 +92,10 @@ pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
              output_file=output_file,\
              recovery={ErrorCode.ErrorOutOfBounds: pk.DeleteParticle})
 
-
+tt=time.time()-t0
+print('\n')
+print('Total execution time: '+ str(delta(seconds=int(tt))))
+print('\n')
 
 
 # =============================================================================

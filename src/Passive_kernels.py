@@ -48,20 +48,23 @@ def Distance(particle, fieldset, time):
 
 
 
-def CurrentVelocity(particle, fieldset, time):
+def CurrentVelocityPassive(particle, fieldset, time):
     """
     Compute current mean velocity during a tstep.
-    In active mode, this calculation is correct if V swim is constant over the whole time step.
     """
-    if fieldset.mode == 1: #active
-        particle.u_current = particle.lon_dist / fieldset.tstep - particle.u_swim
-        particle.v_current = particle.lat_dist / fieldset.tstep - particle.v_swim
+    particle.u_current = particle.lon_dist / fieldset.tstep
+    particle.v_current = particle.lat_dist / fieldset.tstep
+
+
+def CurrentVelocityActive(particle, fieldset, time):
+    """
+    Compute current mean velocity during a tstep.
+    This calculation is correct if V swim is constant over the whole time step.
+    """
+    particle.u_current = particle.lon_dist / fieldset.tstep - particle.u_swim
+    particle.v_current = particle.lat_dist / fieldset.tstep - particle.v_swim
     
-    elif fieldset.mode == 0: #passive
-        particle.u_current = particle.lon_dist / fieldset.tstep
-        particle.v_current = particle.lat_dist / fieldset.tstep
-
-
+    
 def DeleteParticle(particle, fieldset, time):
     """ 
     Delete out of Bounds particles
@@ -84,7 +87,6 @@ def UndoMove(particle, fieldset, time):
         particle.lat = particle.prev_lat
 
         
-    
 
         
     
