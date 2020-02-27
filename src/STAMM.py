@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Main code of STAMM, the Sea Turtle Active Movement Model.
-Tested with parcels version 2.1.4.
+Built with parcels version 2.1.4.
 
 Author: Pierrick Giffard working in Philippe Gaspar's team at Mercator Ocean.
 February 2020.

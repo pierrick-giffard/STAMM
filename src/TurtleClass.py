@@ -13,8 +13,8 @@ def define_Turtle_Class(fieldset, param):
     class turtle(JITParticle):
         #Sampling
         if param['key_alltracers']:
-            T = Variable('T', initial=fieldset.T)
-            NPP = Variable('NPP', initial=fieldset.NPP)
+            T = Variable('T')
+            NPP = Variable('NPP')
         #Passive
         distance = Variable('distance', to_write=True, initial=0., dtype=np.float32)
         lat_dist = Variable('lat_dist', to_write=False, initial=0., dtype=np.float32)
