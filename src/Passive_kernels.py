@@ -5,7 +5,6 @@ All passive kernels (also used in active mode).
 """
 
 import math
-import sys
 
 def IncrementAge(particle, fieldset, time):
    "Increment turtles age (in days)."

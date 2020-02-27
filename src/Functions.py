@@ -42,8 +42,8 @@ def create_fieldset(param, t_init):
     mesh_phy = param['mesh_phy']
     mesh_food = param['mesh_food']
     #Forcings
-    ufiles = forcing_list(param['U_dir'], param['U_suffix'], param['ystart'], param['ndays_simu'], t_init, print_date=True)
-    vfiles = forcing_list(param['V_dir'], param['V_suffix'], param['ystart'], param['ndays_simu'], t_init)
+    ufiles = forcing_list(param['U_dir'], param['U_suffix'], param['ystart'], param['ndays_simu'], t_init, param['time_periodic'], print_date=True)
+    vfiles = forcing_list(param['V_dir'], param['V_suffix'], param['ystart'], param['ndays_simu'], t_init, param['time_periodic'])
     #Filenames
     filenames = {'U': {'lon': mesh_phy, 'lat': mesh_phy, 'data': ufiles},
                  'V': {'lon': mesh_phy, 'lat': mesh_phy, 'data': vfiles}}
@@ -54,8 +54,8 @@ def create_fieldset(param, t_init):
     dimensions = {'U': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']},
                   'V': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}} 
     if key_alltracers:
-        tfiles = forcing_list(param['T_dir'], param['T_suffix'], param['ystart'], param['ndays_simu'], t_init)
-        ffiles = forcing_list(param['food_dir'], param['food_suffix'], param['ystart'], param['ndays_simu'], t_init, vgpm=param['vgpm'])
+        tfiles = forcing_list(param['T_dir'], param['T_suffix'], param['ystart'], param['ndays_simu'], t_init, param['time_periodic'])
+        ffiles = forcing_list(param['food_dir'], param['food_suffix'], param['ystart'], param['ndays_simu'], t_init, param['time_periodic'], vgpm=param['vgpm'])
         #
         filenames['T'] = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
         filenames['NPP'] = {'lon': mesh_food, 'lat': mesh_food, 'data': ffiles}
@@ -91,13 +91,17 @@ def create_fieldset(param, t_init):
     return fieldset
 
 
-def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False, vgpm = False):
+def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, time_periodic, print_date = False, vgpm = False):
     """
     Return a list with data needed for simulation.
     This function highly depends on files names, it might not work for particular names.
     """
     date_start = date(ystart, 1, 1) + timedelta(days=1+int(np.min(t_init)))
-    date_end = date_start + timedelta(days=ndays_simu+1)
+    #
+    if time_periodic == False or time_periodic > (ndays_simu + np.max(t_init)):
+        date_end = date_start + timedelta(days=ndays_simu+1)
+    else:
+        date_end = date(ystart, 1, 1) + timedelta(days=time_periodic+1)
     #
     list_years = np.arange(ystart, date_end.year + 1)
     files = []
@@ -125,8 +129,10 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False
         del(files[ndays_simu+2:]) 
     #
     if print_date:
-        print('   Starting day: ', date_start)
-        print('   Last day:     ', date_end)
+        print('   Date first file: ', date_start)
+        print('   Date last file:  ', date_end)
+        if date_end < date_start:
+            raise ValueError("Date of last file is lower than date of first file: please note that time_periodic is defined respect to 01/01/ystart")
         print('\n')
     return files
 
