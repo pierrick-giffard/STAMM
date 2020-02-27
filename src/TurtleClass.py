@@ -24,9 +24,12 @@ def define_Turtle_Class(fieldset, param):
         u_current = Variable('u_current', to_write=True, dtype=np.float32)
         v_current = Variable('v_current', to_write=True, dtype=np.float32)
         age = Variable('age', to_write=True, dtype=np.float32, initial=0.)
-        lethargy_time = Variable('lethargy_time', to_write=True, dtype=np.float32, initial=0.)
-        cold_death = Variable('cold_death', to_write=True, dtype=np.float32, initial=0)
-        Tmin = Variable('Tmin', to_write=False, dtype=np.float32)
+        #Mortality
+        if param['cold_death']:
+            lethargy_time = Variable('lethargy_time', to_write=True, dtype=np.float32, initial=0.)
+            cold_death = Variable('cold_death', to_write=True, dtype=np.float32, initial=0)
+        if param['cold_death'] or param['mode'] == 'active':
+            Tmin = Variable('Tmin', to_write=False, dtype=np.float32)
         #Active
         if param['mode'] == 'active':
             SCL = Variable('SCL', to_write=False, dtype=np.float32)

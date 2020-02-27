@@ -184,18 +184,7 @@ def compute_vmax(particle, fieldset, time):
     particle.vmax = fieldset.vscale*(particle.SCL**0.126)
 
     
-def cold_induced_mortality(particle, fieldset, time):
-    """
-    Increment particle.lethargy_time if T < Tmin.
-    If particle.lethargy_time > cold_resistance, then delete particle.
-    """
-    if fieldset.T[time, particle.depth, particle.lat, particle.lon] < particle.Tmin:
-        particle.lethargy_time += fieldset.tstep
-        if particle.lethargy_time > fieldset.cold_resistance:
-            particle.cold_death = 1
-            particle.delete()
-    else:
-        particle.lethargy_time = 0
+
 
         
         

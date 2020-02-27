@@ -5,6 +5,7 @@ All passive kernels (also used in active mode).
 """
 
 import math
+import sys
 
 def IncrementAge(particle, fieldset, time):
    "Increment turtles age (in days)."
@@ -88,7 +89,14 @@ def UndoMove(particle, fieldset, time):
 
         
 
-        
+#def CheckOnLand(particle,fieldset,time):
+#    """ 
+#    Check if particles are on land. Executed once with dt=0.
+#    """
+#    (u, v) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
+#    if fabs(u) < 1e-14 and fabs(v) < 1e-14: #does not work with abs
+#        print("Particle [%d] is on land at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
+#        #sys.exit()
     
     
     

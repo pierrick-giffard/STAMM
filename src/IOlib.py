@@ -56,7 +56,8 @@ def read_namelist(filename):
              'food_var':'',
              'ystart':'',
              'cold_death':'False',
-             'cold_resistance':'30'
+             'cold_resistance':'30',
+             'vgpm':'False'
              }
 
     namelist = open(filename,'r')
@@ -87,7 +88,7 @@ def read_namelist(filename):
  
         
     #Convert booleans
-    for key in ['periodicBC','key_alltracers','key_bounce', 'cold_death']:
+    for key in ['periodicBC','key_alltracers','key_bounce', 'cold_death','vgpm']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:
@@ -120,7 +121,9 @@ def read_namelist(filename):
             items['time_periodic'] = int(items['time_periodic'])
         except ValueError:
             sys.exit("ERROR: time_periodic must be integer or set to False")
-               
+    
+
+           
     
     return items
 
@@ -150,7 +153,8 @@ def check_param(param,output_file):
     if param['mode'] == 'active' and param['key_alltracers'] == False:
         raise ValueError('In active mode key_alltracers has to be True')
     
-
+    if param['cold_death'] and param['key_alltracers'] == False:
+        raise ValueError('To compute cold_death key_alltracers has to be True')    
     
 
 def read_positions(param):

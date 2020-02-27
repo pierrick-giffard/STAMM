@@ -55,7 +55,7 @@ def create_fieldset(param, t_init):
                   'V': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}} 
     if key_alltracers:
         tfiles = forcing_list(param['T_dir'], param['T_suffix'], param['ystart'], param['ndays_simu'], t_init)
-        ffiles = forcing_list(param['food_dir'], param['food_suffix'], param['ystart'], param['ndays_simu'], t_init)
+        ffiles = forcing_list(param['food_dir'], param['food_suffix'], param['ystart'], param['ndays_simu'], t_init, vgpm=param['vgpm'])
         #
         filenames['T'] = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
         filenames['NPP'] = {'lon': mesh_food, 'lat': mesh_food, 'data': ffiles}
@@ -66,11 +66,9 @@ def create_fieldset(param, t_init):
         dimensions['T'] = {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}
         dimensions['NPP'] = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
  
-    #Fieldset
+    #Fieldset creation
     if param['time_periodic']:
-        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions,\
-                                    time_periodic=timedelta(days=param['time_periodic']))#,\
-                                    #field_chunksize=(800, 800)) 
+        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=timedelta(days=param['time_periodic']))
     else:
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions)#, field_chunksize=(800, 800))
     #East/West periodicity
@@ -93,9 +91,10 @@ def create_fieldset(param, t_init):
     return fieldset
 
 
-def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False):
+def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False, vgpm = False):
     """
     Return a list with data needed for simulation.
+    This function highly depends on files names, it might not work for particular names.
     """
     date_start = date(ystart, 1, 1) + timedelta(days=1+int(np.min(t_init)))
     date_end = date_start + timedelta(days=ndays_simu+1)
@@ -103,25 +102,51 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, print_date = False
     list_years = np.arange(ystart, date_end.year + 1)
     files = []
     for yr in list_years:
-        files += sorted(glob(f_dir + '/*' + str(yr) + '*' + f_suffix))
+        files += sorted(glob(f_dir + '/*' + '_' + str(yr) + '*' + f_suffix))
+    if files == []:
+        for yr in list_years:
+            files += sorted(glob(f_dir + '/*' + str(yr) + '*' + f_suffix))
     #remove useless files
     del(files[:int(np.min(t_init))+1])
     del(files[ndays_simu+2:])    
+    #
+    if vgpm:
+        files = []
+        for yr in list_years:
+            files += sorted(glob(f_dir + '/*' + '.' + str(yr) + '*' + f_suffix))
+        #remove useless files
+        del(files[:int(((np.min(t_init)-1)//8))])
+        del(files[int(ndays_simu//8+3):]) 
     #
     if files == []:
         print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%ystart)
         files = sorted(glob(f_dir + '/*' + f_suffix))
         del(files[:int(np.min(t_init))+1])
+        del(files[ndays_simu+2:]) 
     #
     if print_date:
         print('   Starting day: ', date_start)
         print('   Last day:     ', date_end)
-        print('   First U file used: \n  ', files[0])
-        print('   Last U file used: \n  ', files[-1])
         print('\n')
     return files
 
 
+
+def PSY_patch(fieldset,param):
+    try:
+        #Only for PSY deg equator and greenwich problem
+        fieldset.U.grid.lon[:,720] = 0 #tmp for PSYdeg
+        fieldset.U.grid.lat[320,:] = 0 #tmp for PSYdeg
+        fieldset.V.grid.lon[:,720] = 0 #tmp for PSYdeg
+        fieldset.V.grid.lat[320,:] = 0 #tmp for PSYdeg
+    
+        if param['key_alltracers']:
+            fieldset.T.grid.lon[:,720] = 0 #tmp for PSYdeg
+            fieldset.T.grid.lat[320,:] = 0 #tmp for PSYdeg
+            fieldset.NPP.grid.lon[:,720] = 0 #tmp for PSYdeg
+            fieldset.NPP.grid.lat[320,:] = 0 #tmp for PSYdeg
+    except:
+        print('Not Using PSY patch')
 
 # =============================================================================
 # PARTICLESET
@@ -140,6 +165,8 @@ def create_particleset(fieldset, pclass, lon, lat, t_init, param):
 #        #T and NPP initialization
 #        print('   Running with dt=0 to initialize T and NPP: \n')
 #        pset.execute(pk.SampleTracers, dt=0)
+    
+#    pset.execute(pk.CheckOnLand, dt=0)
     #Time
     tt=time.time()-t0
     print('\n')
@@ -251,7 +278,7 @@ def define_active_kernels(pset, param):
         kernels_list.append(ak.compute_swimming_direction)
         kernels_list.append(ak.compute_swimming_velocity)
     if param['cold_death']:
-        kernels_list.append(file.cold_induced_mortality)
+        kernels_list.append(ak.cold_induced_mortality)
         
     for k in range(len(kernels_list)):
         kernels_list[k]=pset.Kernel(kernels_list[k]) 
