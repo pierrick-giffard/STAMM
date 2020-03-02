@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-All passive kernels (also used in active mode).
+Definition of kernels used for all particles (both in active and passive modes).
 """
 
 import math
+
 
 def IncrementAge(particle, fieldset, time):
    "Increment turtles age (in days)."
@@ -23,7 +24,7 @@ def SampleTracers(particle, fieldset, time):
 
 def Periodic(particle, fieldset, time):
     """
-    Particles pass from east boundary to west boundary.
+    So that particles move from east boundary to west boundary.
     """
     if particle.lon < fieldset.halo_west:
         particle.lon += fieldset.halo_east - fieldset.halo_west
@@ -35,6 +36,7 @@ def Periodic(particle, fieldset, time):
 def Distance(particle, fieldset, time):
     """
     Calculate the distance travelled at each time step.
+    Flat earth assumption during a timestep.
     """
     # Calculate the distance in latitudinal direction (using 1.11e2 kilometer per degree latitude)
     particle.lat_dist = (particle.lat - particle.prev_lat) * fieldset.deg
@@ -48,26 +50,23 @@ def Distance(particle, fieldset, time):
 
 
 
-def CurrentVelocityPassive(particle, fieldset, time):
+def CurrentVelocity(particle, fieldset, time):
     """
     Compute current mean velocity during a tstep.
+    This calculation is correct if the swimming velocity is constant over the whole time step.
     """
-    particle.u_current = particle.lon_dist / fieldset.tstep
-    particle.v_current = particle.lat_dist / fieldset.tstep
+    if fieldset.active == 1:
+        particle.u_current = particle.lon_dist / fieldset.tstep - particle.u_swim
+        particle.v_current = particle.lat_dist / fieldset.tstep - particle.v_swim
+    else:
+        particle.u_current = particle.lon_dist / fieldset.tstep
+        particle.v_current = particle.lat_dist / fieldset.tstep
 
-
-def CurrentVelocityActive(particle, fieldset, time):
-    """
-    Compute current mean velocity during a tstep.
-    This calculation is correct if V swim is constant over the whole time step.
-    """
-    particle.u_current = particle.lon_dist / fieldset.tstep - particle.u_swim
-    particle.v_current = particle.lat_dist / fieldset.tstep - particle.v_swim
     
     
 def DeleteParticle(particle, fieldset, time):
     """ 
-    Delete out of Bounds particles
+    Delete out of bounds particles.
     """
     print("\n")
     print("Turtle [%d] deleted at lon,lat = %f,%f and time = %f"%(particle.id,particle.lon,particle.lat,time))
@@ -75,27 +74,57 @@ def DeleteParticle(particle, fieldset, time):
 
 
 
-def UndoMove(particle, fieldset, time):
+def BeachTesting(particle, fieldset, time):
     """
-    Send turtle back to last position in case it is on land.
+    If particle is on land, particle.beached is set to 1.
     """
     (u, v) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
-    if fabs(u) < 1e-14 and fabs(v) < 1e-14: #does not work with abs
-        print("Particle [%d] is on land at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
-        print(" => It is sent back to its last position")
+    if fieldset.active == 1:
+        npp = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
+        if (math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14) or math.fabs(npp) < 1e-14:
+            particle.beached = 1
+    else: 
+        if math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14:
+            particle.beached = 1
+
+
+           
+def UndoMove(particle, fieldset, time):
+    """
+    Send particle back to last position in case it is on land.
+    If it is on land more than onland_max times in a row, it is deleted.
+    """
+    onland_max = 10  
+    if particle.beached == 1:
+        particle.beached = 0
         particle.lon = particle.prev_lon
         particle.lat = particle.prev_lat
+        particle.onland += 1
+        #
+        if particle.onland > onland_max:
+            print("Particle [%d] was deleted after beaching %f times in a row."%(particle.id,particle.onland))
+            particle.delete()
+    else:
+        particle.onland = 0
+
 
         
 
-#def CheckOnLand(particle,fieldset,time):
-#    """ 
-#    Check if particles are on land. Executed once with dt=0.
-#    """
-#    (u, v) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
-#    if fabs(u) < 1e-14 and fabs(v) < 1e-14: #does not work with abs
-#        print("Particle [%d] is on land at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
-#        #sys.exit()
+def CheckOnLand(particle,fieldset,time):
+    """ 
+    Check if particles are released on land. 
+    Executed once with dt=0 just after ParticleSet is created.
+    """
+    (u, v) = fieldset.UV[0, particle.depth, particle.lat, particle.lon]
+    if fieldset.active == 1:
+        npp = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
+        if (math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14) or math.fabs(npp) < 1e-14:
+            print("Particle [%d] is released on land at lon,lat = %f,%f. Execution stops."%(particle.id,particle.lon,particle.lat))
+            exit(0)
+    else:
+        if math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14:
+            print("Particle [%d] is released on land at lon,lat = %f,%f. Execution stops."%(particle.id,particle.lon,particle.lat))
+            exit(0)
     
     
     

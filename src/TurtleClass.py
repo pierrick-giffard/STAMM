@@ -15,7 +15,7 @@ def define_Turtle_Class(fieldset, param):
         if param['key_alltracers']:
             T = Variable('T')
             NPP = Variable('NPP')
-        #Passive
+        #All particles
         distance = Variable('distance', to_write=True, initial=0., dtype=np.float32)
         lat_dist = Variable('lat_dist', to_write=False, initial=0., dtype=np.float32)
         lon_dist= Variable('lon_dist', to_write=False, initial=0., dtype=np.float32)
@@ -24,9 +24,13 @@ def define_Turtle_Class(fieldset, param):
         u_current = Variable('u_current', to_write=True, dtype=np.float32)
         v_current = Variable('v_current', to_write=True, dtype=np.float32)
         age = Variable('age', to_write=True, dtype=np.float32, initial=0.)
+        onland = Variable('onland', to_write=False, dtype=np.float32, initial=0.) #number of beachings in a row
+        beached = Variable('beached', to_write=False, dtype=np.float32, initial=0.) #0=ocean, 1=onland
+        u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
+        v_swim = Variable('v_swim', to_write=True, dtype=np.float32)
         #Mortality
         if param['cold_death']:
-            lethargy_time = Variable('lethargy_time', to_write=True, dtype=np.float32, initial=0.)
+            lethargy_time = Variable('lethargy_time', to_write=False, dtype=np.float32, initial=0.) #time spent under Tmin
             cold_death = Variable('cold_death', to_write=True, dtype=np.float32, initial=0)
         if param['cold_death'] or param['mode'] == 'active':
             Tmin = Variable('Tmin', to_write=False, dtype=np.float32)
@@ -40,8 +44,6 @@ def define_Turtle_Class(fieldset, param):
             habPP = Variable('habPP', to_write=True, dtype=np.float32)
             hab = Variable('hab', to_write=True, dtype=np.float32)
             theta = Variable('theta', to_write=False, dtype=np.float32)
-            u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
-            v_swim = Variable('v_swim', to_write=True, dtype=np.float32)
             xgradh = Variable('xgradh', to_write=True, dtype=np.float32)
             ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Kernels used to compute swimming velocity. 
+Kernels used to compute swimming velocity and cold induced mortality.
 """
 
 
@@ -43,6 +43,7 @@ def cold_induced_mortality(particle, fieldset, time):
     """
     Increment particle.lethargy_time if T < Tmin.
     If particle.lethargy_time > cold_resistance, then delete particle.
+    PB: how to keep in memory dead turtles ?
     """
     if fieldset.T[time, particle.depth, particle.lat, particle.lon] < particle.Tmin:
         particle.lethargy_time += fieldset.tstep
@@ -52,8 +53,8 @@ def cold_induced_mortality(particle, fieldset, time):
     else:
         particle.lethargy_time = 0    
 
-
-                
+ 
+               
 
 
 

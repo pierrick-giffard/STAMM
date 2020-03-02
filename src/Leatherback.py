@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Kernels relative to Leatherback turtles.    
+Kernels relative to Leatherback turtles.
+Note: parcels kernels don't accept homemade functions, for loopsor numpy function.    
 """
 
 
@@ -133,24 +134,19 @@ def compute_habitat(particle, fieldset, time):
     h_right = T_hab[2] * food_hab[2]
     h_bot = T_hab[3] * food_hab[3]
     h_top = T_hab[4] * food_hab[4]
+    #
     """
     Habitat gradient
     """ 
     particle.xgradh = (h_right - h_left)/(2 * fieldset.grad_dx)
     particle.ygradh = (h_top - h_bot)/(2 * fieldset.grad_dx)
+    #
     """
-    Safety checks
-    """ 
-    #Ensure habitat is set to 0 on land
-    # if fieldset.LandMask == 0:
-    #         T_hab = 0
-    #         food_hab = 0
-    if particle.hab < 0:
-        a=particle.habT
-        b=particle.habPP
-        c=particle.hab
-        print(a,b,c)
-
+    Safety check
+    """
+    if particle.hab < 0 or particle.hab > 1:
+        print("Habitat is %f at lon,lat = %f,%f. Execution stops."%(particle.hab,particle.lon,particle.lat))
+        exit(0)
 
 
             

@@ -50,16 +50,16 @@ time_periodic = param['time_periodic']
 # =============================================================================
 lon_init, lat_init, t_init = IO.read_positions(param)
 
+
+
 # =============================================================================
 # FIELDSET, CLASS AND PARTICLESET
 # =============================================================================
 fieldset = fc.create_fieldset(param, t_init)
 fc.PSY_patch(fieldset,param)
-
-
 fc.initialization(fieldset, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
-pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init, param) 
+pset = fc.create_particleset(fieldset, turtle, [-25,-25], [55,0], t_init, param) 
 
 
 
@@ -82,15 +82,14 @@ pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
              output_file=output_file,\
              recovery={ErrorCode.ErrorOutOfBounds: pk.DeleteParticle})
 
-
-
-
-# =============================================================================
-# WRITE OUTPUT FILE
-# =============================================================================
-output_file.export()  # only for parcels version > 2.1
-plotTrajectoriesFile(OutputFile)
 tt=time.time()-t0
 print('\n')
 print('Total execution time: '+ str(delta(seconds=int(tt))))
 print('\n')
+
+# =============================================================================
+# WRITE OUTPUT FILE
+# =============================================================================
+output_file.export()
+plotTrajectoriesFile(OutputFile)
+

@@ -50,7 +50,7 @@ def create_fieldset(param, t_init):
     #Variables
     variables = {'U': param['U_var'],
                  'V': param['V_var']}
-    #Dimensions: C-grids need f nodes
+    #Dimensions: Caution, C-grids need f nodes
     dimensions = {'U': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']},
                   'V': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}} 
     if key_alltracers:
@@ -95,8 +95,14 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, time_periodic, pri
     """
     Return a list with data needed for simulation.
     This function highly depends on files names, it might not work for particular names.
+    It works for names format:
+        -   *_YYYY*suffix
+        -   *YYYY*suffix
+        -   vgpm files with vgpm=True in namelist
+    If none of this format is found, consider first file is 01/01/ystart.
     """
-    date_start = date(ystart, 1, 1) + timedelta(days=1+int(np.min(t_init)))
+    tmin = timedelta(days=int(np.min(t_init)))
+    date_start = date(ystart, 1, 1) + tmin
     #
     if time_periodic == False or time_periodic > (ndays_simu + np.max(t_init)):
         date_end = date_start + timedelta(days=ndays_simu+1)
@@ -111,48 +117,56 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, time_periodic, pri
         for yr in list_years:
             files += sorted(glob(f_dir + '/*' + str(yr) + '*' + f_suffix))
     #remove useless files
-    del(files[:int(np.min(t_init))+1])
-    del(files[ndays_simu+2:])    
+    del(files[:tmin.days])
+    del(files[(date_end-date_start).days+1:])
     #
     if vgpm:
         files = []
         for yr in list_years:
             files += sorted(glob(f_dir + '/*' + '.' + str(yr) + '*' + f_suffix))
         #remove useless files
-        del(files[:int(((np.min(t_init)-1)//8))])
-        del(files[int(ndays_simu//8+3):]) 
+        del(files[:tmin.days//8])
+        del(files[((date_end-date_start).days)//8+3:]) 
     #
     if files == []:
         print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%ystart)
         files = sorted(glob(f_dir + '/*' + f_suffix))
-        del(files[:int(np.min(t_init))+1])
-        del(files[ndays_simu+2:]) 
+        del(files[:tmin.days])
+        del(files[(date_end-date_start).days+1:]) 
     #
     if print_date:
         print('   Date first file: ', date_start)
         print('   Date last file:  ', date_end)
         if date_end < date_start:
-            raise ValueError("Date of last file is lower than date of first file: please note that time_periodic is defined respect to 01/01/ystart")
+            raise ValueError("Date of last file is lower than date of first file: \
+                             please note that time_periodic is defined respect to 01/01/ystart")
         print('\n')
     return files
 
 
 
 def PSY_patch(fieldset,param):
+    """
+    Our files PSY4 interpolated on A-grid coarsened to 1/4° have a 
+    problem at the equator and at Greenwich meridian: lon and lat are NaN.
+    This function passes them to 0.
+    """
     try:
-        #Only for PSY deg equator and greenwich problem
-        fieldset.U.grid.lon[:,720] = 0 #tmp for PSYdeg
-        fieldset.U.grid.lat[320,:] = 0 #tmp for PSYdeg
-        fieldset.V.grid.lon[:,720] = 0 #tmp for PSYdeg
-        fieldset.V.grid.lat[320,:] = 0 #tmp for PSYdeg
+        fieldset.U.grid.lon[:,720] = 0
+        fieldset.U.grid.lat[320,:] = 0
+        fieldset.V.grid.lon[:,720] = 0
+        fieldset.V.grid.lat[320,:] = 0
     
         if param['key_alltracers']:
-            fieldset.T.grid.lon[:,720] = 0 #tmp for PSYdeg
-            fieldset.T.grid.lat[320,:] = 0 #tmp for PSYdeg
-            fieldset.NPP.grid.lon[:,720] = 0 #tmp for PSYdeg
-            fieldset.NPP.grid.lat[320,:] = 0 #tmp for PSYdeg
+            fieldset.T.grid.lon[:,720] = 0
+            fieldset.T.grid.lat[320,:] = 0
+            fieldset.NPP.grid.lon[:,720] = 0
+            fieldset.NPP.grid.lat[320,:] = 0
     except:
         print('Not Using PSY patch')
+
+
+
 
 # =============================================================================
 # PARTICLESET
@@ -167,12 +181,8 @@ def create_particleset(fieldset, pclass, lon, lat, t_init, param):
     #
     t_release = (t_init - int(np.min(t_init))) * 86400
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
-#    if param['key_alltracers']:
-#        #T and NPP initialization
-#        print('   Running with dt=0 to initialize T and NPP: \n')
-#        pset.execute(pk.SampleTracers, dt=0)
-    
-#    pset.execute(pk.CheckOnLand, dt=0)
+    #
+    pset.execute(pk.CheckOnLand, dt=0)
     #Time
     tt=time.time()-t0
     print('\n')
@@ -190,10 +200,13 @@ def initialization(fieldset, param):
     fieldset.deg = 111195 #1degree = 111,195 km approx
     fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
     if param['mode'] == 'active':
+        fieldset.active = 1
         fieldset.vscale = param['vscale']
         fieldset.P0 = param['P0']
         fieldset.grad_dx = param['grad_dx']
         fieldset.alpha = param['alpha']
+    else:
+        fieldset.active = 0
 
 
 
@@ -237,21 +250,15 @@ def define_passive_kernels(fieldset, pset, param):
     """
     key_alltracers = param['key_alltracers']
     periodicBC = param['periodicBC']
-    mode = param['mode']
     #
-    kernels_list = [pk.UndoMove, pk.Distance]
-    if mode == 'passive':
-        kernels_list.append(pk.CurrentVelocityPassive)
-    elif mode == 'active':
-        kernels_list.append(pk.CurrentVelocityActive)
+    kernels_list = [pk.IncrementAge, pk.BeachTesting, pk.UndoMove, pk.Distance, pk.CurrentVelocity]
+    #
     if key_alltracers:
         kernels_list.append(pk.SampleTracers)
-    
+    #
     if periodicBC:
         kernels_list.append(pk.Periodic)
     #
-    kernels_list.append(pk.IncrementAge)
-    #       
     for k in range(len(kernels_list)):
         kernels_list[k]=pset.Kernel(kernels_list[k])  
     return kernels_list
