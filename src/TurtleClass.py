@@ -23,7 +23,7 @@ def define_Turtle_Class(fieldset, param):
         prev_lat = Variable('prev_lat', to_write=False, dtype=np.float32, initial=attrgetter('lat'))
         u_current = Variable('u_current', to_write=True, dtype=np.float32)
         v_current = Variable('v_current', to_write=True, dtype=np.float32)
-        age = Variable('age', to_write=True, dtype=np.float32, initial=0.)
+        age = Variable('age', to_write=True, dtype=np.float64, initial=0.)
         onland = Variable('onland', to_write=False, dtype=np.float32, initial=0.) #number of beachings in a row
         beached = Variable('beached', to_write=False, dtype=np.float32, initial=0.) #0=ocean, 1=onland
         u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
@@ -36,15 +36,19 @@ def define_Turtle_Class(fieldset, param):
             Tmin = Variable('Tmin', to_write=False, dtype=np.float32)
         #Active
         if param['mode'] == 'active':
-            SCL = Variable('SCL', to_write=False, dtype=np.float32)
+            
             M = Variable('M', to_write=False, dtype=np.float32)
             vmax = Variable('vmax', to_write=False, dtype=np.float32)
-            PPmax = Variable('PPmax', to_write=False, dtype=np.float32)       
+            PPmax = Variable('PPmax', to_write=True, dtype=np.float32)       
             habT = Variable('habT', to_write=True, dtype=np.float32)
             habPP = Variable('habPP', to_write=True, dtype=np.float32)
             hab = Variable('hab', to_write=True, dtype=np.float32)
             theta = Variable('theta', to_write=False, dtype=np.float32)
             xgradh = Variable('xgradh', to_write=True, dtype=np.float32)
             ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
-
+            if param['growth'] == 'Gompertz':
+                K = Variable('K', to_write=False, dtype=np.float32, initial=param['K0'])
+                SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=param['SCL0'])
+            else:
+                SCL = Variable('SCL', to_write=True, dtype=np.float32)
     return turtle

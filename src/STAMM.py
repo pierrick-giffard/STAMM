@@ -59,7 +59,7 @@ fieldset = fc.create_fieldset(param, t_init)
 fc.PSY_patch(fieldset,param)
 fc.initialization(fieldset, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
-pset = fc.create_particleset(fieldset, turtle, [-25,-25], [55,0], t_init, param) 
+pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init, param) 
 
 
 

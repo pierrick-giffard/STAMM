@@ -72,17 +72,9 @@ def create_fieldset(param, t_init):
     else:
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions)#, field_chunksize=(800, 800))
     #East/West periodicity
-    if param['periodicBC']:
-        if param['grid_type'] == 'standard':
-            #halo should be automatically included in orca grids 
-            try:
-                fieldset.add_constant('halo_west', fieldset.U.grid.lon[0,0])
-                fieldset.add_constant('halo_east', fieldset.U.grid.lon[0,-1])
-            except:
-                fieldset.add_constant('halo_west', fieldset.U.grid.lon[0])
-                fieldset.add_constant('halo_east', fieldset.U.grid.lon[-1])
-            #          
-            fieldset.add_periodic_halo(zonal=True) 
+    if param['periodicBC'] and not param['halo']:
+        add_halo(fieldset)
+
     #Time
     tt=time.time()-t0
     print('\n')
@@ -166,7 +158,15 @@ def PSY_patch(fieldset,param):
         print('Not Using PSY patch')
 
 
-
+def add_halo(fieldset):
+    try:
+        fieldset.add_constant('halo_west', fieldset.U.grid.lon[0,0])
+        fieldset.add_constant('halo_east', fieldset.U.grid.lon[0,-1])
+    except:
+        fieldset.add_constant('halo_west', fieldset.U.grid.lon[0])
+        fieldset.add_constant('halo_east', fieldset.U.grid.lon[-1])
+    #          
+    fieldset.add_periodic_halo(zonal=True) 
 
 # =============================================================================
 # PARTICLESET
@@ -196,7 +196,6 @@ def initialization(fieldset, param):
     """
     Links constant parameters to fieldset in order to use them within kernels.
     """
-    fieldset.tstep = param['tstep']
     fieldset.deg = 111195 #1degree = 111,195 km approx
     fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
     if param['mode'] == 'active':
@@ -251,7 +250,11 @@ def define_passive_kernels(fieldset, pset, param):
     key_alltracers = param['key_alltracers']
     periodicBC = param['periodicBC']
     #
-    kernels_list = [pk.IncrementAge, pk.BeachTesting, pk.UndoMove, pk.Distance, pk.CurrentVelocity]
+    kernels_list = [pk.IncrementAge, 
+                    pk.BeachTesting, 
+                    pk.UndoMove, 
+                    pk.Distance, 
+                    pk.CurrentVelocity]
     #
     if key_alltracers:
         kernels_list.append(pk.SampleTracers)
@@ -275,21 +278,30 @@ def define_active_kernels(pset, param):
     #
     mode = param['mode']
     species = param['species']
+    growth = param['growth']
     #
-    kernels_list = [] 
+    kernels_list = []
     if mode == 'active':      
         if species == 'leatherback':
             file = leath
         elif species == 'loggerhead':
             file = log
+        if growth == 'VGBF':
+            compute_SCL = file.compute_SCL_VGBF
+            compute_PPmax = file.compute_PPmax_VGBF
+            
+        elif growth == 'Gompertz':
+            compute_SCL = file.compute_SCL_Gompertz
+            compute_PPmax = file.compute_PPmax_Gompertz
+        #
+        kernels_list = [compute_SCL,
+                        file.compute_Mass,
+                        compute_PPmax,
+                        file.compute_vmax,
+                        file.compute_habitat,
+                        ak.compute_swimming_direction,
+                        ak.compute_swimming_velocity]
 
-        kernels_list.append(file.compute_SCL)      
-        kernels_list.append(file.compute_Mass)
-        kernels_list.append(file.compute_PPmax)
-        kernels_list.append(file.compute_vmax)      
-        kernels_list.append(file.compute_habitat)
-        kernels_list.append(ak.compute_swimming_direction)
-        kernels_list.append(ak.compute_swimming_velocity)
     if param['cold_death']:
         kernels_list.append(ak.cold_induced_mortality)
         

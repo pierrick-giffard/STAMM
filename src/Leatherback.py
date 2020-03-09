@@ -6,7 +6,7 @@ Note: parcels kernels don't accept homemade functions, for loopsor numpy functio
 """
 
 
-from math import exp, sqrt, cos
+from math import exp, sqrt, cos, log
 import math
 
 
@@ -150,26 +150,72 @@ def compute_habitat(particle, fieldset, time):
 
 
             
-def compute_SCL(particle, fieldset, time):
-    "Compute Straight Carapace Length"
-    particle.SCL = 1.43*(1-exp(-0.226*(particle.age/365.+0.17)))
+def compute_SCL_VGBF(particle, fieldset, time):
+    """
+    Compute Straight Carapace Length (meters). Age is in days.
+    Uses a Von Bertalanffy function (VGBF).
+    Ref : Jones, T.T., Hastings, M.D., Bostrom, B.L., Pauly, D., Jones, D.R., 2011. Growth of captive leatherback turtles, Dermochelys coriacea, with inferences on growth in the wild: Implications for population decline and recovery. Journal of Experimental Marine Biology and Ecology 399, 84–92.
+    """
+    k = 0.226
+    SCLmax = 1.43
+    t0 = -0.17    
+    particle.SCL = SCLmax * (1 - exp(-k * (particle.age/365. - t0)))
+
+
+
+def compute_SCL_Gompertz(particle, fieldset, time):
+    """
+    Compute Straight Carapace Length (meters). Age is in days.
+    Uses a modified Gompertz equation in which growth depends on habitat.
+    This model needs SCL in cm.
+    Ref: D. Chevallier, B. Mourrain, M. Girondot, 2020. Modelling leatherback biphasic indeterminate growth using a modified Gompertz equation.
+    """
+    alpha0 = 0.009839
+    beta0 = 0.084164
+    M0 = 105.2563
+    S0 = 15.5433
+    #
+    prev_SCL = particle.SCL * 100 #this model needs centimeters
+    prev_K = particle.K
+    #
+    SCL = prev_SCL + alpha0 * particle.hab * log(prev_K / prev_SCL) * prev_K *  particle.dt / 86400
+    particle.K = prev_K + beta0 * particle.hab * 1 / (1 + exp(-(M0 - prev_SCL) / S0)) *  particle.dt / 86400
+    #
+    particle.SCL = SCL / 100 #back to meters
+    
+    
 
             
-            
 def compute_Mass(particle, fieldset, time):
-    "Compute mass"
-    particle.M = 112.31*(particle.SCL)**2.86
+    "Compute mass (kg). SCL is in meters."
+    a = 112.31
+    b = 2.86
+    particle.M = a*(particle.SCL)**b
+
     
     
-def compute_PPmax(particle, fieldset, time):
+def compute_PPmax_VGBF(particle, fieldset, time):
     """
     Compute food threshold
     Ref : Jones, T.T., Bostrom, B.L.,  Hastings, M.D., Van Houtan K.S., Pauly, D., 2012. Resource requirements of the Pacific Leatherback Turtle Population
     """
-    #Besoin annuels en valeur absolue
+    b = 2.86
+    beta = 0.0328
+    SCLmax = 1.43
+    #
+    x = particle.SCL / SCLmax
+    PPnorm = b * beta * (1 - x) * x**(b-1) / (1 - x**(b * beta))
+    particle.PPmax = PPnorm * fieldset.P0
+    
 
-    PPmax = 266.80368*(((1-exp(-0.299*(particle.age/365.+0.17)))**(2.86-1))*(exp(-0.299*(particle.age/365.+0.17))))/(1-(1-exp(-0.299*(particle.age/365.+0.17)))**(2.86*0.0328))
-    particle.PPmax = PPmax/(2835.24/fieldset.P0)
+def compute_PPmax_Gompertz(particle, fieldset, time):
+    """
+    Assume F = c*M
+    """
+    c = 0.0031#1/325
+    PPnorm = c * particle.M
+    particle.PPmax = PPnorm * fieldset.P0
+
   
              
 def compute_vmax(particle, fieldset, time):

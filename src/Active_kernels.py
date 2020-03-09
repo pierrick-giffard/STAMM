@@ -46,7 +46,7 @@ def cold_induced_mortality(particle, fieldset, time):
     PB: how to keep in memory dead turtles ?
     """
     if fieldset.T[time, particle.depth, particle.lat, particle.lon] < particle.Tmin:
-        particle.lethargy_time += fieldset.tstep
+        particle.lethargy_time += particle.dt
         if particle.lethargy_time > fieldset.cold_resistance:
             particle.cold_death = 1
             particle.delete()

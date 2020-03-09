@@ -33,7 +33,7 @@ def read_namelist(filename):
              'periodicBC':'True',
              'key_alltracers':'True',
              'key_bounce':'False',
-             'grid_type':'',
+             'halo':'False',
              'U_dir':'',
              'U_suffix':'',
              'V_dir':'',
@@ -57,7 +57,10 @@ def read_namelist(filename):
              'ystart':'',
              'cold_death':'False',
              'cold_resistance':'30',
-             'vgpm':'False'
+             'vgpm':'False',
+             'growth':'VGBF',
+             'SCL0':'',
+             'K0':''
              }
 
     namelist = open(filename,'r')
@@ -88,7 +91,7 @@ def read_namelist(filename):
  
         
     #Convert booleans
-    for key in ['periodicBC','key_alltracers','key_bounce', 'cold_death','vgpm']:
+    for key in ['periodicBC','key_alltracers','key_bounce', 'cold_death','vgpm','halo']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:
@@ -103,6 +106,9 @@ def read_namelist(filename):
     items['mode'] = items['mode'].lower()
     if items['mode'] not in ['passive','active']:
         sys.exit("ERROR : mode must be 'passive' or 'active'")
+        
+    if items['growth'] not in ['VGBF','Gompertz']:
+        sys.exit("ERROR : mode must be 'Gompertz' or 'VGBF'")
         
     
     #Active items
@@ -123,8 +129,6 @@ def read_namelist(filename):
             sys.exit("ERROR: time_periodic must be integer or set to False")
     
 
-           
-    
     return items
 
 
@@ -134,7 +138,7 @@ def check_param(param,output_file):
     Checks if all needed arguments are present.
     """
     param_check = {'init_file', 'nturtles', 'ndays_simu', 't_output', 'mode', 'key_alltracers',\
-                   'periodicBC', 'tstep', 'adv_scheme','grid_type',\
+                   'periodicBC', 'tstep', 'adv_scheme','halo',\
                    'U_dir', 'V_dir', 'mesh_phy', 'lon_phy', 'lat_phy', 'time_var_phy', 'U_var','V_var',
                    'U_suffix', 'V_suffix','ystart'}
     

@@ -56,11 +56,11 @@ def CurrentVelocity(particle, fieldset, time):
     This calculation is correct if the swimming velocity is constant over the whole time step.
     """
     if fieldset.active == 1:
-        particle.u_current = particle.lon_dist / fieldset.tstep - particle.u_swim
-        particle.v_current = particle.lat_dist / fieldset.tstep - particle.v_swim
+        particle.u_current = particle.lon_dist / particle.dt - particle.u_swim
+        particle.v_current = particle.lat_dist / particle.dt - particle.v_swim
     else:
-        particle.u_current = particle.lon_dist / fieldset.tstep
-        particle.v_current = particle.lat_dist / fieldset.tstep
+        particle.u_current = particle.lon_dist / particle.dt
+        particle.v_current = particle.lat_dist / particle.dt
 
     
     
