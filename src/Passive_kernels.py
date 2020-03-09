@@ -102,7 +102,8 @@ def UndoMove(particle, fieldset, time):
         particle.onland += 1
         #
         if particle.onland > onland_max:
-            print("Particle [%d] was deleted after beaching %f times in a row."%(particle.id,particle.onland))
+            a=floor(time/86400)
+            print("Particle [%d] was deleted after beaching %f times in a row. %f"%(particle.id,particle.onland, a))
             particle.delete()
     else:
         particle.onland = 0
@@ -117,7 +118,7 @@ def CheckOnLand(particle,fieldset,time):
     """
     (u, v) = fieldset.UV[0, particle.depth, particle.lat, particle.lon]
     if fieldset.active == 1:
-        npp = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
+        npp = fieldset.NPP[0, particle.depth, particle.lat, particle.lon]
         if (math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14) or math.fabs(npp) < 1e-14:
             print("Particle [%d] is released on land at lon,lat = %f,%f. Execution stops."%(particle.id,particle.lon,particle.lat))
             exit(0)

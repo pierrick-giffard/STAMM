@@ -1,0 +1,56 @@
+# STAMM CHANGES
+
+## STAMM-2.1.0
+
+1- Allow CMEMS data:
+An option CenteredGrid was added. If True, at each time step a C-grid is computed based on a linear interpolation of the A-grid.
+
+Overlap is managed properly: no more needed to create one manually.
+
+New mesh managment: providing a mesh is not needed anymore. The mask is automatically created based on the firsts U, V, T and NPP files so that data is available for all forcings where mask = 1 (ocean). This option is only available for Centered Grids (A grids). Also, e1t, e2t, e1v, e2u, glamu and gphiv are calculated automatically if not provided.
+
+
+2- Improve security:
+Avoid coast crashes due to random Von Mises: if the turtle is near land and its total velocity is directed towards land, velocity is set to 0 at the land side. It is also possible to use the bounce option so that turtles bounce against land.
+
+New function to check if all parameters are given.
+
+Habitat is forced to be between 0 and 1 and to be 0 on land.
+
+NPP is forced to be positive.
+
+Check there are sufficient files to compute simulation.
+
+
+3- Be user friendly:
+
+Option to loop periodically data
+
+Print day of simulation at each time step given a time_origin
+
+nsteps_max is calculated automatically
+
+Namelist was simplified
+
+Print total time of simulation
+
+4- Other improvements:
+The main for loop in Ariane was parallelized, but not tested.
+
+The current velocity encountered by turtles is calculated at the end of the simulation in an exact way.
+
+Computation was speed up.
+
+
+
+## STAMM-2.0.0
+
+* Switch to python3
+* Update namelist template
+* Add different compling scripts
+* Add CECILL-C License
+* Add hardcoded origin date to chose between 01.01.2002 (730851; first date of GLORYS1 forcings) and 01.01.1998 (729390; first date of GLORYS2 forcings) 
+
+## STAMM-1.0.0
+
+Initial version (python2)
