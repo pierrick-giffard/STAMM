@@ -49,13 +49,14 @@ time_periodic = param['time_periodic']
 # Read initial positions and time
 # =============================================================================
 lon_init, lat_init, t_init = IO.read_positions(param)
+ndays_simu += max(t_init) - min(t_init)
 
 
 
 # =============================================================================
 # FIELDSET, CLASS AND PARTICLESET
 # =============================================================================
-fieldset = fc.create_fieldset(param, t_init)
+fieldset = fc.create_fieldset(param, ndays_simu, t_init)
 fc.PSY_patch(fieldset,param)
 fc.initialization(fieldset, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
@@ -80,7 +81,7 @@ kernels = fc.sum_kernels(k_adv, k_active, k_passive)
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(seconds=t_output))
 pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
              output_file=output_file,\
-             recovery={ErrorCode.ErrorOutOfBounds: pk.DeleteParticle})
+             recovery={ErrorCode.ErrorOutOfBounds: pk.DisableParticle})
 
 tt=time.time()-t0
 print('\n')
@@ -88,8 +89,9 @@ print('Total execution time: '+ str(delta(seconds=int(tt))))
 print('\n')
 
 # =============================================================================
-# WRITE OUTPUT FILE
+# OUTPUT
 # =============================================================================
 output_file.export()
 plotTrajectoriesFile(OutputFile)
+fc.modify_output(OutputFile, t_init, param)
 

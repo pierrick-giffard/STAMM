@@ -32,7 +32,6 @@ def read_namelist(filename):
              'grad_dx':'',
              'periodicBC':'True',
              'key_alltracers':'True',
-             'key_bounce':'False',
              'halo':'False',
              'U_dir':'',
              'U_suffix':'',
@@ -91,7 +90,7 @@ def read_namelist(filename):
  
         
     #Convert booleans
-    for key in ['periodicBC','key_alltracers','key_bounce', 'cold_death','vgpm','halo']:
+    for key in ['periodicBC','key_alltracers', 'cold_death','vgpm','halo']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:
@@ -110,6 +109,10 @@ def read_namelist(filename):
     if items['growth'] not in ['VGBF','Gompertz']:
         sys.exit("ERROR : mode must be 'Gompertz' or 'VGBF'")
         
+    if items['adv_scheme'] not in ['RK4','Euler']:
+        sys.exit("ERROR : mode must be 'RK4' or 'Euler'")
+    
+   
     
     #Active items
     if items['mode']=='active':
@@ -118,6 +121,7 @@ def read_namelist(filename):
                 items[key] = float(items[key])
             except ValueError:
                 sys.exit("ERROR : %s must be float" %(key))
+                            
     
     #Time periodic
     if items['time_periodic'] == 'False':
@@ -147,8 +151,10 @@ def check_param(param,output_file):
                                 'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
         param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
-        
-        
+          
+    if param['growth'] == 'Gompertz':
+        param_check = set(list({'SCL0','K0'}) + list(param_check))
+                   
     for key in param.keys():
         value = param[key]
         if key in param_check and value == '':

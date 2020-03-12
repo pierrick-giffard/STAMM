@@ -16,6 +16,7 @@ def define_Turtle_Class(fieldset, param):
             T = Variable('T')
             NPP = Variable('NPP')
         #All particles
+        active = Variable('active', to_write=True, initial=1, dtype=np.float32)  
         distance = Variable('distance', to_write=True, initial=0., dtype=np.float32)
         lat_dist = Variable('lat_dist', to_write=False, initial=0., dtype=np.float32)
         lon_dist= Variable('lon_dist', to_write=False, initial=0., dtype=np.float32)
@@ -26,8 +27,9 @@ def define_Turtle_Class(fieldset, param):
         age = Variable('age', to_write=True, dtype=np.float64, initial=0.)
         onland = Variable('onland', to_write=False, dtype=np.float32, initial=0.) #number of beachings in a row
         beached = Variable('beached', to_write=False, dtype=np.float32, initial=0.) #0=ocean, 1=onland
-        u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
-        v_swim = Variable('v_swim', to_write=True, dtype=np.float32)
+        if param['mode'] == 'passive':
+            u_swim = Variable('u_swim', to_write=False, dtype=np.float32)
+            v_swim = Variable('v_swim', to_write=False, dtype=np.float32)
         #Mortality
         if param['cold_death']:
             lethargy_time = Variable('lethargy_time', to_write=False, dtype=np.float32, initial=0.) #time spent under Tmin
@@ -36,7 +38,8 @@ def define_Turtle_Class(fieldset, param):
             Tmin = Variable('Tmin', to_write=False, dtype=np.float32)
         #Active
         if param['mode'] == 'active':
-            
+            u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
+            v_swim = Variable('v_swim', to_write=True, dtype=np.float32)
             M = Variable('M', to_write=False, dtype=np.float32)
             vmax = Variable('vmax', to_write=False, dtype=np.float32)
             PPmax = Variable('PPmax', to_write=True, dtype=np.float32)       

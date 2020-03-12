@@ -1,0 +1,57 @@
+&GENERAL PARAMETERS
+   init_file = 'initial_positions.txt'
+   nturtles = 5000
+   tstep = 3600
+   ndays_simu = 6570
+   time_periodic = 6200
+   t_output = 86400
+   mode = 'active'
+   key_alltracers = True
+   adv_scheme = 'RK4'
+   ystart = 2003
+/
+&ACTIVE MODE
+   species = 'Leatherback'
+   alpha = 6e5
+   vscale = 1.2
+   P0 = 900
+   grad_dx = 25000
+   cold_death = True
+   cold_resistance = 30
+   growth = 'VGBF'
+/
+&GOMPERTZ
+   SCL0 = 0.063
+   K0 = 20.13
+/
+&GRIDPARAM
+   periodicBC = True
+   halo = False
+/
+&FORCINGS FILES
+   U_dir = '/DATA/GLORYS12'
+   U_suffix = '_UVT.nc'
+   V_dir = '/DATA/GLORYS12'
+   V_suffix = '_UVT.nc'
+   T_dir = '/DATA/GLORYS12'
+   T_suffix = '_UVT.nc'
+   food_dir = '/DATA/VGPM_modis'
+   food_suffix = '.nc'
+/
+&PHYSICS
+   mesh_phy = '/DATA/mesh_phy.nc'
+   lon_phy = 'longitude'
+   lat_phy = 'latitude'
+   time_var_phy = 'time'
+   U_var ='uo'
+   V_var = 'vo'
+   T_var = 'thetao'
+/
+&FOOD PROXY
+   mesh_food = '/data/VGPM_083_mesh.nc'
+   lon_food = 'longitude'
+   lat_food = 'latitude'
+   time_var_food = 'time'
+   food_var ='npp'
+   vgpm = 'True'
+/

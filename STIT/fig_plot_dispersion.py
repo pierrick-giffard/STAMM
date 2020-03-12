@@ -19,16 +19,23 @@ import netCDF_lib as ncl
 # =============================================================================
 #Definition de la zone d'affichage
 ##NATL
-xmin = -110
-xmax = 30
-ymin = -10
-ymax = 70
+#xmin = -110
+#xmax = 30
+#ymin = -10
+#ymax = 70
 
 #PAC
 #xmin = -60
 #xmax = 300
 #ymin = -60
 #ymax = 60
+
+#PAC
+xmin = 0
+xmax = 120
+ymin = -60
+ymax = 20
+
 
 lat_space = 20
 lon_space = 40
@@ -51,6 +58,13 @@ f = plt.figure(figsize = (12*c/2.54,8*c/2.54))
 gs = gridspec.GridSpec(2,1,height_ratios=[11,1],left=0.08, right=0.98, bottom=0.07, top=0.95)
 
 dataFile = ncl.data(ifile)
+#
+zoom_out = 10
+xmin = np.min(dataFile.lon) - zoom_out
+xmax = np.max(dataFile.lon) + zoom_out
+ymin = np.min(dataFile.lat) - zoom_out
+ymax = np.max(dataFile.lat) + zoom_out
+#
 ax = plt.subplot(gs[0])
      
 im,time = pl.display_trajectories(dataFile,f,ax,xmin)

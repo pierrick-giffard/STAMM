@@ -5,7 +5,8 @@
 Functions needed to:
     -create FieldSet
     -create ParticleSet
-    -define kernels to be used    
+    -define kernels to be used in execute
+    -modify output file
 """
 
 # =============================================================================
@@ -17,6 +18,9 @@ from parcels import FieldSet, ParticleSet, AdvectionRK4, AdvectionEE
 from datetime import timedelta, date
 import numpy as np
 import time
+import netCDF4
+import math
+import subprocess
 
 #Personal libraries
 import Advection_kernel as adv
@@ -30,7 +34,7 @@ import Loggerhead as log
 # =============================================================================
 # FIELDSET
 # =============================================================================
-def create_fieldset(param, t_init):
+def create_fieldset(param, ndays_simu, t_init):
     """
     Build fieldset from data files, dimensions and variables.
     """
@@ -42,8 +46,8 @@ def create_fieldset(param, t_init):
     mesh_phy = param['mesh_phy']
     mesh_food = param['mesh_food']
     #Forcings
-    ufiles = forcing_list(param['U_dir'], param['U_suffix'], param['ystart'], param['ndays_simu'], t_init, param['time_periodic'], print_date=True)
-    vfiles = forcing_list(param['V_dir'], param['V_suffix'], param['ystart'], param['ndays_simu'], t_init, param['time_periodic'])
+    ufiles = forcing_list(param['U_dir'], param['U_suffix'], param['ystart'], ndays_simu, t_init, param['time_periodic'], print_date=True)
+    vfiles = forcing_list(param['V_dir'], param['V_suffix'], param['ystart'], ndays_simu, t_init, param['time_periodic'])
     #Filenames
     filenames = {'U': {'lon': mesh_phy, 'lat': mesh_phy, 'data': ufiles},
                  'V': {'lon': mesh_phy, 'lat': mesh_phy, 'data': vfiles}}
@@ -54,8 +58,8 @@ def create_fieldset(param, t_init):
     dimensions = {'U': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']},
                   'V': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}} 
     if key_alltracers:
-        tfiles = forcing_list(param['T_dir'], param['T_suffix'], param['ystart'], param['ndays_simu'], t_init, param['time_periodic'])
-        ffiles = forcing_list(param['food_dir'], param['food_suffix'], param['ystart'], param['ndays_simu'], t_init, param['time_periodic'], vgpm=param['vgpm'])
+        tfiles = forcing_list(param['T_dir'], param['T_suffix'], param['ystart'], ndays_simu, t_init, param['time_periodic'])
+        ffiles = forcing_list(param['food_dir'], param['food_suffix'], param['ystart'], ndays_simu, t_init, param['time_periodic'], vgpm=param['vgpm'])
         #
         filenames['T'] = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
         filenames['NPP'] = {'lon': mesh_food, 'lat': mesh_food, 'data': ffiles}
@@ -86,6 +90,7 @@ def create_fieldset(param, t_init):
 def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, time_periodic, print_date = False, vgpm = False):
     """
     Return a list with data needed for simulation.
+    It is important that the first file is the first day of release.
     This function highly depends on files names, it might not work for particular names.
     It works for names format:
         -   *_YYYY*suffix
@@ -95,6 +100,7 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, time_periodic, pri
     """
     tmin = timedelta(days=int(np.min(t_init)))
     date_start = date(ystart, 1, 1) + tmin
+    
     #
     if time_periodic == False or time_periodic > (ndays_simu + np.max(t_init)):
         date_end = date_start + timedelta(days=ndays_simu+1)
@@ -180,6 +186,7 @@ def create_particleset(fieldset, pclass, lon, lat, t_init, param):
     t0 = time.time()
     #
     t_release = (t_init - int(np.min(t_init))) * 86400
+    print(t_release[:10])
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
     #
     pset.execute(pk.CheckOnLand, dt=0)
@@ -198,6 +205,7 @@ def initialization(fieldset, param):
     """
     fieldset.deg = 111195 #1degree = 111,195 km approx
     fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
+    fieldset.ndays_simu = param['ndays_simu']
     if param['mode'] == 'active':
         fieldset.active = 1
         fieldset.vscale = param['vscale']
@@ -206,6 +214,10 @@ def initialization(fieldset, param):
         fieldset.alpha = param['alpha']
     else:
         fieldset.active = 0
+    if param['key_alltracers']:
+        fieldset.key_alltracers = 1
+    else:
+        fieldset.key_alltracers = 0
 
 
 
@@ -340,4 +352,49 @@ def sum_kernels(k_adv, k_active, k_passive):
         print(k, "\n")
     print('****************************************************')
     
-    return kernels   
+    return kernels
+
+def modify_output(OutputFile, t_init, param):
+    """
+    Modify output file so that variables names are the same as in STAMM 2.0 and
+    turtles live exactly ndays_simu days.
+    """
+    dt = math.ceil(max(t_init) - min(t_init))
+    #
+    nc_i = netCDF4.Dataset(OutputFile, 'r')
+    name_out = OutputFile.replace('.nc', '0.nc')
+    nc_o = netCDF4.Dataset(name_out, 'w')
+    #
+    nsteps = nc_i.dimensions['obs'].size
+    nturtles = nc_i.dimensions['traj'].size
+    #
+    nc_o.createDimension('nsteps', size = nsteps - dt)
+    nc_o.createDimension('nturtles', size = nturtles)
+    #
+    for var_name in nc_i.variables:
+        if var_name not in ['time','trajectory','z']:
+            var = nc_i.variables[var_name]
+            values = np.transpose(np.squeeze(var))[:-dt, :]
+            tmp = nc_o.createVariable(var_name, 'f', ('nsteps','nturtles'))
+            tmp[:] = values
+    #
+    nc_o.renameVariable('lat','traj_lat')
+    nc_o.renameVariable('lon','traj_lon')
+    nc_o.renameVariable('age','traj_time')
+    if param['key_alltracers']:
+        nc_o.renameVariable('T','traj_temp')
+        nc_o.renameVariable('NPP','traj_pp')
+    if param['mode'] == 'active':
+        nc_o.renameVariable('xgradh','xgrad')
+        nc_o.renameVariable('ygradh','ygrad')
+    init_t = nc_o.createVariable('init_t', 'f', ('nturtles'))
+    init_t[:] = t_init
+    nc_o.close()
+    nc_i.close()
+    #delete initial OutputFile 
+    subprocess.run(["mv", "-f", name_out, OutputFile])
+    
+  
+        
+        
+       

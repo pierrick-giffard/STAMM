@@ -1,0 +1,17 @@
+  # lon: longitude
+  # lat: latitude 
+  # mand: mandatory
+  # time: release time in days since 01/01
+  # last column is required only to use old version with Ariane.  
+
+# lon    lat       mand  time    not necessary
+ -86.205 10.150    -1.0  333     1.0
+ -86.064 10.207    -1.0  333     1.0
+ -86.295 10.155    -1.0  333     1.0
+ -86.147 10.129    -1.0  333     1.0
+ -86.268 10.100    -1.0  336     1.0
+ -86.244 10.057    -1.0  333     1.0
+ -86.076 10.197    -1.0  333     1.0
+ -86.207 10.000    -1.0  333     1.0
+ -86.058 10.174    -1.0  334     1.0
+ -86.093 10.133    -1.0  334     1.0
