@@ -19,24 +19,24 @@ from mpl_toolkits.basemap import Basemap
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 
 #personal libraries
-sys.path.append('/data/rd_exchange2/tcandela/STAMM/LIB/') #localisation of STAMM librairies
+sys.path.insert(1, os.path.join(sys.path[0], '../../LIB'))
 import librumeau as brum
 import init_pos_lib as ipl
 # =============================================================================
 # PATHS & FILES
 # =============================================================================
 #gridfle parameters
-gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/mesh_grid/mesh_reg.nc'
-lon_name = 'glamt'
-lat_name = 'gphit'
+gridfile = '/homelocal/pgiffard/DATA/PSY4_12_DAYLY/grid.nc'
+lon_name = 'longitude'
+lat_name = 'latitude'
 mask_name = 'mask'
 grid_type = 'regular' #orca or regular
 #figure plot does not work with orca option, need to change gridtogeo
 
 #infile & outfile
-path = '/data/rd_exchange2/tcandela/STAMM/run/INDIAN/GBR_DiegoGarcia/JFM/init_pos/'
-infile = '*.json'
-outfile = 'initial_positions_2002.txt'
+path = '/homelocal/pgiffard/SRC/STAMM/EXP/init_files/'
+infile = 'CRI_Pacuare.json'
+outfile = 'initial_positions_Pacuare.txt'
 append = True 
 
 #figure
@@ -48,9 +48,9 @@ To annotate country names and change map scale, go to the part named "PLOT"
 # =============================================================================
 # USERS PARAMETERS
 # =============================================================================
-#mode = 'lonlat'
-mode = 'xy'
-
+mode = 'lonlat'
+#mode = 'xy'
+disk_radius = 50000#m
 beach_orientation = 'E' #'W' or 'E'
 #release zone side size (square) in degrees
 release_zone_size = 0.25
@@ -59,17 +59,17 @@ release_zone_size = 0.25
 nturtles = 5000
 
 ##zone to plot               #
-#xmin = -86.0                #
-#xmax = -76.0                #  
-#ymin = 7.5                  #
-#ymax = 14.0                 #
+xmin = -86.0                #
+xmax = -76.0                #  
+ymin = 7.5                  #
+ymax = 14.0                 #
 #                            #
-#lat_space = 1.5             #
-#lon_space = 3.0             # PACUARE
+lat_space = 1.5             #
+lon_space = 3.0             # PACUARE
 #                            #
 ##dot on the minimap         #
-#xdot = -83.0                #
-#ydot = 10.25                #
+xdot = -83.0                #
+ydot = 10.25                #
 
 ##zone to plot               #
 #xmin = -89.0                #
@@ -176,17 +176,17 @@ nturtles = 5000
 #ydot = 16.0                 #
 
 #zone to plot               #
-xmin = 64.0                 #
-xmax = 74.0                 #  
-ymin = -8.0                 #
-ymax = -1.5                 #
+#xmin = 64.0                 #
+#xmax = 74.0                 #  
+#ymin = -8.0                 #
+#ymax = -1.5                 #
                             #
-lat_space = 1.5             # PEROS
-lon_space = 3.0             # BANHOS
+#lat_space = 1.5             # PEROS
+#lon_space = 3.0             # BANHOS
                             #
 #dot on the minimap         #
-xdot = 71.7                 #
-ydot = -5.4                 #
+#xdot = 71.7                 #
+#ydot = -5.4                 #
 # =============================================================================
 # CODE
 # =============================================================================
@@ -237,7 +237,7 @@ for f in list_files :
     beach_r = ipl.beach_json(release_zone_size, lon_name, lat_name, ipl.read_beach_json(f, grid, lon_name, lat_name), nesting_year, d_min, d_max, date_ref)
     print("Creating intial positions for beach: "+beach_r.beach_name)
     E = ipl.echantillon(beach_r)
-    E.gen_positions(beach_r.nb_turtles, nb_year, lat_mat, lon_mat, griddata, coord_mode, grid_type, beach_orientation)
+    E.gen_positions(beach_r.nb_turtles, nb_year, lat_mat, lon_mat, griddata, coord_mode, grid_type, beach_orientation, disk_radius)
     if mode == 'lonlat':
         for i in np.arange(beach_r.nb_turtles):
             E.positions[i].x, E.positions[i].y = brum.grid_to_geo(E.positions[i].x, E.positions[i].y, lon_mat, lat_mat)

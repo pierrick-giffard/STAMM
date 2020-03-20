@@ -9,7 +9,7 @@ import csv
 import sys
 
 
-def read_namelist(filename):
+def read_namelist(filename, display=True):
     """
     Read the namelist file and return a dictionnary containing the name of the items (str), and its corresponding value (str)
     read_namelist(filename) -> items
@@ -21,7 +21,7 @@ def read_namelist(filename):
              'nturtles':'',
              'tstep':'',
              'ndays_simu':'',
-             'time_periodic':'False',
+             'time_periodic':'auto',
              't_output':'',
              'adv_scheme':'RK4',
              'species':'',
@@ -64,19 +64,20 @@ def read_namelist(filename):
 
     namelist = open(filename,'r')
     text = csv.reader(namelist,delimiter='=')
-    
-    print("    ************")
-    print("    * NAMELIST *")
-    print("    ************")
+    if display:
+        print("    ************")
+        print("    * NAMELIST *")
+        print("    ************")
     for line in text:
-        print(str(line).replace('[','').replace(']','').replace('\'','').replace(',',':'))
+        if display:
+            print(str(line).replace('[','').replace(']','').replace('\'','').replace(',',':'))
         for key in items.keys():
             if line[0].__contains__(key):
                 items[key]=line[1].replace('\'','').replace(' ','').replace(',','')
-                
-    print("    ****************")
-    print("    * END NAMELIST *")
-    print("    ****************")
+    if display:           
+        print("    ****************")
+        print("    * END NAMELIST *")
+        print("    ****************")
     
     """
     All items are read as strings, they must be converted to correct type
@@ -126,7 +127,7 @@ def read_namelist(filename):
     #Time periodic
     if items['time_periodic'] == 'False':
         items['time_periodic'] = False
-    else:
+    elif items['time_periodic'] != 'auto':
         try:
             items['time_periodic'] = int(items['time_periodic'])
         except ValueError:
@@ -150,10 +151,10 @@ def check_param(param,output_file):
         param_check = set(list({'T_dir','food_dir', 'T_var', 'food_var','T_suffix', 'food_suffix',\
                                 'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
-        param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
+        param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx', 'SCL0'}) + list(param_check))
           
     if param['growth'] == 'Gompertz':
-        param_check = set(list({'SCL0','K0'}) + list(param_check))
+        param_check = set(list({'K0'}) + list(param_check))
                    
     for key in param.keys():
         value = param[key]

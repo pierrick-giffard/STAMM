@@ -14,14 +14,15 @@ February 2020.
 #Python libraries
 from parcels import plotTrajectoriesFile,ErrorCode
 from datetime import timedelta as delta
-import sys
+import sys, os
 import time
 
 #Personal libraries
-import IOlib as IO
 import TurtleClass as tc
 import Passive_kernels as pk
 import Functions as fc
+sys.path.insert(1, os.path.join(sys.path[0], '../LIB'))
+import IOlib as IO
 
 #Initial time
 t0=time.time()
@@ -55,10 +56,10 @@ ndays_simu += max(t_init) - min(t_init)
 
 # =============================================================================
 # FIELDSET, CLASS AND PARTICLESET
-# =============================================================================
+# ========================================================================
 fieldset = fc.create_fieldset(param, ndays_simu, t_init)
 fc.PSY_patch(fieldset,param)
-fc.initialization(fieldset, param)
+fc.initialization(fieldset, ndays_simu, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
 pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init, param) 
 

@@ -15,7 +15,7 @@ Functions needed to:
 #Python libraries
 from glob import glob
 from parcels import FieldSet, ParticleSet, AdvectionRK4, AdvectionEE
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 import numpy as np
 import time
 import netCDF4
@@ -46,8 +46,10 @@ def create_fieldset(param, ndays_simu, t_init):
     mesh_phy = param['mesh_phy']
     mesh_food = param['mesh_food']
     #Forcings
-    ufiles = forcing_list(param['U_dir'], param['U_suffix'], param['ystart'], ndays_simu, t_init, param['time_periodic'], print_date=True)
-    vfiles = forcing_list(param['V_dir'], param['V_suffix'], param['ystart'], ndays_simu, t_init, param['time_periodic'])
+    last_date = find_last_date(param)
+    date_start, date_end, time_periodic = define_start_end(ndays_simu, param, t_init, last_date)
+    ufiles = forcing_list(param['U_dir'], param['U_suffix'], date_start, date_end, print_date=True)
+    vfiles = forcing_list(param['V_dir'], param['V_suffix'], date_start, date_end)
     #Filenames
     filenames = {'U': {'lon': mesh_phy, 'lat': mesh_phy, 'data': ufiles},
                  'V': {'lon': mesh_phy, 'lat': mesh_phy, 'data': vfiles}}
@@ -58,8 +60,8 @@ def create_fieldset(param, ndays_simu, t_init):
     dimensions = {'U': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']},
                   'V': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}} 
     if key_alltracers:
-        tfiles = forcing_list(param['T_dir'], param['T_suffix'], param['ystart'], ndays_simu, t_init, param['time_periodic'])
-        ffiles = forcing_list(param['food_dir'], param['food_suffix'], param['ystart'], ndays_simu, t_init, param['time_periodic'], vgpm=param['vgpm'])
+        tfiles = forcing_list(param['T_dir'], param['T_suffix'], date_start, date_end)
+        ffiles = forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, vgpm=param['vgpm'])
         #
         filenames['T'] = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
         filenames['NPP'] = {'lon': mesh_food, 'lat': mesh_food, 'data': ffiles}
@@ -71,8 +73,8 @@ def create_fieldset(param, ndays_simu, t_init):
         dimensions['NPP'] = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
  
     #Fieldset creation
-    if param['time_periodic']:
-        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=timedelta(days=param['time_periodic']))
+    if time_periodic:
+        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=timedelta(days=time_periodic))
     else:
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions)#, field_chunksize=(800, 800))
     #East/West periodicity
@@ -86,8 +88,103 @@ def create_fieldset(param, ndays_simu, t_init):
     print('\n')
     return fieldset
 
+def find_last_date(param):
+    """
+    Returns the last date it is possible to use for computation.
+    It is the smaller last date of all data files. 
+    """
+    U_dir = param['U_dir']
+    U_suffix = param['U_suffix']
+    V_dir = param['V_dir']
+    V_suffix = param['V_suffix']
+    time_var_phy = param['time_var_phy']
+    if param['key_alltracers']:
+        T_dir = param['T_dir']
+        T_suffix = param['T_suffix']
+        food_dir = param['food_dir']
+        food_suffix = param['food_suffix']
+        time_var_food = param['time_var_food']
+    #
+    last_U = sorted(glob(U_dir + '/*' + U_suffix))[-1]
+    file_U = netCDF4.Dataset(last_U)
+    t_unit = file_U.variables[time_var_phy].units
+    t_value = int(file_U.variables[time_var_phy][:].data)
+    time_U = netCDF4.num2date(t_value, t_unit)
+    file_U.close()
+    #
+    last_V = sorted(glob(V_dir + '/*' + V_suffix))[-1]
+    file_V = netCDF4.Dataset(last_V)
+    t_unit = file_V.variables[time_var_phy].units
+    t_value = int(file_V.variables[time_var_phy][:].data)
+    time_V = netCDF4.num2date(t_value, t_unit)
+    file_V.close()
+    #
+    if param['key_alltracers']:
+        last_T = sorted(glob(T_dir + '/*' + T_suffix))[-1]
+        file_T = netCDF4.Dataset(last_T)
+        t_unit = file_T.variables[time_var_phy].units
+        t_value = int(file_T.variables[time_var_phy][:].data)
+        time_T = netCDF4.num2date(t_value, t_unit)
+        file_T.close()
+        #
+        last_food = sorted(glob(food_dir + '/*' + food_suffix))[-1]
+        file_food = netCDF4.Dataset(last_food)
+        t_unit = file_food.variables[time_var_food].units
+        t_value = int(file_food.variables[time_var_food][:].data)
+        time_food = netCDF4.num2date(t_value, t_unit)
+        file_food.close()
+        #
+        last_file = min(time_U, time_V, time_T, time_food)
+    else:
+        last_file = min(time_U, time_V)
+    return last_file
 
-def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, time_periodic, print_date = False, vgpm = False):
+
+def define_start_end(ndays_simu, param, t_init, last_date):
+    """
+    Returns date of first simulation day, date of last data file to use and update time_periodic.
+    """
+    #
+    ystart = param['ystart']
+    time_periodic = param['time_periodic']
+    #
+    tmin = timedelta(days=int(np.min(t_init)))
+    date_start = datetime(ystart, 1, 1) + tmin
+    #
+    if type(time_periodic) == int and time_periodic > ndays_simu:
+        time_periodic = False
+    #
+    if time_periodic == False:
+        date_end = date_start + timedelta(days=ndays_simu)
+    #
+    elif time_periodic == 'auto':
+        if date_start + timedelta(days=ndays_simu) > last_date:
+            if last_date.month == 12 and last_date.day == 31:
+                last_year = last_date.year
+            else:
+                last_year = last_date.year - 1
+            date_end = datetime(last_year, 12, 31)
+            time_periodic = (date_end - date_start).days
+            print('time_periodic is set to %d'%time_periodic)
+            if date_end < date_start:
+                raise ValueError('Not enough data files. You can try to set time_periodic manually')
+        else:
+           time_periodic = False
+           date_end = date_start + timedelta(days=ndays_simu)
+
+    #if time_periodic is integer
+    else:
+        date_end = date_start + timedelta(days=time_periodic)
+    #
+    if date_end > last_date:
+        raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto")
+    #
+    print('   Date of first file: ', date_start)
+    print('   Date of last file:  ', date_end)    
+    print('\n')
+    return date_start, date_end, time_periodic
+
+def forcing_list(f_dir, f_suffix, date_start, date_end, print_date = False, vgpm = False):
     """
     Return a list with data needed for simulation.
     It is important that the first file is the first day of release.
@@ -98,16 +195,9 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, time_periodic, pri
         -   vgpm files with vgpm=True in namelist
     If none of this format is found, consider first file is 01/01/ystart.
     """
-    tmin = timedelta(days=int(np.min(t_init)))
-    date_start = date(ystart, 1, 1) + tmin
-    
+    tmin = date_start - datetime(date_start.year, 1, 1)
     #
-    if time_periodic == False or time_periodic > (ndays_simu + np.max(t_init)):
-        date_end = date_start + timedelta(days=ndays_simu+1)
-    else:
-        date_end = date(ystart, 1, 1) + timedelta(days=time_periodic+1)
-    #
-    list_years = np.arange(ystart, date_end.year + 1)
+    list_years = np.arange(date_start.year, date_end.year + 1)
     files = []
     for yr in list_years:
         files += sorted(glob(f_dir + '/*' + '_' + str(yr) + '*' + f_suffix))
@@ -127,18 +217,10 @@ def forcing_list(f_dir, f_suffix, ystart, ndays_simu, t_init, time_periodic, pri
         del(files[((date_end-date_start).days)//8+3:]) 
     #
     if files == []:
-        print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%ystart)
+        print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%date_start.year)
         files = sorted(glob(f_dir + '/*' + f_suffix))
         del(files[:tmin.days])
         del(files[(date_end-date_start).days+1:]) 
-    #
-    if print_date:
-        print('   Date first file: ', date_start)
-        print('   Date last file:  ', date_end)
-        if date_end < date_start:
-            raise ValueError("Date of last file is lower than date of first file: \
-                             please note that time_periodic is defined respect to 01/01/ystart")
-        print('\n')
     return files
 
 
@@ -154,7 +236,7 @@ def PSY_patch(fieldset,param):
         fieldset.U.grid.lat[320,:] = 0
         fieldset.V.grid.lon[:,720] = 0
         fieldset.V.grid.lat[320,:] = 0
-    
+        print('Using PSY patch')
         if param['key_alltracers']:
             fieldset.T.grid.lon[:,720] = 0
             fieldset.T.grid.lat[320,:] = 0
@@ -186,7 +268,6 @@ def create_particleset(fieldset, pclass, lon, lat, t_init, param):
     t0 = time.time()
     #
     t_release = (t_init - int(np.min(t_init))) * 86400
-    print(t_release[:10])
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
     #
     pset.execute(pk.CheckOnLand, dt=0)
@@ -199,13 +280,13 @@ def create_particleset(fieldset, pclass, lon, lat, t_init, param):
     return pset
 
 
-def initialization(fieldset, param):
+def initialization(fieldset, ndays_simu, param):
     """
     Links constant parameters to fieldset in order to use them within kernels.
     """
     fieldset.deg = 111195 #1degree = 111,195 km approx
     fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
-    fieldset.ndays_simu = param['ndays_simu']
+    fieldset.ndays_simu = ndays_simu
     if param['mode'] == 'active':
         fieldset.active = 1
         fieldset.vscale = param['vscale']
@@ -354,6 +435,10 @@ def sum_kernels(k_adv, k_active, k_passive):
     
     return kernels
 
+
+# =============================================================================
+# OUTPUT
+# =============================================================================
 def modify_output(OutputFile, t_init, param):
     """
     Modify output file so that variables names are the same as in STAMM 2.0 and
@@ -374,7 +459,10 @@ def modify_output(OutputFile, t_init, param):
     for var_name in nc_i.variables:
         if var_name not in ['time','trajectory','z']:
             var = nc_i.variables[var_name]
-            values = np.transpose(np.squeeze(var))[:-dt, :]
+            if dt > 0:
+                values = np.transpose(np.squeeze(var))[:-dt, :]
+            else:
+                values = np.transpose(np.squeeze(var))[:]
             tmp = nc_o.createVariable(var_name, 'f', ('nsteps','nturtles'))
             tmp[:] = values
     #
@@ -393,6 +481,11 @@ def modify_output(OutputFile, t_init, param):
     nc_i.close()
     #delete initial OutputFile 
     subprocess.run(["mv", "-f", name_out, OutputFile])
+    print('\n')
+    print('********************************************************************************')
+    print("Wrote", OutputFile)
+    print('********************************************************************************')
+    print('\n')
     
   
         

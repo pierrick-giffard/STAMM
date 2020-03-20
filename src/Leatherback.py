@@ -146,9 +146,9 @@ def compute_habitat(particle, fieldset, time):
 
 
             
-def compute_SCL_VGBF(particle, fieldset, time):
+def compute_SCL_VGBF_age(particle, fieldset, time):
     """
-    Compute Straight Carapace Length (meters). Age is in days.
+    Compute Straight Carapace Length (meters) as a function of age. Age is in days.
     Uses a Von Bertalanffy function (VGBF).
     Ref : Jones, T.T., Hastings, M.D., Bostrom, B.L., Pauly, D., Jones, D.R., 2011. Growth of captive leatherback turtles, Dermochelys coriacea, with inferences on growth in the wild: Implications for population decline and recovery. Journal of Experimental Marine Biology and Ecology 399, 84–92.
     """
@@ -157,6 +157,24 @@ def compute_SCL_VGBF(particle, fieldset, time):
         SCLmax = 1.43
         t0 = -0.17    
         particle.SCL = SCLmax * (1 - exp(-k * (particle.age/365. - t0)))
+
+
+
+
+
+def compute_SCL_VGBF(particle, fieldset, time):
+    """
+    Compute Straight Carapace Length (meters) at time t based on SCL at time t-1.
+    Uses a Von Bertalanffy function (VGBF).
+    Ref : Jones, T.T., Hastings, M.D., Bostrom, B.L., Pauly, D., Jones, D.R., 2011. Growth of captive leatherback turtles, Dermochelys coriacea, with inferences on growth in the wild: Implications for population decline and recovery. Journal of Experimental Marine Biology and Ecology 399, 84–92.
+    """
+    k = 0.226
+    SCLmax = 1.43 
+    #
+    L = particle.SCL + k * (SCLmax - particle.SCL) * particle.dt / 31536000 #dt has to be in years --> 86400*365
+    particle.SCL = L
+
+
 
 
 
@@ -213,7 +231,7 @@ def compute_PPmax_Gompertz(particle, fieldset, time):
     Assume F = c*M
     """
     if particle.active == 1:
-        c = 0.0031#1/325
+        c = 0.0032#1/312
         PPnorm = c * particle.M
         particle.PPmax = PPnorm * fieldset.P0
 

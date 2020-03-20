@@ -38,7 +38,7 @@ maxsize = 4 #For Ariane type files, number of digits
 #
 vgpm = True
 #
-nb_files = 42
+nb_files = 42*5
 var_name = 'npp'
 unit = 'mgC/m2/day'
 
@@ -47,10 +47,10 @@ option = 1
 #
 #Option 1: rectangular area
 if option == 1:
-    lat_min = 0 #°N
+    lat_min = 10 #°N
     lat_max = 45  #°N
-    lon_min = -180  #°E
-    lon_max = -80   #°E
+    lon_min = 120  #°E
+    lon_max = 180   #°E
     #
     fillvalue = '_FillValue'
     #Mesh for lon/lat
@@ -239,16 +239,16 @@ plt.show()
 print('\n')
 if option == 1:
     print('Option 1: rectangular area')
-    print('Latitude min: %s°N' %lat_min)
-    print('Latitude max: %s°N' %lat_max)
-    print('Longitude min: %s°E' %lon_min)
-    print('Longitude max: %s°E'%lon_max)
+    print('Latitude min: %s N' %lat_min)
+    print('Latitude max: %s N' %lat_max)
+    print('Longitude min: %s E' %lon_min)
+    print('Longitude max: %s E'%lon_max)
 
 if option == 2:
     print('Option 2: ocean mask')    
     print('Ocean:',ocean)
-    print('Latitude min: %s°N' %lat_min)
-    print('Latitude max: %s°N' %lat_max)
+    print('Latitude min: %s N' %lat_min)
+    print('Latitude max: %s N' %lat_max)
     
 print('Number of files:',nb_files)
 print('Percentile:',percentile)

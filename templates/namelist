@@ -19,9 +19,9 @@
    cold_death = True
    cold_resistance = 30
    growth = 'VGBF'
+   SCL0 = 0.063
 /
 &GOMPERTZ
-   SCL0 = 0.063
    K0 = 20.13
 /
 &GRIDPARAM

@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
+"""
+Usage: fig_plot_dispersion namelist.nc zone
+zone can be NA, PA', 'auto' 
+"""
+
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -11,42 +16,18 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
 #Personal Librairies
-sys.path.append('/data/rd_exchange2/tcandela/STAMM/LIB/') #localisation of STAMM librairies
+sys.path.insert(1, os.path.join(sys.path[0], '../../LIB'))
 import plot_lib as pl
 import netCDF_lib as ncl
 # =============================================================================
 # USERS PARAMETERS
 # =============================================================================
-#Definition de la zone d'affichage
-##NATL
-#xmin = -110
-#xmax = 30
-#ymin = -10
-#ymax = 70
-
-#PAC
-#xmin = -60
-#xmax = 300
-#ymin = -60
-#ymax = 60
-
-#PAC
-xmin = 0
-xmax = 120
-ymin = -60
-ymax = 20
-
-
-lat_space = 20
-lon_space = 40
-# =============================================================================
-# CLASS
-# =============================================================================
 
 # =============================================================================
 # CODE
 # =============================================================================
-ifile = sys.argv[1]  
+ifile = sys.argv[1]
+zone = str(sys.argv[2])
 ofile = ifile.replace(".nc","_dispersion.png")
 ## -- Si l'affichage coupe les trace à 0° de longitude, bien vérifier que x n'est pas corrigé dans 
 ## -- PlotTrajectories2(display_trajectories_all) : #x = np.array([l+(((1-np.sign(l))/2)*360) for l in x])
@@ -58,13 +39,41 @@ f = plt.figure(figsize = (12*c/2.54,8*c/2.54))
 gs = gridspec.GridSpec(2,1,height_ratios=[11,1],left=0.08, right=0.98, bottom=0.07, top=0.95)
 
 dataFile = ncl.data(ifile)
-#
-zoom_out = 10
-xmin = np.min(dataFile.lon) - zoom_out
-xmax = np.max(dataFile.lon) + zoom_out
-ymin = np.min(dataFile.lat) - zoom_out
-ymax = np.max(dataFile.lat) + zoom_out
-#
+# =============================================================================
+# ZONE TO PLOT
+# =============================================================================
+if zone == 'auto':
+    zoom_out = 10
+    xmin = np.min(dataFile.lon) - zoom_out
+    xmax = np.max(dataFile.lon) + zoom_out
+    ymin = max(-90, np.min(dataFile.lat) - zoom_out)
+    ymax = min(90, np.max(dataFile.lat) + zoom_out)
+
+elif zone == 'NA':
+    xmin = -110
+    xmax = 30
+    ymin = -10
+    ymax = 70
+
+elif zone == 'PA':
+    xmin = -60
+    xmax = 300
+    ymin = -60
+    ymax = 60
+
+elif zone == 'IND':
+    xmin = 0
+    xmax = 120
+    ymin = -60
+    ymax = 20
+
+
+lat_space = 20
+lon_space = 40
+
+
+
+
 ax = plt.subplot(gs[0])
      
 im,time = pl.display_trajectories(dataFile,f,ax,xmin)

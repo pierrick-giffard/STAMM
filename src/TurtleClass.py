@@ -49,9 +49,8 @@ def define_Turtle_Class(fieldset, param):
             theta = Variable('theta', to_write=False, dtype=np.float32)
             xgradh = Variable('xgradh', to_write=True, dtype=np.float32)
             ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
+            SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=param['SCL0'])
             if param['growth'] == 'Gompertz':
                 K = Variable('K', to_write=False, dtype=np.float32, initial=param['K0'])
-                SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=param['SCL0'])
-            else:
-                SCL = Variable('SCL', to_write=True, dtype=np.float32)
+                
     return turtle
