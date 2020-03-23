@@ -151,7 +151,7 @@ def define_start_end(ndays_simu, param, t_init, last_date):
     tmin = timedelta(days=int(np.min(t_init)))
     date_start = datetime(ystart, 1, 1) + tmin
     #
-    if type(time_periodic) == int and time_periodic > ndays_simu:
+    if isinstance(time_periodic, int) and time_periodic > ndays_simu:
         time_periodic = False
     #
     if time_periodic == False:
