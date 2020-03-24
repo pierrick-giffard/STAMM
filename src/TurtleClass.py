@@ -35,7 +35,7 @@ def define_Turtle_Class(fieldset, param):
             lethargy_time = Variable('lethargy_time', to_write=False, dtype=np.float32, initial=0.) #time spent under Tmin
             cold_death = Variable('cold_death', to_write=True, dtype=np.float32, initial=0)
         if param['cold_death'] or param['mode'] == 'active':
-            Tmin = Variable('Tmin', to_write=False, dtype=np.float32)
+            Tmin = Variable('Tmin', to_write=False, dtype=np.float32, initial=fieldset.Tmin)
         #Active
         if param['mode'] == 'active':
             u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
@@ -49,8 +49,9 @@ def define_Turtle_Class(fieldset, param):
             theta = Variable('theta', to_write=False, dtype=np.float32)
             xgradh = Variable('xgradh', to_write=True, dtype=np.float32)
             ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
-            SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=param['SCL0'])
+            SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=fieldset.SCL0)
+            Topt = Variable('Topt', to_write=False, dtype=np.float32, initial=fieldset.Topt)
             if param['growth'] == 'Gompertz':
-                K = Variable('K', to_write=False, dtype=np.float32, initial=param['K0'])
+                K = Variable('K', to_write=False, dtype=np.float32, initial=fieldset.K0)
                 
     return turtle

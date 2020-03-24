@@ -5,9 +5,192 @@ Kernels used to compute swimming velocity and cold induced mortality.
 """
 
 
-from math import sqrt, cos, sin, atan2
+from math import sqrt, cos, sin, atan2, exp, log
 import math
 from parcels import random
+
+
+def compute_SCL_VGBF(particle, fieldset, time):
+    """
+    Compute Straight Carapace Length (meters) at time t based on SCL at time t-1.
+    Uses a Von Bertalanffy function (VGBF).
+    """
+    L = particle.SCL + fieldset.k * (fieldset.SCLmax - particle.SCL) * particle.dt / 31536000 #dt has to be in years --> 86400*365
+    particle.SCL = L
+
+
+
+def compute_SCL_Gompertz(particle, fieldset, time):
+    """
+    Compute Straight Carapace Length (meters). Age is in days.
+    Uses a modified Gompertz equation in which growth depends on habitat.
+    This model needs SCL in cm.
+    """
+    if particle.active == 1:
+        prev_SCL = particle.SCL * 100 #this model needs centimeters
+        prev_K = particle.K
+        #
+        SCL = prev_SCL + fieldset.alpha * particle.hab * log(prev_K / prev_SCL) * prev_K *  particle.dt / 86400
+        particle.K = prev_K + fieldset.beta * particle.hab * 1 / (1 + exp(-(fieldset.M0 - prev_SCL) / fieldset.S)) *  particle.dt / 86400
+        #
+        particle.SCL = SCL / 100 #back to meters
+
+
+
+def compute_Mass(particle, fieldset, time):
+    "Compute mass (kg). SCL is in meters."
+    if particle.active == 1:
+        particle.M = fieldset.a*(particle.SCL)**fieldset.b
+
+
+def compute_Tmin_Topt(particle, fieldset, time): 
+    if particle.active == 1:
+        particle.Topt = fieldset.T0 - fieldset.to * sqrt(particle.M)
+        particle.Tmin = fieldset.T0 - fieldset.tm * sqrt(particle.M)
+
+
+
+def compute_PPmax_VGBF(particle, fieldset, time):
+    """
+    Compute food threshold.
+    """
+    if particle.active == 1:
+        x = particle.SCL / fieldset.SCLmax
+        PPnorm = fieldset.b * beta_jones * (1 - x) * x**(fieldset.b-1) / (1 - x**(fieldset.b * fieldset.beta_jones))
+        particle.PPmax = PPnorm * fieldset.P0
+    
+
+def compute_PPmax_Gompertz(particle, fieldset, time):
+    """
+    Assume F = c*M
+    """
+    if particle.active == 1:
+        PPnorm = fieldset.c * particle.M
+        particle.PPmax = PPnorm * fieldset.P0
+
+
+def compute_vmax(particle, fieldset, time):
+    """
+    Compute maximum speed at current age.
+    """
+    if particle.active == 1:
+        particle.vmax = fieldset.vscale*(particle.SCL**fieldset.d)
+
+
+
+def compute_habitat(particle, fieldset, time):
+    """
+    Computes habitat at position, left, right, bottom and top.
+    Computes habitat gradients.
+    Save habT, habPP and hab at the particle location.
+    Save xgradh and ygradh.
+    """
+    if particle.active == 1:
+        #Convert dx to lon and lat
+        dx_lon =  fieldset.grad_dx * cos(particle.lat * math.pi / 180) / fieldset.deg
+        dx_lat =  fieldset.grad_dx / fieldset.deg
+        #
+        #Get 5 T and 5 NPP
+        #
+        T0 = [fieldset.T[time, particle.depth, particle.lat, particle.lon],#position
+               fieldset.T[time, particle.depth, particle.lat, particle.lon - dx_lon],#left
+               fieldset.T[time, particle.depth, particle.lat, particle.lon + dx_lon],#right
+               fieldset.T[time, particle.depth, particle.lat - dx_lat, particle.lon],#bottom
+               fieldset.T[time, particle.depth, particle.lat + dx_lat, particle.lon]]#top
+        
+        NPP0 = [fieldset.NPP[time, particle.depth, particle.lat, particle.lon],#position
+              fieldset.NPP[time, particle.depth, particle.lat, particle.lon - dx_lon],#left
+              fieldset.NPP[time, particle.depth, particle.lat, particle.lon + dx_lon],#right
+              fieldset.NPP[time, particle.depth, particle.lat - dx_lat, particle.lon],#bottom
+              fieldset.NPP[time, particle.depth, particle.lat + dx_lat, particle.lon]]#top       
+        #
+        #Temperature habitat
+        #
+        Tmin = particle.Tmin
+        Topt = particle.Topt
+        T_hab = [0, 0, 0, 0, 0] #position, left, right, bottom and top
+        #
+        if T0[0] >= Topt:
+            T_hab[0] = 1.0
+        else:
+            T_hab[0] = exp(-2*((T0[0]-Topt)/(Topt-Tmin))**2)
+        #
+        if T0[1] >= Topt:
+            T_hab[1] = 1.0
+        else:
+            T_hab[1] = exp(-2*((T0[1]-Topt)/(Topt-Tmin))**2)
+        #
+        if T0[2] >= Topt:
+            T_hab[2] = 1.0
+        else:
+            T_hab[2] = exp(-2*((T0[2]-Topt)/(Topt-Tmin))**2)
+        #
+        if T0[3] >= Topt:
+            T_hab[3] = 1.0
+        else:
+            T_hab[3] = exp(-2*((T0[3]-Topt)/(Topt-Tmin))**2)
+        #
+        if T0[4] >= Topt:
+            T_hab[4] = 1.0
+        else:
+            T_hab[4] = exp(-2*((T0[4]-Topt)/(Topt-Tmin))**2)
+        #
+        #Food habitat
+        #
+        food_hab = [0, 0, 0, 0, 0] #position, left, right, bottom and top
+        #
+        if NPP0[0] < 0:
+            print('WARNING: negative NPP at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon,particle.lat,time))
+            food_hab[0] = 0
+        else:
+            food_hab[0] = min(NPP0[0]/particle.PPmax,1)
+        #
+        if NPP0[1] < 0:
+            print('WARNING: negative NPP at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon,particle.lat,time))
+            food_hab[1] = 0
+        else:
+            food_hab[1] = min(NPP0[1]/particle.PPmax,1)
+        #
+        if NPP0[2] < 0:
+            print('WARNING: negative NPP at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon,particle.lat,time))
+            food_hab[2] = 0
+        else:
+            food_hab[2] = min(NPP0[2]/particle.PPmax,1)
+        #
+        if NPP0[3] < 0:
+            print('WARNING: negative NPP at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon,particle.lat,time))
+            food_hab[3] = 0
+        else:
+            food_hab[3] = min(NPP0[3]/particle.PPmax,1)
+        #
+        if NPP0[4] < 0:
+            print('WARNING: negative NPP at lon,lat = %f,%f and time = %f: set to 0'%(particle.lon,particle.lat,time))
+            food_hab[4] = 0
+        else:
+            food_hab[4] = min(NPP0[4]/particle.PPmax,1)
+        #
+        #Total habitat
+        #
+        particle.habT = T_hab[0]
+        particle.habPP = food_hab[0]
+        particle.hab = particle.habT * particle.habPP
+        h_left = T_hab[1] * food_hab[1]
+        h_right = T_hab[2] * food_hab[2]
+        h_bot = T_hab[3] * food_hab[3]
+        h_top = T_hab[4] * food_hab[4]
+        #
+        #Habitat gradient
+        #
+        particle.xgradh = (h_right - h_left)/(2 * fieldset.grad_dx)
+        particle.ygradh = (h_top - h_bot)/(2 * fieldset.grad_dx)
+        #
+        #Safety check
+        #
+        if particle.hab < 0 or particle.hab > 1:
+            print("Habitat is %f at lon,lat = %f,%f. Execution stops."%(particle.hab,particle.lon,particle.lat))
+            exit(0)
+
+
 
 
 

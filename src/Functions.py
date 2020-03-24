@@ -21,11 +21,13 @@ import time
 import netCDF4
 import math
 import subprocess
+import sys, os
 
 #Personal libraries
 import Advection_kernel as adv
 import Passive_kernels as pk
 import Active_kernels as ak
+sys.path.insert(1, os.path.join(sys.path[0], 'Species'))
 import Leatherback as leath
 import Loggerhead as log
 
@@ -87,6 +89,7 @@ def create_fieldset(param, ndays_simu, t_init):
     print(' => FieldSet created in: '+ str(timedelta(seconds=int(tt))))
     print('\n')
     return fieldset
+
 
 def find_last_date(param):
     """
@@ -206,7 +209,7 @@ def forcing_list(f_dir, f_suffix, date_start, date_end, print_date = False, vgpm
             files += sorted(glob(f_dir + '/*' + str(yr) + '*' + f_suffix))
     #remove useless files
     del(files[:tmin.days])
-    del(files[(date_end-date_start).days+1:])
+    del(files[(date_end-date_start).days+2:])
     #
     if vgpm:
         files = []
@@ -220,7 +223,7 @@ def forcing_list(f_dir, f_suffix, date_start, date_end, print_date = False, vgpm
         print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%date_start.year)
         files = sorted(glob(f_dir + '/*' + f_suffix))
         del(files[:tmin.days])
-        del(files[(date_end-date_start).days+1:]) 
+        del(files[(date_end-date_start).days+2:])
     return files
 
 
@@ -280,6 +283,9 @@ def create_particleset(fieldset, pclass, lon, lat, t_init, param):
     return pset
 
 
+# =============================================================================
+# CONSTANT PARAMETERS
+# =============================================================================
 def initialization(fieldset, ndays_simu, param):
     """
     Links constant parameters to fieldset in order to use them within kernels.
@@ -288,11 +294,45 @@ def initialization(fieldset, ndays_simu, param):
     fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
     fieldset.ndays_simu = ndays_simu
     if param['mode'] == 'active':
+        ### NAMELIST PARAMETERS ###
         fieldset.active = 1
         fieldset.vscale = param['vscale']
         fieldset.P0 = param['P0']
         fieldset.grad_dx = param['grad_dx']
         fieldset.alpha = param['alpha']
+        ### SPECIES PARAMETERS ###
+        if param['species'] == 'leatherback':
+            file = leath
+        elif param['species'] == 'loggerhead':
+            file = log
+        #
+        fieldset.a = file.a
+        fieldset.b = file.b
+        fieldset.d = file.d
+        fieldset.SCL0 = file.SCL0
+        if param['growth'] == 'VGBF':
+            fieldset.k = file.k
+            fieldset.SCLmax = file.SCLmax
+            fieldset.beta_jones = file.beta_jones
+        elif param['growth'] == 'Gompertz':
+            fieldset.alpha = file.alpha
+            fieldset.beta = file.beta
+            fieldset.M0 = file.M0
+            fieldset.S = file.S
+            fieldset.K0 = file.K0
+            fieldset.c = file.c
+        if file.Tmin_Topt == 'constant':
+            fieldset.Tmin = file.Tmin
+            fieldset.Topt = file.Topt
+        elif file.Tmin_Topt == 'variable':
+            fieldset.T0 = file.T0
+            fieldset.to = file.to
+            fieldset.tm = file.tm
+            fieldset.Tmin = 0.
+            fieldset.Topt = 0.
+        else:
+            raise ValueError('Please set Tmin_Topt to constant or variable')
+        param['Tmin_Topt'] = file.Tmin_Topt
     else:
         fieldset.active = 0
     if param['key_alltracers']:
@@ -375,26 +415,22 @@ def define_active_kernels(pset, param):
     #
     kernels_list = []
     if mode == 'active':      
-        if species == 'leatherback':
-            file = leath
-        elif species == 'loggerhead':
-            file = log
         if growth == 'VGBF':
-            compute_SCL = file.compute_SCL_VGBF
-            compute_PPmax = file.compute_PPmax_VGBF
-            
+            compute_SCL = ak.compute_SCL_VGBF
+            compute_PPmax = ak.compute_PPmax_VGBF   
         elif growth == 'Gompertz':
-            compute_SCL = file.compute_SCL_Gompertz
-            compute_PPmax = file.compute_PPmax_Gompertz
+            compute_SCL = ak.compute_SCL_Gompertz
+            compute_PPmax = ak.compute_PPmax_Gompertz
         #
         kernels_list = [compute_SCL,
-                        file.compute_Mass,
+                        ak.compute_Mass,
                         compute_PPmax,
-                        file.compute_vmax,
-                        file.compute_habitat,
+                        ak.compute_vmax,
+                        ak.compute_habitat,
                         ak.compute_swimming_direction,
                         ak.compute_swimming_velocity]
-
+        if param['Tmin_Topt'] == 'variable':
+            kernels_list.insert(2, ak.compute_Tmin_Topt) #Needs to be after compute_Mass
     if param['cold_death']:
         kernels_list.append(ak.cold_induced_mortality)
         

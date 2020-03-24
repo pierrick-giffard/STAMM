@@ -58,8 +58,6 @@ def read_namelist(filename, display=True):
              'cold_resistance':'30',
              'vgpm':'False',
              'growth':'VGBF',
-             'SCL0':'',
-             'K0':''
              }
 
     namelist = open(filename,'r')
@@ -151,10 +149,8 @@ def check_param(param,output_file):
         param_check = set(list({'T_dir','food_dir', 'T_var', 'food_var','T_suffix', 'food_suffix',\
                                 'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
-        param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx', 'SCL0'}) + list(param_check))
-          
-    if param['growth'] == 'Gompertz':
-        param_check = set(list({'K0'}) + list(param_check))
+        param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
+
                    
     for key in param.keys():
         value = param[key]

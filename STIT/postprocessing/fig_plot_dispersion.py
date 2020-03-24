@@ -67,6 +67,9 @@ elif zone == 'IND':
     ymin = -60
     ymax = 20
 
+else:
+    raise ValueError('zone %s not found'%zone)
+
 
 lat_space = 20
 lon_space = 40
