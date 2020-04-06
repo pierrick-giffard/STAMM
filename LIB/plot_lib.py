@@ -115,64 +115,81 @@ def complete_release_map(infile, path, gridfile, lonlat1D, nturtles, xmin, xmax,
     
     print('\nMission accomplie ! (plot saved at ' + path + figname +')\n')
     
-#def plot_habitat(ax,cax,GLORYS_path,numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,tracer,species,log=False) :
-def plot_habitat(ax,hab_mode, GLORYS_path, food_path, T_path, U_path, V_path, numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,tracer,species,log=False) :
+
+
+
+def plot_habitat(ax,hab_mode, gridfile, food_path, numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,tracer,param,data_lists,current_date,log=False) :
     """ Plot habitat on map."""
     # Read Temp end Mnk data.
-    lonmin = min(lonlim)
     lonmax = max(lonlim)
-    latmin = min(latlim)
-    latmax = max(latlim)
-    numday = '0000'+str(numday)
-    numday = numday[-4:]
-    #mask_path = GLORYS_path+'/mesh_grid/mesh_reg.nc'
-    mask_path = GLORYS_path
-
+    lat = param['lat_phy']
+    lon = param['lon_phy']
+    food = param['food_var']
+    temp = param['T_var']
+    U_var = param['U_var']
+    V_var = param['V_var']
+    
+    #Mask
+    # mask_dict = ncl.read_nc(mask_path,['mask'])
+    # mask = np.asarray(mask_dict['mask'])[:,:]
+    # mask[mask==1][:] = float("nan")
+    
+    
     #Feeding habitat
-    if tracer == "mnk":
-        food_path = food_path + 'mnk_'+str(numday)+'.nc'
-        food_dict = ncl.read_nc(food_path,['latitude','longitude','mnk'])
-        mnk = np.asarray(food_dict['mnk'])[0,:,:]
-        Food_hab = tul.food_hab(mnk,food_max)
-
-    elif tracer == "PP":
-        #food_path = GLORYS_path+'/forcings/PP/PP_'+str(numday)+'.nc'
-        food_path = food_path + 'PP_'+str(numday)+'.nc'
-        #food_dict = read_nc(food_path,['latitude','longitude','pp'])
-        food_dict = ncl.read_nc(food_path,['latitude','longitude','pp'])
-        PP = np.asarray(food_dict['pp'])[0,:,:]
-        Food_hab = tul.food_hab(PP,food_max)
-
-    #T_path = GLORYS_path+'/forcings/reg_sosie/T/GLORYS_'+str(numday)+'_gridT.nc'
-    T_path = T_path + 'GLORYS_'+str(numday)+'_gridT.nc'
-    mask_dict = ncl.read_nc(mask_path,['mask','x','y'])
-    #T_dict = read_nc(T_path,['votemper']) 
-    T_dict = ncl.read_nc(T_path,['votemper']) 
-    mask = np.asarray(mask_dict['mask'])[:,:]
-    mask[mask==1][:] = float("nan")
-    x_mask = np.asarray(mask_dict['x'])
-    y_mask = np.asarray(mask_dict['y'])
-    latmat = np.asarray(food_dict['latitude'][::-1])
-    lonmat = np.asarray(food_dict['longitude'])
-
-    #Flip de la matrice de latitude
-    #latmat = np.flipud(latmat)
-
-    # Compute temperature and food habitats.
-    T = np.asarray(T_dict['votemper'])[0,:,:]
-    T_hab = tul.t_hab(T,SCL,To,species)
+    if hab_mode == 'food' or hab_mode == 'all':
+        if tracer == "mnk":
+            numday = '0000'+str(numday)
+            numday = numday[-4:]
+            food_path = food_path + 'mnk_'+str(numday)+'.nc'
+            food_dict = ncl.read_nc(food_path,['latitude','longitude','mnk'])
+            mnk = np.asarray(food_dict['mnk'])[0,:,:]
+            Food_hab = tul.food_hab(mnk,food_max)
     
-    U_path = U_path + 'GLORYS_' + str(numday) + '_gridU.nc'
-    U_dict = ncl.read_nc(U_path, ['vozocrtx'])
-    V_path = V_path + 'GLORYS_' + str(numday) + '_gridV.nc'
-    V_dict = ncl.read_nc(V_path, ['vomecrty'])    
+        elif tracer == "PP":
+            PP = ncl.interpolate_vgpm(current_date, param)
+            if hab_mode == 'all':
+                PP = PP[::-1,:] #reverse lat
+                PP = PP[119:,:] #remove first 10 degrees !!!!!! il faut sélectionner les indices pour que les grilles correspondent mais il peut y avoir un décalage d'une demi maille. La résolution doit être la même
+            Food_hab = tul.food_hab(PP,food_max)
+            #
+            if hab_mode == 'food':
+                lat = param['lat_food']
+                lon = param['lon_food']
+                latlon = ncl.read_nc(gridfile,[lat,lon])
+                latmat = np.asarray(latlon[lat])
+                lonmat = np.asarray(latlon[lon])
 
-    U = np.asarray(U_dict['vozocrtx'][0,:,:])
-    V = np.asarray(V_dict['vomecrty'][0,:,:])
-    norm = np.sqrt((U**2)+(V**2))
     
+    #Temperature habitat
+    if hab_mode == 'temp' or hab_mode == 'all':
+        T_files = data_lists[2]
+        current_T_file = T_files[numday]
+        T_dict = ncl.read_nc(current_T_file, [lat,lon,temp])
+        T = np.squeeze(T_dict[temp])
+        T_hab = tul.t_hab(T,SCL,To,param['species'])
+        latmat = np.asarray(T_dict[lat])
+        lonmat = np.asarray(T_dict[lon])
     
+        
     
+    #Ocean currents
+    if hab_mode == 'current':
+        U_files = data_lists[0]
+        current_U_file = U_files[numday]
+        U_dict = ncl.read_nc(current_U_file, [lat, lon, U_var])
+        #
+        V_files = data_lists[1]
+        current_V_file = V_files[numday]
+        V_dict = ncl.read_nc(current_V_file, [V_var])   
+        #
+        latmat = np.asarray(U_dict[lat])
+        lonmat = np.asarray(U_dict[lon])
+        #
+        U = np.squeeze(U_dict[U_var])
+        V = np.squeeze(V_dict[V_var])
+        norm = np.sqrt((U**2)+(V**2))
+        
+
     
     if hab_mode == 'food':
         hab = Food_hab
@@ -196,20 +213,25 @@ def plot_habitat(ax,hab_mode, GLORYS_path, food_path, T_path, U_path, V_path, nu
         hab = norm
         legend = u'Mean surface current [m/s]'
         cmap = 'pink_r'
-        levels = np.arange(0,2.01,0.01)
+        levels = np.arange(0,2.1,0.1)
         ticks = np.arange(0,2.2,0.2)
-        
+   
     hab[hab<0.001] = float('nan')
     hab2 = np.column_stack((hab[:,max(np.where(lonmat[lonmat<lonmax])[0]):-2],hab[:,:max(np.where(lonmat[lonmat<lonmax])[0])]))
     lonmat2 = np.hstack((lonmat[max(np.where(lonmat[lonmat<lonmax])[0]):-2]-360,lonmat[:max(np.where(lonmat[lonmat<lonmax])[0])]))
-    #levels = np.arange(0,1.1,0.1)
-    levels = levels
+    #
     im = ax.contourf(lonmat2,latmat,hab2,levels,cmap=cmap, alpha = 0.9,zorder=0)
     cbar = plt.colorbar(im, orientation='horizontal',pad = 0.1, shrink=0.87, ticks = ticks)#, shrink=0.9)#, shrink=0.45, pad=0.03, fraction=0.25)
     cbar.ax.tick_params(labelsize=12)
     cbar.set_label(legend, labelpad=5, size=16)
     #cbar.outline.set_linewidth(0.5)
     #cbar.ax.xaxis.set_tick_params(width=0.5)
+    
+
+
+
+
+
 
 def display_fig(frame_title=''):
     c=1
@@ -268,8 +290,7 @@ def show_start_point(ax, lat,lon) :
    ax.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',
             markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)   
    
-def plot_animation_frames(gridfile,food_path,T_path,U_path, V_path, dico,hab_mode,To,lethargy,coef_SMR,Fa,start_day,end_day,turtles,h,latlim,lonlim,lat_space,lon_space,tracer,mode,species,start_age, save_path, filename, variables, dpi=100):
-   
+def plot_animation_frames(gridfile,food_path, dico,hab_mode,To,lethargy,coef_SMR,Fa,start_day,end_day,nturtles,h,latlim,lonlim,lat_space,lon_space,tracer,species, save_path, param, data_lists, mortality = True, dpi=100):
     """ Plot animation frames with turtles positions and approximate habitat. """  
     latmin = min(latlim)
     latmax = max(latlim)
@@ -278,88 +299,77 @@ def plot_animation_frames(gridfile,food_path,T_path,U_path, V_path, dico,hab_mod
 
     dmin = 80.
     dmax = 200. 
-    lat = dico[variables[0]][0:-1,:]          
-    lon = dico[variables[1]][0:-1,:]
-
+    lat = dico['traj_lat'][:-1,:]          
+    lon = dico['traj_lon'][:-1,:]
+    init_t = dico['init_t']
+    traj_time = dico['traj_time'][:-1,:]
+    #
     #Correction de certaines longitudes
-    lon[np.where(lon<200)]=lon[np.where(lon<200)]+360
+    #lon[np.where(lon<200)]=lon[np.where(lon<200)]+360
     #if np.mean(lon[0,:]) < 36 :
         #Si point de départ dans l'Atlantique, on corrige l'affichage des longitudes > 180°E(cad toutes puisque 180°E est dans le Pacifique et que l'on se trouve dans l'Atlantique)
         # Lorsque les particules dépassent greenwich on ajoute 360 (elles passent de 359 à 361 plutot que de 359 à 1, par exemple en mediterranée)
     lon[lon>=lonmax]-=360
     
-    if hab_mode != 'void':
-        temp = dico[variables[4]][0:-1]
-    init_t = dico['init_t']
-    traj_time = dico[variables[3]][0:-1,:]
-    if hab_mode != 'void':
-        date_death=tul.find_date_death(turtles,temp,To,coef_SMR,lethargy,init_t, end_day-start_day,param)
+    if hab_mode != 'void' and mortality:
+        temp = dico['traj_temp'][start_day:end_day,:]
+        date_death = tul.find_date_death(nturtles,temp,To,coef_SMR,lethargy,init_t, end_day-start_day)
     
-    #date_start_physfile = dt.datetime(1998,5,17,)
-    date_start_physfile = dt.datetime(2002,1,1,)
+    date_start_physfile = dt.datetime(param['ystart'],1,1) #à modifier éventuellement
     date_start_physfile_entier= date_start_physfile.toordinal()
-    if hab_mode != 'void':
-        date_death_entier = date_death+date_start_physfile_entier
     
+    if hab_mode != 'void' and mortality:
+        date_death_entier = date_death+date_start_physfile_entier
+        
     month_names = ['Jan.','Feb.','Mar.','Apr.','May','Jun.','Jul.','Aug.','Sep.','Oct.','Nov.','Dec.']
-    for step in range(start_day,end_day,h) :      
-        days_since_ref1 = int(step+init_t.min()) # for title
-        days_since_ref = days_since_ref1%2557 + 1 # looping for GLORYS
-        t1=time.clock()
-        # Frame title.
-        date = date_start_physfile + dt.timedelta(days_since_ref1)
+    #
+    for step in range(start_day,end_day,h):
+        print('\n')
+        print(step, 'of', end_day)
+        days_since_ref = int(step+init_t.min()) + 1
+        date_title = date_start_physfile + dt.timedelta(days_since_ref)
+        if param['time_periodic']:
+            days_since_ref = days_since_ref%(param['time_periodic'] + init_t.min())
+        date = date_start_physfile + dt.timedelta(days_since_ref)
+        # Frame title
         date_today_entier = date.toordinal()
         m = '00'
-        #month = m + str(date.month)
-        #month = month[-2:]
-        print(date.month-1)
-        month = month_names[date.month-1]
-        print(month)
-        day = m + str(date.day)
-
-        day = day[-2:]
-        year = str(date.year-2001)
-        #title ='| '+month+' / '+day+'  year '+year+' |'
-        title ='| '+month+' '+day+', year '+year+' |'
-        print(title)
-#        print(lat[0,:])
-        newlat,newlon,date_mat = ncl.age_to_date(traj_time,init_t,lat,lon,start_age)
-#        print(newlat[0,:])
-#        print(newlon[0,:])
-        #Compute num. of physical files
-        #GLORYS_path = '/Users/baptistemourrain/Desktop/ModeleStamm/glorys1'       
-        GLORYS_path = gridfile       
-        n_day =  '0000'+str(step+1)
-        n_day = n_day[-4:]
+        month = month_names[date_title.month-1]
+        day = str(("%02d") %date_title.day)
+        year = str(date_title.year)
+        title ='| '+day+' '+month+' '+year+' |'
+        print('  ',title)
+        print('File date : ',date.strftime("%d-%m-%Y"))
+        #
+        newlat,newlon,date_mat = ncl.age_to_date(traj_time,init_t,lat,lon)
+        #
         ax = display_fig(frame_title=title)
         # Display habitat.
-        if mode == 'active':
+        if hab_mode != 'void':
             # Calcul des paramètre relatifs à la nage active et à l'habitat
-            SCL = tul.age_to_SCL(step+start_age,species)
-            M   = tul.compute_M(species,SCL)
-            food_max = tul.compute_Fmax(step+start_age,tracer,species,SCL,Fa)
-            #ax,cax = display_fig(frame_title=title)
-            if hab_mode != 'void':
-#                plot_habitat(ax,cax,GLORYS_path, days_since_ref,[latmin,latmax],[lonmin,lonmax],SCL,To,food_max,dmin,dmax,tracer,species)
-                plot_habitat(ax, hab_mode, GLORYS_path, food_path, T_path, U_path, V_path, days_since_ref, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, species)
+            SCL = tul.age_to_SCL(step+start_day,species)
+            food_max = tul.compute_Fmax(step+start_day,tracer,species,SCL,Fa)
+            numday = days_since_ref - int(init_t.min())
+            plot_habitat(ax, hab_mode, gridfile, food_path, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, param, data_lists,date)
 
-        
+
         # Find alive and dead turtles
         # Blue dots : alive turtles
         # Black dots: dead turtles
         # Dead turtles are removed from the animation 90 days after they died
-        if hab_mode != 'void':
-            index_dead_at_date = np.where((date_death_entier<=date_today_entier)&(date_death_entier+90>date_today_entier))
+        if hab_mode != 'void' and mortality:
+            index_dead_at_date = np.where((date_death_entier<=date_today_entier)&(date_death_entier+90>date_today_entier)) #+90 > dead disappear after 90 days
             index_alive_at_date = np.where(date_death_entier>date_today_entier)
-        
-        #print(np.shape(index_dead_at_date), np.shape(index_alive_at_date))
-        if hab_mode == 'void':
+        if hab_mode == 'void' and mortality:
             index_dead_at_date=[]
             index_alive_at_date=np.arange(lat.shape[1])
         # Display position (scatter)
-        display_tracks(ax, lat=newlat[step,index_dead_at_date],lon=newlon[step,index_dead_at_date],ms=11,col='k',alpha=0.6)
-        display_tracks(ax , lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4',alpha=0.6)
-
+        if mortality:
+            display_tracks(ax, lat=newlat[step,index_dead_at_date],lon=newlon[step,index_dead_at_date],ms=11,col='k',alpha=0.6)
+            display_tracks(ax , lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4',alpha=0.6)
+        else:
+            display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
+        
         # Plot starting point
         show_start_point(ax, lat,lon)
 
@@ -368,25 +378,27 @@ def plot_animation_frames(gridfile,food_path,T_path,U_path, V_path, dico,hab_mod
         plot_map(ax, latmin, latmax, lonmin, lonmax, lon_space,lat_space)
         plt.xlim([lonmin,lonmax])
         plt.ylim([latmin,latmax])
-
-        # Saving frame (if non existent, the specified directory is created)
-        #if os.path.isdir(path+place) == False : 
-            #os.mkdir(path+place)
-        m = '0000'+str(step)
-        m = m[-4:]
         
-        #plt.savefig(path+place+'/'+place+'_'+m+'.png',
-                   #bbox_inches='tight', dpi=85)
-        plt.savefig(save_path + 'frame_' + m + '.png',
-        bbox_inches='tight', dpi=dpi)
+        #save figure
+        m = str(("%04d") %step)
+        plt.savefig(save_path + 'frame_' + m + '.png', bbox_inches='tight', dpi=dpi)
         plt.close()
         
 def convert_frames_to_video(pathIn, pathOut, fps):
+    print('\n')
+    print('****************************************************')
+    print("Converting frames to video...")
+    print('****************************************************')
+    print('\n')
     frame_array = []
-    files = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
+    files = [f for f in os.listdir(pathIn) if (isfile(join(pathIn, f)) and os.path.splitext(join(pathIn, f))[-1] == '.png')]
     
     #for sorting the file names properly
-    files.sort(key = lambda x: int(x[6:10]))
+    #only png files should be in the directory
+    try:
+        files.sort(key = lambda x: int(x[6:10])) #work if name = frame_****.png
+    except:
+        files = sorted(files)
  
     for i in range(len(files)):
         time.sleep(0.01)

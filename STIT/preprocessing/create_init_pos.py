@@ -26,7 +26,7 @@ import init_pos_lib as ipl
 # PATHS & FILES
 # =============================================================================
 #gridfle parameters
-gridfile = '/homelocal/pgiffard/DATA/PSY4_12_DAYLY/grid.nc'
+gridfile = '/homelocal-px/px-171/pgiffard/DATA/PSY4_12_DAYLY/grid.nc'
 lon_name = 'longitude'
 lat_name = 'latitude'
 mask_name = 'mask'
@@ -34,9 +34,9 @@ grid_type = 'regular' #orca or regular
 #figure plot does not work with orca option, need to change gridtogeo
 
 #infile & outfile
-path = '/homelocal/pgiffard/SRC/STAMM/EXP/init_files/'
-infile = 'CRI_Pacuare.json'
-outfile = 'initial_positions_Pacuare.txt'
+path = '/homelocal-px/px-171/pgiffard/SRC/STAMM/EXP/init_files/'
+infile = 'VIR_SaintCroix.json'
+outfile = 'initial_positions_Ste-Croix.txt'
 append = True 
 
 #figure

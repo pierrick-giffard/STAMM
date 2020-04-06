@@ -10,7 +10,7 @@ python plot_animation.py output.nc namelist
 # =============================================================================
 import sys, os
 import numpy as np
-from pathlib import Path, PurePath
+from pathlib import Path
 
 #Personal librairies
 sys.path.insert(1, os.path.join(sys.path[0], '../../LIB'))
@@ -23,21 +23,20 @@ import IOlib as IO
 # USERS PARAMETERS
 # =============================================================================
 #background
-hab_mode = 'void' # 'food', 'temp', 'current', 'all', 'void'
+hab_mode = 'food' # 'food', 'temp', 'current', 'all', 'void'
 #option 'void' for no background
+mortality = False #set to False not to calculate dead turtles
 
-#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian'
+#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream'
 zone = 'Atlantic'
 
 # time delta between 2 frames (in days)
-h = 10
+h = 1
 
-#Starting age
-start_age = 0
 
 #Dates
-start_day = 0
-end_day = 50
+start_day = 5700
+end_day = 5800
 
 
 # =============================================================================
@@ -48,20 +47,14 @@ namelist = sys.argv[2]
 param = IO.read_namelist(namelist, display=False)
 directory = str(Path(file_path).parents[0])
 #
-gridfile = param['mesh_phy']
-U_path = param['U_dir'] + '/'
-V_path = param['V_dir'] + '/'
-T_path = param['T_dir'] + '/'
+gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc' #gridfile for NPP lon/lat
 food_path = param['food_dir'] + '/'
 #Defaults save paths
 save_path = directory + '/animation/'
 filename = Path(namelist).stem.replace('namelist','')
 videofile = save_path + '/' + filename + '_animation.avi'
-#Rewrite them manually
-# save_path =
-# videofile =
 if not Path(save_path).exists():
-    save_path.mkdir(parents=True)
+    Path(save_path).mkdir(parents=True)
 
 print('\n')
 print('********************************************************************************')
@@ -86,10 +79,15 @@ Fa = param['P0']
 
 # Nombre d'images par seconde pour la vidéo
 fps = 8 #8
-dpi = 350
-##Zone de plot
-#Pacifique
+dpi = 150
 
+# Espacement des méridiens et des parallèles sur les figures
+lon_space = 10
+lat_space = 3
+
+# =============================================================================
+#ZONES
+# =============================================================================
 if zone == 'Atlantic':
     lonmin = -110.
     lonmax = 36.
@@ -113,29 +111,33 @@ elif zone == 'Indian':
     lonmax = 120
     latmin = -60
     latmax = 20
+    
+elif zone == 'Gulf_stream':
+    lonmin = -80
+    lonmax = -50
+    latmin = 30
+    latmax = 45
 
-# Espacement des méridiens et des parallèles sur les figures
-lon_space = 60
-lat_space = 20
+
 #
-tracer = "PP"
-mode = param['mode']
+tracer = "PP" #PP or mnk
 species = param['species']
 # =============================================================================
 # CODE
 # =============================================================================
 # Lecture du fichier d'entrée
 nc_dico=ncl.read_nc(file_path,['traj_lat'])
-nsteps,turtles=np.shape(nc_dico['traj_lat'])
+nsteps,nturtles=np.shape(nc_dico['traj_lat'])
 variables = ['traj_lat','traj_lon','init_t', 'traj_time']
-if hab_mode != 'void':
-    variables.append('traj_temp')    
+if hab_mode != 'void' and mortality:
+    variables.append('traj_temp')
 
-        
+       
 # Read nc file
 dico = ncl.read_nc(file_path, variables)
-pl.plot_animation_frames(gridfile, food_path, T_path, U_path, V_path, dico, hab_mode, To, lethargy,
-                         coef_SMR, Fa, start_day, end_day, turtles, h, [latmin, latmax],
-                         [lonmin, lonmax], lat_space, lon_space, tracer, mode, species,
-                         start_age, save_path, filename, variables, dpi)  
+data_lists = ncl.data_lists(param, end_day, dico['init_t'])
+pl.plot_animation_frames(gridfile, food_path, dico, hab_mode, To, lethargy,
+                         coef_SMR, Fa, start_day, end_day, nturtles, h, [latmin, latmax],
+                         [lonmin, lonmax], lat_space, lon_space, tracer, species,
+                         save_path, param, data_lists, mortality, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

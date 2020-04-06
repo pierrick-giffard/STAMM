@@ -12,6 +12,11 @@ import netCDF4 as nc
 import numpy as np
 import os
 import sys
+import IOlib as IO
+from pathlib import Path
+import datetime as dt
+import glob
+
 # =============================================================================
 # FUNCTIONS
 # =============================================================================
@@ -27,37 +32,45 @@ def read_nc(infile, dict_keys):
 
 
 
+def get_name(infile):
+    """
+    Get infile name without path and .nc
+    """
+    name = Path(infile).stem.replace('.nc','')
+    return name
 
-def age_to_date(traj_time, t_init, lat, lon,start_age) :
-    """ """
+
+def age_to_date(traj_time, t_init, lat, lon) :
+    """
+    Order lat and lon in time instead of age.
+    Returns lon and lat, arrays of size ndays_simu + (t_init[-1] - t_init[0]).
+    Returns date_mat, an array giving date since 01/01/ystart at each tstep (same for all turtles)
+    nan values when no value
+    """
     # Load parameters and initialize variables.
+
     nturtle = len(t_init)
-    traj_time[0,:] = start_age
-    traj_time = traj_time - start_age
-    duration = traj_time.flatten().max()
+    duration = np.max(traj_time)
     n_steps = np.shape(traj_time)[0]
     t_step = traj_time[1,0]-traj_time[0,0]
     start = t_init.min()
     end = t_init.max() + duration
     final_duration = end - start
     final_n_steps = int(final_duration / t_step)+2
-
     # Build universal date vector.
-    # (calendar zero 01/01/2002)
+    # (calendar zero 01/01/ystart)
     date = traj_time[:,0] + t_init.min()
     after = np.arange(date[-1] + t_step, end, t_step)
     date = np.concatenate((date, after))
     date_mat = np.zeros((len(date),nturtle))
     new_lon = np.zeros((final_n_steps, nturtle))
     new_lat = new_lon.copy()
-
     # Add initial and final positions to fit with universal calendar.
     for turtle in range(nturtle) :
         date_mat[:,turtle] = date
         steps_before = int((t_init[turtle]-start)/t_step)
         steps_after = final_n_steps - (n_steps + steps_before)
         lat_before = np.zeros(steps_before) + float('nan') 
-
         lat_after = np.zeros(steps_after) + float('nan')
         lon_before = np.zeros(steps_before) + float('nan')
         lon_after = np.zeros(steps_after) + float('nan')
@@ -73,6 +86,53 @@ def age_to_date2(duration, init_t,traj,var_age):
         var_date[int(np.ceil(init_t[k])):int(duration+np.ceil(init_t[k])-1),k] = var_age[1:,k]
         k = k+1
     return var_date
+
+
+def time_interpolation(array0, array1, date0, date, date1):
+    """
+    Time interpolation at date 'date' of two arrays with dates 
+    'date0' (before') and 'date1' (after).
+    Returns the interpolated array.
+    """
+    w = (date-date0)/(date1-date0) #Weights
+    array = (1 - w )  * array0 + w * array1
+    return array
+
+def interpolate_vgpm(current_date, param):
+    """
+    Returns NPP at date 'current_date' based on files in food_dir.
+    Work for 8 days NPP.
+    """
+    year0 = current_date.year
+    year1 = year0
+    days = (current_date - dt.datetime(year0,1,1)).days + 1
+    dt0 = 8
+    #
+    list_days = np.arange(1,365,dt0)
+    if days in list_days:
+        name = str(year0) + str(("%03d") %days) + param['food_suffix']
+        file = glob.glob(param['food_dir'] + '/*' + name)[0]
+        ncfile = nc.Dataset(file)
+        array = np.squeeze(ncfile.variables[param['food_var']])
+        return array
+    else:
+        days0 = days//dt0 * dt0 + 1
+        days1 = days0 + dt0
+        if days1 > 365:
+            days1 = 1
+            year1 += 1
+        name0 = str(year0) + str(("%03d") %days0) + param['food_suffix']
+        name1 = str(year1) + str(("%03d") %days1) + param['food_suffix']
+        file0 = glob.glob(param['food_dir'] + '/*' + name0)[0]
+        file1 = glob.glob(param['food_dir'] + '/*' + name1)[0]
+        ncfile0 = nc.Dataset(file0)
+        ncfile1 = nc.Dataset(file1)
+        array0 = np.squeeze(ncfile0.variables[param['food_var']])
+        array1 = np.squeeze(ncfile1.variables[param['food_var']])
+        date0 = dt.datetime(year0,1,1) + dt.timedelta(days=days0-1)
+        date1 = dt.datetime(year0,1,1) + dt.timedelta(days=days1-1)
+        array = time_interpolation(array0, array1, date0, current_date, date1)
+        return array
 
 def extract_x_y(ncfile,duration, turtles, alive):
 
@@ -205,3 +265,41 @@ class data:
         for k in range(self.nturtles):
             days[:,k] = np.int32((self.traj_time[:,k]-self.traj_time[0,k])+self.init_t[k])
         self.days=days
+        
+        
+def data_lists(param, end_day, t_init):
+    """
+    Return a list of list of data names with the first name being the first simulation day 
+    and the last name being the last file needed for simulation.
+    Passive mode: returns U_list and V_list
+    Active mode: also returns T_list and Food_list
+    Update time_periodic.
+    """
+    mode = param['mode']
+    ndays_simu = param['ndays_simu']
+    last_date_simu = IO.find_last_date(param)       
+    date_start, date_end, param['time_periodic'] = IO.define_start_end(ndays_simu, param, t_init, last_date_simu)
+    #
+    data_list = []
+    U_list = IO.forcing_list(param['U_dir'], param['U_suffix'], date_start, date_end)
+    V_list = IO.forcing_list(param['V_dir'], param['V_suffix'], date_start, date_end)
+    data_list.append(U_list)
+    data_list.append(V_list)
+    #
+    if mode == 'passive':    
+        return data_list
+    elif mode == 'active':
+        T_list = IO.forcing_list(param['T_dir'], param['T_suffix'], date_start, date_end)
+        Food_list = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, vgpm=param['vgpm'])
+        data_list.append(T_list)
+        data_list.append(Food_list)
+    #
+    return data_list
+    
+    
+    
+    
+    
+    
+    
+    

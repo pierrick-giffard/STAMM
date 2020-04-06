@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Functions to read namelist and initial positions
+In/out library.
+Functions to read namelist, initial positions
 """
 
 import numpy as np
 import csv
 import sys
-
+from glob import glob
+from datetime import datetime, timedelta
+import netCDF4
 
 def read_namelist(filename, display=True):
     """
@@ -205,3 +208,142 @@ def read_positions(param):
 
 
     return x_init, y_init, t_init
+
+
+
+def find_last_date(param):
+    """
+    Returns the last date it is possible to use for computation (datetime).
+    It is the smaller last date of all data files. 
+    """
+    U_dir = param['U_dir']
+    U_suffix = param['U_suffix']
+    V_dir = param['V_dir']
+    V_suffix = param['V_suffix']
+    time_var_phy = param['time_var_phy']
+    if param['key_alltracers']:
+        T_dir = param['T_dir']
+        T_suffix = param['T_suffix']
+        food_dir = param['food_dir']
+        food_suffix = param['food_suffix']
+        time_var_food = param['time_var_food']
+    #
+    last_U = sorted(glob(U_dir + '/*' + U_suffix))[-1]
+    file_U = netCDF4.Dataset(last_U)
+    t_unit = file_U.variables[time_var_phy].units
+    t_value = int(file_U.variables[time_var_phy][:].data)
+    time_U = netCDF4.num2date(t_value, t_unit)
+    file_U.close()
+    #
+    last_V = sorted(glob(V_dir + '/*' + V_suffix))[-1]
+    file_V = netCDF4.Dataset(last_V)
+    t_unit = file_V.variables[time_var_phy].units
+    t_value = int(file_V.variables[time_var_phy][:].data)
+    time_V = netCDF4.num2date(t_value, t_unit)
+    file_V.close()
+    #
+    if param['key_alltracers']:
+        last_T = sorted(glob(T_dir + '/*' + T_suffix))[-1]
+        file_T = netCDF4.Dataset(last_T)
+        t_unit = file_T.variables[time_var_phy].units
+        t_value = int(file_T.variables[time_var_phy][:].data)
+        time_T = netCDF4.num2date(t_value, t_unit)
+        file_T.close()
+        #
+        last_food = sorted(glob(food_dir + '/*' + food_suffix))[-1]
+        file_food = netCDF4.Dataset(last_food)
+        t_unit = file_food.variables[time_var_food].units
+        t_value = int(file_food.variables[time_var_food][:].data)
+        time_food = netCDF4.num2date(t_value, t_unit)
+        file_food.close()
+        #
+        last_file = min(time_U, time_V, time_T, time_food)
+    else:
+        last_file = min(time_U, time_V)
+    return last_file
+
+
+def define_start_end(ndays_simu, param, t_init, last_date):
+    """
+    Returns date of first simulation day, date of last data file to use and update time_periodic.
+    """
+    #
+    ystart = param['ystart']
+    time_periodic = param['time_periodic']
+    #
+    tmin = timedelta(days=int(np.min(t_init)))
+    date_start = datetime(ystart, 1, 1) + tmin
+    #
+    if isinstance(time_periodic, int) and time_periodic > ndays_simu:
+        time_periodic = False
+    #
+    if time_periodic == False:
+        date_end = date_start + timedelta(days=ndays_simu)
+    #
+    elif time_periodic == 'auto':
+        if date_start + timedelta(days=ndays_simu) > last_date:
+            if last_date.month == 12 and last_date.day == 31:
+                last_year = last_date.year
+            else:
+                last_year = last_date.year - 1
+            date_end = datetime(last_year, 12, 31)
+            time_periodic = (date_end - date_start).days
+            print('time_periodic is set to %d'%time_periodic)
+            if date_end < date_start:
+                raise ValueError('Not enough data files. You can try to set time_periodic manually')
+        else:
+           time_periodic = False
+           date_end = date_start + timedelta(days=ndays_simu)
+
+    #if time_periodic is integer
+    else:
+        date_end = date_start + timedelta(days=time_periodic)
+    #
+    if date_end > last_date:
+        raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto")
+    #
+    print('   Date of first file: ', date_start)
+    print('   Date of last file:  ', date_end)    
+    print('\n')
+    return date_start, date_end, time_periodic
+
+
+
+def forcing_list(f_dir, f_suffix, date_start, date_end, print_date = False, vgpm = False):
+    """
+    Return a list with data needed for simulation.
+    It is important that the first file is the first day of release.
+    This function highly depends on files names, it might not work for particular names.
+    It works for names format:
+        -   *_YYYY*suffix
+        -   *YYYY*suffix
+        -   vgpm files with vgpm=True in namelist
+    If none of this format is found, consider first file is 01/01/ystart.
+    """
+    tmin = date_start - datetime(date_start.year, 1, 1)
+    #
+    list_years = np.arange(date_start.year, date_end.year + 1)
+    files = []
+    for yr in list_years:
+        files += sorted(glob(f_dir + '/*' + '_' + str(yr) + '*' + f_suffix))
+    if files == []:
+        for yr in list_years:
+            files += sorted(glob(f_dir + '/*' + str(yr) + '*' + f_suffix))
+    #remove useless files
+    del(files[:tmin.days])
+    del(files[(date_end-date_start).days+2:])
+    #
+    if vgpm:
+        files = []
+        for yr in list_years:
+            files += sorted(glob(f_dir + '/*' + '.' + str(yr) + '*' + f_suffix))
+        #remove useless files
+        del(files[:tmin.days//8])
+        del(files[((date_end-date_start).days)//8+3:]) 
+    #
+    if files == []:
+        print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%date_start.year)
+        files = sorted(glob(f_dir + '/*' + f_suffix))
+        del(files[:tmin.days])
+        del(files[(date_end-date_start).days+2:])
+    return files

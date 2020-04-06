@@ -9,14 +9,17 @@ Created on Wed Dec 18 10:46:43 2019
 # IMPORTS
 # =============================================================================
 import numpy as np
+import netCDF_lib as ncl
 # =============================================================================
 # FUNCTIONS
 # =============================================================================
 def find_date_death(turtles,temp,To,coef_SMR,lethargy,init_t,days=6570.):
-
+    """
+    Returns 1d-array with 1 date per turtle (number of days since 01/01/ystart)
+    1e34 if turtle is still alive at the end of the simulation.
+    """
     #Age et Tmin fonction de lage
     age_year = np.arange(days)/365. 
-
     Tmin = To - coef_SMR*0.21*np.sqrt(0.000214*(1.43*(1-np.exp(-0.226*(age_year+0.17)))*100)**2.86)
     
     #On vire la première donnée de temp
@@ -58,6 +61,54 @@ def find_date_death(turtles,temp,To,coef_SMR,lethargy,init_t,days=6570.):
 
     date_death = np.array(date_death)
     return date_death
+
+
+def find_disabled(infile):
+    """
+    Find disabled turtles.
+    Returns 2 arrays:
+    - disabled_turtles: 1D-array (size nb_disabled) containing the index of disabled turtles at the end of simulation.
+    - disabled_time: 1D-array (size nb_disabled) containing for each turtle the time index where it was disabled.
+    """
+    print('Calculating disabled turtles...')
+    dic = ncl.read_nc(infile, ['active'])
+    active = dic['active']
+    #
+    disabled_turtles = np.where(active[-1] == 0)[0]
+    nb_disabled = len(disabled_turtles)
+    print('       ', nb_disabled, 'turtles disabled of', active.shape[1])
+    #
+    disabled_time = np.zeros(nb_disabled, dtype='int32')
+    for k in range(nb_disabled):
+        t = disabled_turtles[k]
+        tmp = list(active[:,t])
+        disabled_time[k] = tmp.index(0)
+    #
+    return disabled_turtles, disabled_time
+
+
+
+def latitude_strip(lat, latmin, latmax):
+    """ 
+    Set lat to nan where turtles are not between latmin and latmax.
+    """
+    lat = np.where((lat > latmax) | (lat < latmin), np.nan, lat)
+    return lat
+
+
+def insert_nan(array, turtles_idx, time_idx):
+    """
+    Insert nan to turtles 'turtles_idx' from 'time_idx' to the end.
+    """
+    for k in range(len(turtles_idx)):
+        t = turtles_idx[k]
+        time = time_idx[k]
+        array[time:,t] = np.nan
+    return array
+
+
+
+
 
 def age_to_SCL(age,species) :
 

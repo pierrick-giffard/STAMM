@@ -209,7 +209,7 @@ def compute_swimming_direction(particle, fieldset, time):
         grad = sqrt(math.pow(particle.xgradh, 2) + math.pow(particle.ygradh, 2))
         
         #Compute theta
-        particle.theta = random.vonmisesvariate(theta0,fieldset.alpha*grad)
+        particle.theta = random.vonmisesvariate(theta0,fieldset.alpha*grad) 
 
 
 

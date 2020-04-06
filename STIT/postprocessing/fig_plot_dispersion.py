@@ -2,7 +2,7 @@
 #-*- coding:utf-8 -*-
 """
 Usage: fig_plot_dispersion namelist.nc zone
-zone can be NA, PA', 'auto' 
+zone (optional) can be NA, PA', 'auto' 
 """
 
 # =============================================================================
@@ -11,7 +11,6 @@ zone can be NA, PA', 'auto'
 import os
 import sys
 import numpy as np
-import netCDF4 as nc
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
@@ -27,7 +26,12 @@ import netCDF_lib as ncl
 # CODE
 # =============================================================================
 ifile = sys.argv[1]
-zone = str(sys.argv[2])
+try:
+    zone = str(sys.argv[2])
+except:
+    zone = 'auto'
+    print('Zone was set to auto. You can define it with a third argument (ex: NA)')
+
 ofile = ifile.replace(".nc","_dispersion.png")
 ## -- Si l'affichage coupe les trace à 0° de longitude, bien vérifier que x n'est pas corrigé dans 
 ## -- PlotTrajectories2(display_trajectories_all) : #x = np.array([l+(((1-np.sign(l))/2)*360) for l in x])
@@ -67,9 +71,6 @@ elif zone == 'IND':
     ymin = -60
     ymax = 20
 
-else:
-    raise ValueError('zone %s not found'%zone)
-
 
 lat_space = 20
 lon_space = 40
@@ -102,5 +103,8 @@ else:
             
         
 plt.savefig(ofile,bbox_inches='tight',dpi=800)
-print("wrote {}".format(ofile))
+print('\n')
+print('********************************************************************************')
+print("Wrote", ofile)
+print('********************************************************************************')
 plt.close()
