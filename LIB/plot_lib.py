@@ -124,16 +124,11 @@ def plot_habitat(ax,hab_mode, gridfile, food_path, numday,latlim,lonlim, SCL, To
     lonmax = max(lonlim)
     lat = param['lat_phy']
     lon = param['lon_phy']
-    food = param['food_var']
     temp = param['T_var']
     U_var = param['U_var']
     V_var = param['V_var']
     
-    #Mask
-    # mask_dict = ncl.read_nc(mask_path,['mask'])
-    # mask = np.asarray(mask_dict['mask'])[:,:]
-    # mask[mask==1][:] = float("nan")
-    
+   
     
     #Feeding habitat
     if hab_mode == 'food' or hab_mode == 'all':
@@ -196,19 +191,19 @@ def plot_habitat(ax,hab_mode, gridfile, food_path, numday,latlim,lonlim, SCL, To
         legend = u"Foraging Habitat suitability index"
         cmap = 'pink_r'
         levels = np.arange(0,1.1,0.1)
-        ticks = np.arange(0,1.1,0.1)
+        ticks = levels
     elif hab_mode == 'temp':
         hab = T_hab
         legend = u"Thermal Habitat suitability index"
         cmap = 'pink_r'
         levels = np.arange(0,1.1,0.1)
-        ticks = np.arange(0,1.1,0.1)
+        ticks = levels
     elif hab_mode == 'all':
         hab = T_hab*Food_hab
         legend = u"Habitat suitability index"
         cmap = 'pink_r'
-        levels = np.arange(0,1.1,0.1)
-        ticks = np.arange(0,1.1,0.1)
+        levels = np.arange(0.,1.1,0.1)
+        ticks = levels
     elif hab_mode == 'current':
         hab = norm
         legend = u'Mean surface current [m/s]'
@@ -275,8 +270,8 @@ def plot_map(ax, latmin, latmax, lonmin, lonmax,value=0.6,res=0.25,alpha=1, lon_
         lmaxabs = (int(max(abs(lmax), abs(lmin)))/step+1)*step
         return np.intersect1d(np.arange(lmin+1, lmax), np.arange(-lmaxabs, lmaxabs, step))
     #Draw parallels & meridians
-    map.drawparallels(getTicks(latmin, latmax, lat_space),labels=[1,0,0,0], fontsize=8,zorder=0.2,linewidth=0.1)
-    map.drawmeridians(getTicks(lonmin, lonmax, lon_space),labels=[0,0,0,1], fontsize=8,zorder=0.2,linewidth=0.1)
+    map.drawparallels(np.arange(latmin, latmax, lat_space),labels=[1,0,0,0], fontsize=8,zorder=0.2,linewidth=0.1)
+    map.drawmeridians(np.arange(lonmin, lonmax, lon_space),labels=[0,0,0,1], fontsize=8,zorder=0.2,linewidth=0.1)
     map.drawcountries(color='k',linewidth=0.01,zorder=0.3)
     map.drawcoastlines(color='grey',linewidth=0.2,zorder=0.3)
     map.fillcontinents(color='0.35')
@@ -290,7 +285,7 @@ def show_start_point(ax, lat,lon) :
    ax.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',
             markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)   
    
-def plot_animation_frames(gridfile,food_path, dico,hab_mode,To,lethargy,coef_SMR,Fa,start_day,end_day,nturtles,h,latlim,lonlim,lat_space,lon_space,tracer,species, save_path, param, data_lists, mortality = True, dpi=100):
+def plot_animation_frames(gridfile,food_path, dico,hab_mode,To,lethargy,coef_SMR,Fa,start_day,end_day,nturtles,h,latlim,lonlim,tracer,species, save_path, param, data_lists, mortality = True, dpi=100):
     """ Plot animation frames with turtles positions and approximate habitat. """  
     latmin = min(latlim)
     latmax = max(latlim)
@@ -325,11 +320,11 @@ def plot_animation_frames(gridfile,food_path, dico,hab_mode,To,lethargy,coef_SMR
     #
     for step in range(start_day,end_day,h):
         print('\n')
-        print(step, 'of', end_day)
+        print(step, 'of', end_day-h)
         days_since_ref = int(step+init_t.min()) + 1
         date_title = date_start_physfile + dt.timedelta(days_since_ref)
         if param['time_periodic']:
-            days_since_ref = days_since_ref%(param['time_periodic'] + init_t.min())
+            days_since_ref = int(days_since_ref%(param['time_periodic'] + init_t.min()))
         date = date_start_physfile + dt.timedelta(days_since_ref)
         # Frame title
         date_today_entier = date.toordinal()
@@ -366,14 +361,15 @@ def plot_animation_frames(gridfile,food_path, dico,hab_mode,To,lethargy,coef_SMR
         # Display position (scatter)
         if mortality:
             display_tracks(ax, lat=newlat[step,index_dead_at_date],lon=newlon[step,index_dead_at_date],ms=11,col='k',alpha=0.6)
-            display_tracks(ax , lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4',alpha=0.6)
+            display_tracks(ax, lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4',alpha=0.6)
         else:
-            display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
+            display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=30,col='#1f78b4',alpha=0.6)
         
         # Plot starting point
         show_start_point(ax, lat,lon)
 
-
+        lon_space = (lonmax - lonmin)/7
+        lat_space = (latmax - latmin)/7
         # Display map.
         plot_map(ax, latmin, latmax, lonmin, lonmax, lon_space,lat_space)
         plt.xlim([lonmin,lonmax])

@@ -56,7 +56,7 @@ def compute_PPmax_VGBF(particle, fieldset, time):
     """
     if particle.active == 1:
         x = particle.SCL / fieldset.SCLmax
-        PPnorm = fieldset.b * beta_jones * (1 - x) * x**(fieldset.b-1) / (1 - x**(fieldset.b * fieldset.beta_jones))
+        PPnorm = fieldset.b * fieldset.beta_jones * (1 - x) * x**(fieldset.b-1) / (1 - x**(fieldset.b * fieldset.beta_jones))
         particle.PPmax = PPnorm * fieldset.P0
     
 
@@ -84,6 +84,7 @@ def compute_habitat(particle, fieldset, time):
     Computes habitat gradients.
     Save habT, habPP and hab at the particle location.
     Save xgradh and ygradh.
+    Save T and NPP at particle location.
     """
     if particle.active == 1:
         #Convert dx to lon and lat
@@ -103,6 +104,9 @@ def compute_habitat(particle, fieldset, time):
               fieldset.NPP[time, particle.depth, particle.lat, particle.lon + dx_lon],#right
               fieldset.NPP[time, particle.depth, particle.lat - dx_lat, particle.lon],#bottom
               fieldset.NPP[time, particle.depth, particle.lat + dx_lat, particle.lon]]#top       
+        #Save T and NPP at particle location
+        particle.T = T0[0]
+        particle.NPP = NPP0[0]
         #
         #Temperature habitat
         #
@@ -209,7 +213,7 @@ def compute_swimming_direction(particle, fieldset, time):
         grad = sqrt(math.pow(particle.xgradh, 2) + math.pow(particle.ygradh, 2))
         
         #Compute theta
-        particle.theta = random.vonmisesvariate(theta0,fieldset.alpha*grad) 
+        particle.theta = random.vonmisesvariate(theta0,fieldset.alpha*grad)
 
 
 

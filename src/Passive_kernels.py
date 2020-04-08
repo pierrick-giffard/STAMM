@@ -20,7 +20,8 @@ def IncrementAge(particle, fieldset, time):
 
 def SampleTracers(particle, fieldset, time):
     """
-    Sample tracers at particle location.
+    Sample tracers at particle location in passive mode.
+    In active mode sampling is integrated to function compute_habitat.
     """
     if particle.active == 1:
         particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
@@ -39,36 +40,6 @@ def Periodic(particle, fieldset, time):
             particle.lon -= fieldset.halo_east - fieldset.halo_west
 
 
-
-def Distance(particle, fieldset, time):
-    """
-    Calculate the distance travelled at each time step.
-    Flat earth assumption during a timestep.
-    """
-    # Calculate the distance in latitudinal direction (using 1.11e2 kilometer per degree latitude)
-    particle.lat_dist = (particle.lat - particle.prev_lat) * fieldset.deg
-    # Calculate the distance in longitudinal direction, using cosine(latitude) - spherical earth
-    particle.lon_dist = (particle.lon - particle.prev_lon) * fieldset.deg * math.cos(particle.lat * math.pi / 180)
-    # Calculate the total Euclidean distance travelled by the particle
-    particle.distance = math.sqrt(math.pow(particle.lon_dist, 2) + math.pow(particle.lat_dist, 2))
-
-    particle.prev_lon = particle.lon
-    particle.prev_lat = particle.lat
-
-
-
-def CurrentVelocity(particle, fieldset, time):
-    """
-    Compute current mean velocity during a tstep.
-    This calculation is correct if the swimming velocity is constant over the whole time step.
-    """
-    if particle.active == 1:
-        if fieldset.active == 1:
-            particle.u_current = particle.lon_dist / particle.dt - particle.u_swim
-            particle.v_current = particle.lat_dist / particle.dt - particle.v_swim
-        else:
-            particle.u_current = particle.lon_dist / particle.dt
-            particle.v_current = particle.lat_dist / particle.dt
 
     
     
@@ -108,7 +79,7 @@ def UndoMove(particle, fieldset, time):
     Send particle back to last position in case it is on land.
     If it is on land more than onland_max times in a row, it is deleted.
     """
-    onland_max = 10  
+    onland_max = 50  
     if particle.beached == 1:
         particle.beached = 0
         particle.lon = particle.prev_lon
@@ -116,7 +87,7 @@ def UndoMove(particle, fieldset, time):
         particle.onland += 1
         #
         if particle.onland > onland_max:
-            print("Particle [%d] was disabled after beaching 10 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
+            print("Particle [%d] was disabled after beaching 50 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
             particle.active = 0
     else:
         particle.onland = 0

@@ -27,16 +27,16 @@ hab_mode = 'food' # 'food', 'temp', 'current', 'all', 'void'
 #option 'void' for no background
 mortality = False #set to False not to calculate dead turtles
 
-#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream'
-zone = 'Atlantic'
+#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med'
+zone = 'Acores'
 
 # time delta between 2 frames (in days)
-h = 1
+h = 100
 
 
 #Dates
-start_day = 5700
-end_day = 5800
+start_day = 0
+end_day = 5000
 
 
 # =============================================================================
@@ -81,9 +81,6 @@ Fa = param['P0']
 fps = 8 #8
 dpi = 150
 
-# Espacement des méridiens et des parallèles sur les figures
-lon_space = 10
-lat_space = 3
 
 # =============================================================================
 #ZONES
@@ -117,6 +114,18 @@ elif zone == 'Gulf_stream':
     lonmax = -50
     latmin = 30
     latmax = 45
+    
+elif zone == 'Acores':
+    lonmin = -30
+    lonmax = -24
+    latmin = 37
+    latmax = 40
+    
+elif zone == 'Med':
+    lonmin = -10
+    lonmax = 20
+    latmin = 30
+    latmax = 45
 
 
 #
@@ -137,7 +146,6 @@ if hab_mode != 'void' and mortality:
 dico = ncl.read_nc(file_path, variables)
 data_lists = ncl.data_lists(param, end_day, dico['init_t'])
 pl.plot_animation_frames(gridfile, food_path, dico, hab_mode, To, lethargy,
-                         coef_SMR, Fa, start_day, end_day, nturtles, h, [latmin, latmax],
-                         [lonmin, lonmax], lat_space, lon_space, tracer, species,
-                         save_path, param, data_lists, mortality, dpi)  
+                          coef_SMR, Fa, start_day, end_day, nturtles, h, [latmin, latmax],
+                          [lonmin, lonmax], tracer, species, save_path, param, data_lists, mortality, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

@@ -49,7 +49,8 @@ if mode == 'active':
     variables.append('ygrad')
     variables.append('SCL')
 dic = ncl.read_nc(infile, variables)
-
+dic['xgrad'] = abs(dic['xgrad'])
+dic['ygrad'] = abs(dic['ygrad'])
 
 # =============================================================================
 # STATISTICS

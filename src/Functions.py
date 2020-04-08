@@ -247,14 +247,13 @@ def define_passive_kernels(fieldset, pset, param):
     """
     key_alltracers = param['key_alltracers']
     periodicBC = param['periodicBC']
+    mode = param['mode']
     #
     kernels_list = [pk.IncrementAge, 
                     pk.BeachTesting, 
-                    pk.UndoMove, 
-                    pk.Distance, 
-                    pk.CurrentVelocity]
+                    pk.UndoMove]
     #
-    if key_alltracers:
+    if key_alltracers and mode == 'passive':
         kernels_list.append(pk.SampleTracers)
     #
     if periodicBC:
@@ -388,7 +387,5 @@ def modify_output(OutputFile, t_init, param):
     print('********************************************************************************')
     print('\n')
     
-  
-        
         
        
