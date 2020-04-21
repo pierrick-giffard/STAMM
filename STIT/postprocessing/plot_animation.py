@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Animate STAMM output files.
+Choose parameters.
 Execute as:
 python plot_animation.py output.nc namelist
 """
@@ -9,7 +10,6 @@ python plot_animation.py output.nc namelist
 # IMPORTS
 # =============================================================================
 import sys, os
-import numpy as np
 from pathlib import Path
 
 #Personal librairies
@@ -23,38 +23,44 @@ import IOlib as IO
 # USERS PARAMETERS
 # =============================================================================
 #background
-hab_mode = 'food' # 'food', 'temp', 'current', 'all', 'void'
-#option 'void' for no background
+hab_mode = 'temp' # 'food', 'temp', 'tot', 'current', 'void'
+#option 'void' for no background,
 mortality = False #set to False not to calculate dead turtles
 
-#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med'
-zone = 'Acores'
+#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med', 'tmp'
+zone = 'tmp'
 
 # time delta between 2 frames (in days)
-h = 100
+h = 1
 
 
 #Dates
 start_day = 0
-end_day = 5000
+end_day = 30
 
+#gridfile for NPP lon/lat
+gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
 
+# Video
+fps = 1 #images/sec
+dpi = 150 #images resolution
+#
+tracer = "PP" #PP or mnk
 # =============================================================================
 # PATHS & FILES
 # =============================================================================
 file_path = sys.argv[1]
 namelist = sys.argv[2]
-param = IO.read_namelist(namelist, display=False)
-directory = str(Path(file_path).parents[0])
-#
-gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc' #gridfile for NPP lon/lat
-food_path = param['food_dir'] + '/'
 #Defaults save paths
-save_path = directory + '/animation/'
-filename = Path(namelist).stem.replace('namelist','')
-videofile = save_path + '/' + filename + '_animation.avi'
+directory = ncl.get_directory(file_path)
+save_path = directory + 'animation' + '/'
 if not Path(save_path).exists():
     Path(save_path).mkdir(parents=True)
+#
+filename = ncl.get_name(namelist)
+videofile = save_path + '/' + filename + '_animation.avi'
+#   
+param = IO.read_namelist(namelist, display=False)
 
 print('\n')
 print('********************************************************************************')
@@ -65,7 +71,7 @@ print('\n')
 
 
 # =============================================================================
-# AUTO PARAMETERS
+# HABITAT & MORTALITY PARAMETERS
 # =============================================================================
 #Température optimale pour le calcul d'habitat
 To = 24.
@@ -75,21 +81,18 @@ lethargy=30.
 
 # Variables pour le calcul de l'habitat thermique et alimentaire
 coef_SMR=5.
-Fa = param['P0']
 
-# Nombre d'images par seconde pour la vidéo
-fps = 8 #8
-dpi = 150
+
 
 
 # =============================================================================
 #ZONES
 # =============================================================================
 if zone == 'Atlantic':
-    lonmin = -110.
-    lonmax = 36.
-    latmin = -7
-    latmax = 62
+    lonmin = -105. #-110
+    lonmax = -30 #36
+    latmin = 0#-7
+    latmax = 50#62
 
 elif zone == 'Caribbean':
     lonmin = 260.
@@ -110,10 +113,10 @@ elif zone == 'Indian':
     latmax = 20
     
 elif zone == 'Gulf_stream':
-    lonmin = -80
-    lonmax = -50
-    latmin = 30
-    latmax = 45
+    lonmin = -85
+    lonmax = -35
+    latmin = 25
+    latmax = 50
     
 elif zone == 'Acores':
     lonmin = -30
@@ -126,17 +129,20 @@ elif zone == 'Med':
     lonmax = 20
     latmin = 30
     latmax = 45
+    
+elif zone == 'tmp':
+    lonmin = -35
+    lonmax = -32
+    latmin = 39
+    latmax = 41
 
 
-#
-tracer = "PP" #PP or mnk
-species = param['species']
+
 # =============================================================================
 # CODE
 # =============================================================================
 # Lecture du fichier d'entrée
 nc_dico=ncl.read_nc(file_path,['traj_lat'])
-nsteps,nturtles=np.shape(nc_dico['traj_lat'])
 variables = ['traj_lat','traj_lon','init_t', 'traj_time']
 if hab_mode != 'void' and mortality:
     variables.append('traj_temp')
@@ -145,7 +151,6 @@ if hab_mode != 'void' and mortality:
 # Read nc file
 dico = ncl.read_nc(file_path, variables)
 data_lists = ncl.data_lists(param, end_day, dico['init_t'])
-pl.plot_animation_frames(gridfile, food_path, dico, hab_mode, To, lethargy,
-                          coef_SMR, Fa, start_day, end_day, nturtles, h, [latmin, latmax],
-                          [lonmin, lonmax], tracer, species, save_path, param, data_lists, mortality, dpi)  
+pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
+                          [lonmin, lonmax], tracer, save_path, param, data_lists, mortality, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

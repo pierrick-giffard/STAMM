@@ -118,7 +118,7 @@ def complete_release_map(infile, path, gridfile, lonlat1D, nturtles, xmin, xmax,
 
 
 
-def plot_habitat(ax,hab_mode, gridfile, food_path, numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,tracer,param,data_lists,current_date,log=False) :
+def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,tracer,param,data_lists,current_date,log=False) :
     """ Plot habitat on map."""
     # Read Temp end Mnk data.
     lonmax = max(lonlim)
@@ -127,11 +127,11 @@ def plot_habitat(ax,hab_mode, gridfile, food_path, numday,latlim,lonlim, SCL, To
     temp = param['T_var']
     U_var = param['U_var']
     V_var = param['V_var']
-    
+    food_path = param['food_dir'] + '/'
    
     
     #Feeding habitat
-    if hab_mode == 'food' or hab_mode == 'all':
+    if hab_mode == 'food' or hab_mode == 'tot':
         if tracer == "mnk":
             numday = '0000'+str(numday)
             numday = numday[-4:]
@@ -142,7 +142,7 @@ def plot_habitat(ax,hab_mode, gridfile, food_path, numday,latlim,lonlim, SCL, To
     
         elif tracer == "PP":
             PP = ncl.interpolate_vgpm(current_date, param)
-            if hab_mode == 'all':
+            if hab_mode == 'tot':
                 PP = PP[::-1,:] #reverse lat
                 PP = PP[119:,:] #remove first 10 degrees !!!!!! il faut sélectionner les indices pour que les grilles correspondent mais il peut y avoir un décalage d'une demi maille. La résolution doit être la même
             Food_hab = tul.food_hab(PP,food_max)
@@ -156,12 +156,12 @@ def plot_habitat(ax,hab_mode, gridfile, food_path, numday,latlim,lonlim, SCL, To
 
     
     #Temperature habitat
-    if hab_mode == 'temp' or hab_mode == 'all':
+    if hab_mode == 'temp' or hab_mode == 'tot':
         T_files = data_lists[2]
         current_T_file = T_files[numday]
         T_dict = ncl.read_nc(current_T_file, [lat,lon,temp])
         T = np.squeeze(T_dict[temp])
-        T_hab = tul.t_hab(T,SCL,To,param['species'])
+        T_hab = tul.t_hab(T,SCL+0.6,To,param['species'])
         latmat = np.asarray(T_dict[lat])
         lonmat = np.asarray(T_dict[lon])
     
@@ -196,9 +196,9 @@ def plot_habitat(ax,hab_mode, gridfile, food_path, numday,latlim,lonlim, SCL, To
         hab = T_hab
         legend = u"Thermal Habitat suitability index"
         cmap = 'pink_r'
-        levels = np.arange(0,1.1,0.1)
+        levels = np.arange(0.1,0.5,0.01)
         ticks = levels
-    elif hab_mode == 'all':
+    elif hab_mode == 'tot':
         hab = T_hab*Food_hab
         legend = u"Habitat suitability index"
         cmap = 'pink_r'
@@ -258,7 +258,7 @@ def display_colorbar(f,im, ax_cb, label):
 
 def display_tracks(ax, lat='NA',lon='NA',dates='NA',ms=0.00,col='b',alpha=0.5) :
     """ """
-    p=ax.scatter(lon, lat, marker='o',s=ms, edgecolor='none',c=col, alpha=alpha)
+    ax.scatter(lon, lat, marker='o',s=ms, edgecolor='none',c=col, alpha=alpha)
 
 def plot_map(ax, latmin, latmax, lonmin, lonmax,value=0.6,res=0.25,alpha=1, lon_space=20,lat_space=10) :
     """ Plot continents. """
@@ -285,8 +285,11 @@ def show_start_point(ax, lat,lon) :
    ax.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',
             markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)   
    
-def plot_animation_frames(gridfile,food_path, dico,hab_mode,To,lethargy,coef_SMR,Fa,start_day,end_day,nturtles,h,latlim,lonlim,tracer,species, save_path, param, data_lists, mortality = True, dpi=100):
+def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, mortality = True, dpi=100):
     """ Plot animation frames with turtles positions and approximate habitat. """  
+    species = param['species']
+    nturtles = param['nturtles']
+    #
     latmin = min(latlim)
     latmax = max(latlim)
     lonmin = min(lonlim)
@@ -343,9 +346,9 @@ def plot_animation_frames(gridfile,food_path, dico,hab_mode,To,lethargy,coef_SMR
         if hab_mode != 'void':
             # Calcul des paramètre relatifs à la nage active et à l'habitat
             SCL = tul.age_to_SCL(step+start_day,species)
-            food_max = tul.compute_Fmax(step+start_day,tracer,species,SCL,Fa)
+            food_max = tul.compute_Fmax(step+start_day,tracer,species,SCL,param['P0'])
             numday = days_since_ref - int(init_t.min())
-            plot_habitat(ax, hab_mode, gridfile, food_path, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, param, data_lists,date)
+            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, param, data_lists,date)
 
 
         # Find alive and dead turtles
@@ -363,7 +366,7 @@ def plot_animation_frames(gridfile,food_path, dico,hab_mode,To,lethargy,coef_SMR
             display_tracks(ax, lat=newlat[step,index_dead_at_date],lon=newlon[step,index_dead_at_date],ms=11,col='k',alpha=0.6)
             display_tracks(ax, lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4',alpha=0.6)
         else:
-            display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=30,col='#1f78b4',alpha=0.6)
+            display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
         
         # Plot starting point
         show_start_point(ax, lat,lon)

@@ -34,11 +34,19 @@ def read_nc(infile, dict_keys):
 
 def get_name(infile):
     """
-    Get infile name without path and .nc
+    Get infile name without path and .nc (return str)
     """
     name = Path(infile).stem.replace('.nc','')
     return name
 
+
+def get_directory(infile):
+    """
+    Get directory of infile (return str).
+    """
+    directory = str(Path(infile).parents[0]) + '/'
+    return directory
+    
 
 def age_to_date(traj_time, t_init, lat, lon) :
     """

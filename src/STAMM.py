@@ -81,18 +81,20 @@ kernels = fc.sum_kernels(k_adv, k_active, k_passive)
 # =============================================================================
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(seconds=t_output))
 pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
-             output_file=output_file,\
-             recovery={ErrorCode.ErrorOutOfBounds: pk.DisableParticle})
+              output_file=output_file,\
+              recovery={ErrorCode.ErrorOutOfBounds: pk.DisableParticle})
 
-tt=time.time()-t0
-print('\n')
-print('Total execution time: '+ str(delta(seconds=int(tt))))
-print('\n')
 
 # =============================================================================
 # OUTPUT
 # =============================================================================
 output_file.export()
-plotTrajectoriesFile(OutputFile)
-fc.modify_output(OutputFile, t_init, param)
+#plotTrajectoriesFile('pb_interp.nc',tracerfile='/data/rd_exchange2/pgiffard/DATA/GLORYS12/GLORYS12_PGS_2D_20020606_UVT.nc',tracerlon='longitude',tracerlat='latitude',tracerfield='uo');
+#plotTrajectoriesFile(OutputFile)
+#fc.modify_output(OutputFile, t_init, param)
 
+
+tt=time.time()-t0
+print('\n')
+print('Total execution time: '+ str(delta(seconds=int(tt))))
+print('\n')

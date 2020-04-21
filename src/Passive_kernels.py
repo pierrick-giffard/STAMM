@@ -21,12 +21,15 @@ def IncrementAge(particle, fieldset, time):
 def SampleTracers(particle, fieldset, time):
     """
     Sample tracers at particle location in passive mode.
-    In active mode sampling is integrated to function compute_habitat.
+    In active mode sampling is integrated to function compute_habitat and to advection kernel.
     """
     if particle.active == 1:
         particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
         particle.NPP = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
-            
+        uc, vc = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
+        particle.u_current = uc / math.cos(particle.lat * math.pi / 180) * fieldset.deg
+        particle.v_current = vc * fieldset.deg
+        
 
 
 def Periodic(particle, fieldset, time):
@@ -72,14 +75,13 @@ def BeachTesting(particle, fieldset, time):
 
 
 
-
            
 def UndoMove(particle, fieldset, time):
     """
     Send particle back to last position in case it is on land.
     If it is on land more than onland_max times in a row, it is deleted.
     """
-    onland_max = 50  
+    onland_max = 50
     if particle.beached == 1:
         particle.beached = 0
         particle.lon = particle.prev_lon

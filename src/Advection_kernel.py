@@ -17,8 +17,9 @@ def RK4_swim(particle, fieldset, time):
         #From m/s to °/s
         u_swim = particle.u_swim * math.cos(particle.lat * math.pi / 180) / fieldset.deg
         v_swim = particle.v_swim / fieldset.deg
-        #   
+          
         (u1, v1) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
+        
         u1 += u_swim
         v1 += v_swim
         lon1, lat1 = (particle.lon + u1*.5*particle.dt, particle.lat + v1*.5*particle.dt)
@@ -36,9 +37,15 @@ def RK4_swim(particle, fieldset, time):
         (u4, v4) = fieldset.UV[time + particle.dt, particle.depth, lat3, lon3]
         u4 += u_swim
         v4 += v_swim
-    
-        particle.lon += (u1 + 2*u2 + 2*u3 + u4) / 6. * particle.dt
-        particle.lat += (v1 + 2*v2 + 2*v3 + v4) / 6. * particle.dt
+        
+        Utot = (u1 + 2*u2 + 2*u3 + u4) / 6.
+        Vtot = (v1 + 2*v2 + 2*v3 + v4) / 6.
+        
+        particle.lon += Utot * particle.dt
+        particle.lat += Vtot * particle.dt
+        
+        particle.u_current = Utot / math.cos(particle.lat * math.pi / 180) * fieldset.deg #save current velocity
+        particle.v_current = Vtot * fieldset.deg #save current velocity
 
 
 
@@ -57,6 +64,9 @@ def Euler_swim(particle, fieldset, time):
         v1 += v_swim
         particle.lon += u1 * particle.dt
         particle.lat += v1 * particle.dt
+        #
+        particle.u_current = u1 / math.cos(particle.lat * math.pi / 180) * fieldset.deg #save current velocity
+        particle.v_current = v1 * fieldset.deg #save current velocity
             
     
 

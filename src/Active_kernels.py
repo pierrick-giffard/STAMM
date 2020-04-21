@@ -30,7 +30,7 @@ def compute_SCL_Gompertz(particle, fieldset, time):
         prev_SCL = particle.SCL * 100 #this model needs centimeters
         prev_K = particle.K
         #
-        SCL = prev_SCL + fieldset.alpha * particle.hab * log(prev_K / prev_SCL) * prev_K *  particle.dt / 86400
+        SCL = prev_SCL + fieldset.alpha_gomp * particle.hab * log(prev_K / prev_SCL) * prev_K *  particle.dt / 86400
         particle.K = prev_K + fieldset.beta * particle.hab * 1 / (1 + exp(-(fieldset.M0 - prev_SCL) / fieldset.S)) *  particle.dt / 86400
         #
         particle.SCL = SCL / 100 #back to meters
@@ -193,8 +193,7 @@ def compute_habitat(particle, fieldset, time):
         if particle.hab < 0 or particle.hab > 1:
             print("Habitat is %f at lon,lat = %f,%f. Execution stops."%(particle.hab,particle.lon,particle.lat))
             exit(0)
-
-
+        print("%f"%particle.time)
 
 
 
@@ -214,8 +213,6 @@ def compute_swimming_direction(particle, fieldset, time):
         
         #Compute theta
         particle.theta = random.vonmisesvariate(theta0,fieldset.alpha*grad)
-
-
 
 
 def compute_swimming_velocity(particle, fieldset, time):

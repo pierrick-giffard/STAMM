@@ -9,7 +9,7 @@ Parameters for Leatherback sea turtles.
 # =============================================================================
 # SCL
 # =============================================================================
-SCL0 = 0.063 #meters
+SCL0 = 0.63 #meters
 ### Von Bertalanffy (VGBF) ###
 #Ref : Jones, T.T., Hastings, M.D., Bostrom, B.L., Pauly, D., Jones, D.R., 2011. Growth of captive leatherback turtles, Dermochelys coriacea, with inferences on growth in the wild: Implications for population decline and recovery. Journal of Experimental Marine Biology and Ecology 399, 84–92.
 k = 0.226
@@ -17,7 +17,7 @@ SCLmax = 1.43
 
 ### Gompertz modified (habitat dependant growth) ###
 #Ref: D. Chevallier, B. Mourrain, M. Girondot, 2020. Modelling leatherback biphasic indeterminate growth using a modified Gompertz equation.  
-alpha = 0.009839
+alpha_gomp = 0.009839
 beta = 0.084164
 M0 = 105.2563
 S = 15.5433

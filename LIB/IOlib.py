@@ -302,8 +302,8 @@ def define_start_end(ndays_simu, param, t_init, last_date):
     if date_end > last_date:
         raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto")
     #
-    print('   Date of first file: ', date_start)
-    print('   Date of last file:  ', date_end)    
+    print('   Date of first file: ', date_start.strftime("%Y-%m-%d"))
+    print('   Date of last file:  ', date_end.strftime("%Y-%m-%d"))    
     print('\n')
     return date_start, date_end, time_periodic
 
@@ -339,7 +339,7 @@ def forcing_list(f_dir, f_suffix, date_start, date_end, print_date = False, vgpm
             files += sorted(glob(f_dir + '/*' + '.' + str(yr) + '*' + f_suffix))
         #remove useless files
         del(files[:tmin.days//8])
-        del(files[((date_end-date_start).days)//8+3:]) 
+        del(files[((date_end-date_start).days)//8+4:]) 
     #
     if files == []:
         print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%date_start.year)

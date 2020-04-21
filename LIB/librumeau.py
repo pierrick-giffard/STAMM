@@ -24,15 +24,7 @@ import biogeolib as bg
 # ||                                        ||
 # ==========================================||
 
-def read_nc(infile, dict_keys):
-    """ Read data from a NetCDF file to python dictionnary format. """
-    #print(infile)
-    nc_file=nc.Dataset(infile, 'r')
-    data = {}.fromkeys(dict_keys)
-    for key in data.keys():
-        data[key] = np.array(nc_file.variables[key][:])
-    nc_file.close()
-    return data
+
 
 def shift_coord(lat,lon) :
     """ Shift coordinates so that 36.125<lon<396.375 and -60<lat<66.5 """
@@ -191,39 +183,6 @@ def plot_Lagrange(X, x_values, y_values) :
     pl.plot(X,Y)
     return Y
 
-def age_to_date(traj_time, t_init, lat, lon) :
-    """ """
-    # Load parameters and initialize variables.
-    nturtle = len(t_init)
-    duration = traj_time.flatten().max()
-    n_steps = np.shape(traj_time)[0]
-    t_step = traj_time[1,0]-traj_time[0,0]
-    start = t_init.min()
-    end = t_init.max() + duration
-    final_duration = end - start
-    final_n_steps = int(final_duration / t_step)+2
-
-    # Build universal date vector.
-    # (calendar zero 01/01/2002)
-    date = traj_time[:,0] + t_init.min()
-    after = np.arange(date[-1] + t_step, end, t_step)
-    date = np.concatenate((date, after))
-    date_mat = np.zeros((len(date),nturtle))
-    new_lon = np.zeros((final_n_steps, nturtle))
-    new_lat = new_lon.copy()
-
-    # Add initial and final positions to fit with universal calendar.
-    for turtle in range(nturtle) :
-        date_mat[:,turtle] = date
-        steps_before = int((t_init[turtle]-start)/t_step)
-        steps_after = final_n_steps - (n_steps + steps_before)
-        lat_before = np.zeros(steps_before) + float('nan') 
-        lat_after = np.zeros(steps_after) + float('nan')
-        lon_before = np.zeros(steps_before) + float('nan')
-        lon_after = np.zeros(steps_after) + float('nan')
-        new_lon[:,turtle] = np.concatenate((lon_before, lon[:,turtle], lon_after))
-        new_lat[:,turtle] = np.concatenate((lat_before, lat[:,turtle], lat_after))
-    return new_lat, new_lon, date_mat
 
 
 def read_tracking_file(file_name) :
@@ -398,36 +357,7 @@ def interpolate_var(var, xgrid , ygrid, lon, lat) :
 # ==========================================||
 
 
-def display_tracks(lat='NA',lon='NA',dates='NA',ms=0.1,col='b',alpha=0.5, frame_title='') :
-    """ """
-    fig=pl.figure(num=1,figsize=(11,7), dpi=200, facecolor='w', edgecolor='w')
-    p=pl.scatter(lon, lat, marker='o',s=ms, edgecolor='none',c=col, alpha=alpha)
-    # Display frame title
-    ax=pl.gca()
-    ax.text(0.87, 1.07,frame_title, ha='center',
-    va='center', transform=ax.transAxes,
-    backgroundcolor='#80b1d3', color='w', size='larger')
 
-def plot_map(latmin, latmax, lonmin, lonmax, lon_space=20,lat_space=10) :
-    """ Plot continents. """
-    map=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,
-                urcrnrlat=latmax,projection='cyl',resolution='l')
-    #Get meridians and parallels spaces
-    def getTicks(lmin, lmax, step):
-        lmaxabs = (int(max(abs(lmax), abs(lmin)))/step+1)*step
-        return np.intersect1d(np.arange(lmin+1, lmax), np.arange(-lmaxabs, lmaxabs, step))
-    #Draw parallels & meridians
-    map.drawparallels(getTicks(latmin, latmax, lat_space),
-                     labels=[0,1,0,0], fontsize=12,zorder=1)
-    map.drawmeridians(getTicks(lonmin, lonmax, lon_space),
-                        labels=[0,0,0,1], fontsize=12,zorder=1)
-    map.drawcoastlines(linewidth=0.2)
-    map.fillcontinents()
-
-def show_start_point(lat,lon) :
-   """ """
-   pl.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',
-            markeredgecolor='k',marker='o',ms=6,mew=1.,zorder=999)
 
 def show_control_zone(latlim, lonlim, color = '#8dd3c7') :
     """Plot the rectangle corresponding to latlim and lonlim """
@@ -441,73 +371,6 @@ def show_control_zone(latlim, lonlim, color = '#8dd3c7') :
                           latmax-latmin, facecolor=color, linestyle="dashed",
                           alpha=0.5))
 
-def plot_habitat(GLORYS_path,numday,latlim,lonlim, SCL, To, PP_max,dmin,dmax,log=False) :
-    """ Plot habitat on map."""
-    # Read Temp end Mnk data.
-    lonmin = min(lonlim)
-    lonmax = max(lonlim)
-    latmin = min(latlim)
-    latmax = max(latlim)
-    numday = '0000'+str(numday)
-    numday = numday[-4:]
-    mask_path = '/data/MEMMS/IBM/GLORYS2/mesh_reg.nc'
-    #mnk_path = '/datalocal/mlalire/IBM/GLORYS/mnk/mnk_'+str(numday)+'.nc'
-    PP_path = '/datalocal/mlalire/IBM/GLORYS/PP/PP_'+str(numday)+'.nc'
-    T_path = GLORYS_path+'/reg_sosie/T/GLORYS_'+str(numday)+'_gridT.nc'
-    mask_dict = read_nc(mask_path,['mask','x','y'])
-    #mnk_dict = read_nc(mnk_path,['latitude','longitude','mnk'])
-    PP_dict = read_nc(PP_path,['latitude','longitude','pp'])
-    T_dict = read_nc(T_path,['votemper']) 
-    mask = np.asarray(mask_dict['mask'])[:,:]
-    mask[mask==1][:] = float("nan")
-    x_mask = np.asarray(mask_dict['x'])
-    y_mask = np.asarray(mask_dict['y'])
-    latmat = np.asarray(PP_dict['latitude'])
-    lonmat = np.asarray(PP_dict['longitude'])
-    latmat = np.flipud(latmat)
-    # Read bathymetrie data.
-    #bathy_path = GLORYS_path+"/bathy_regrid.nc"
-    #bathy_dict = read_nc(bathy_path,['bathymetry'])
-    # Flip matrices.
-    T = np.asarray(T_dict['votemper'])[0,:,:]
-    #mnk = np.asarray(mnk_dict['mnk'])[0,:,:]
-    PP = np.asarray(PP_dict['pp'])[0,:,:]
-    #bathy = np.asarray(bathy_dict['bathymetry'])[0,:,:]
-    #lon1,T = shift_lon(lonmat,T)
-    #lon1 ,mnk = shift_lon(lonmat,mnk)
-    #lonmat, bathy = shift_lon(lonmat, bathy)
-    #T = np.flipud(T)
-    #mnk = np.flipud(mnk)
-    # Compute temperature and food habitats.
-    T_hab = t_hab(T,SCL,To)
-    print(PP_max)
-    Food_hab = food_hab(PP,PP_max)
-    #Bathy_hab = bathy_hab(bathy,dmin,dmax)
-    hab = T_hab*Food_hab
-    #hab = T_hab
-    #hab = Food_hab
-    #hab = Bathy_hab
-    # Plot habitat.
-    if log == True :
-        hab = np.exp(hab) 
-    #mask = mask.T
-    #i0 = np.where(x_mask>lonmin)[0][0]-1
-    #i1 = np.where(x_mask<lonmax)[0][-1]+1
-    #j0 = np.where(y_mask>latmin)[0][0]-1
-    #j1 = np.where(y_mask>latmax)[0][-1]+1
-    #x_mask1 = x_mask[i0:i1]
-    #y_mask1 = y_mask[j0:j1]
-    #mask1 = mask[j0:j1,i0:i1]
-    #pl.pcolor(x_mask1, y_mask1, mask1, cmap='Greys_r')
-    hab[hab<0.001] = float('nan')
-    pl.contourf(lonmat,latmat,hab,cmap='pink_r',alpha = 0.9,zorder=0)
-    """
-    cbar = pl.colorbar(orientation = 'horizontal')
-    if log == True :
-        cbar.set_label('habitat (log scale)')
-    else :
-        cbar.set_label('habitat')
-    """
 def plot_current(GLORYS_path,numday) :
     """ """
     # Read data.

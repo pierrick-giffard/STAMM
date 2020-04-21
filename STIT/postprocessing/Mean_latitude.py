@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Plot mean latitude. It is possible to plot only a time subset (see parameters).
+Plot mean latitude. 
+It is possible to plot only a time subset (see parameters).
 Select a latitude strip (latmin/latmax)
 Only active turtles in the strip are considered.
 
-USE:    python Mean_latitude.py output1.nc output1.nc zone
-        1 or several output files
+USE:    python Mean_latitude.py output1.nc output2.nc output3.nc
+        work with one or several output files
 """
 
 
@@ -30,30 +31,32 @@ import turtle_lib as tul
 #Define latitude min and max to select turtles only in this strip
 latmin = 30
 latmax = 50
+#
 outfile = 'auto' #set to 'auto' or choose name
+#Time subset
 t0 = 0 #first time to plot (in days)
 tmax = 6500 #last time to plot (in days); -1 for last time
-
+#
+zone = 'auto' #'auto' or 'manual'. If manual, enter latmin_plot and latmax_plot
 
  
 # =============================================================================
 # INPUTS
 # =============================================================================
-infiles = sys.argv[1:-1]
+infiles = sys.argv[1:]
 #infile = 'C:/Users/pgiffard/Desktop/test_ref.nc'  #tmp
-#zone = 'NA' #tmp    
+ 
 
-zone = sys.argv[-1]
+
 
 # =============================================================================
-# ZONES
+# ZONE
 # =============================================================================
-if zone == 'NA':
+if zone == 'manual':
     latmin_plot = 30
     latmax_plot = 44
 
-else:
-    raise ValueError('Add valid zone argument')
+
 
 # =============================================================================
 # FIGURE
@@ -66,15 +69,10 @@ plt.title('Mean latitude',Fontsize=18,Fontweight='bold')
 plt.xlabel('Years',fontsize=16)
 plt.ylabel('Degrees North',fontsize=16)
 plt.grid(linestyle='--')
-if zone != 'auto':
-    try:
-        plt.ylim(latmin_plot, latmax_plot)
-    except:
-        raise ValueError('Please define your zone min and max latitudes.')
+if zone == 'manual':
+    plt.ylim(latmin_plot, latmax_plot)
+     
         
-        
-
-  
 
 
 

@@ -135,7 +135,7 @@ def create_particleset(fieldset, pclass, lon, lat, t_init, param):
     #
     t0 = time.time()
     #
-    t_release = (t_init - int(np.min(t_init))) * 86400
+    t_release = (t_init - np.min(t_init)) * 86400
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
     #
     pset.execute(pk.CheckOnLand, dt=0)
@@ -155,7 +155,7 @@ def initialization(fieldset, ndays_simu, param):
     """
     Links constant parameters to fieldset in order to use them within kernels.
     """
-    fieldset.deg = 111195 #1degree = 111,195 km approx
+    fieldset.deg = 111120. #1degree = 111,120 km approx (same as in parcels)
     fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
     fieldset.ndays_simu = ndays_simu
     if param['mode'] == 'active':
@@ -180,7 +180,7 @@ def initialization(fieldset, ndays_simu, param):
             fieldset.SCLmax = file.SCLmax
             fieldset.beta_jones = file.beta_jones
         elif param['growth'] == 'Gompertz':
-            fieldset.alpha = file.alpha
+            fieldset.alpha_gomp = file.alpha_gomp
             fieldset.beta = file.beta
             fieldset.M0 = file.M0
             fieldset.S = file.S
@@ -377,6 +377,19 @@ def modify_output(OutputFile, t_init, param):
         nc_o.renameVariable('ygradh','ygrad')
     init_t = nc_o.createVariable('init_t', 'f', ('nturtles'))
     init_t[:] = t_init
+    #Global variables
+    nc_o.title = 'Output variables from Sea Turtle Active Movement Model'
+    nc_o.tstep = float(param['tstep'])
+    nc_o.adv_scheme = param['adv_scheme']
+    nc_o.ystart = param['ystart']
+    if param['mode'] == 'active':
+        nc_o.species = param['species']
+        nc_o.alpha = param['alpha']
+        nc_o.vscale = param['vscale']
+        nc_o.grad_dx = param['grad_dx']
+        nc_o.P0 = param['P0']
+        nc_o.growth = param['growth']
+    #
     nc_o.close()
     nc_i.close()
     #delete initial OutputFile 
