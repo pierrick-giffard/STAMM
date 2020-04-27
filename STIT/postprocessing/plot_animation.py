@@ -36,13 +36,13 @@ h = 1
 
 #Dates
 start_day = 0
-end_day = 30
+end_day = 100
 
 #gridfile for NPP lon/lat
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
 
 # Video
-fps = 1 #images/sec
+fps = 3 #images/sec
 dpi = 150 #images resolution
 #
 tracer = "PP" #PP or mnk
@@ -132,10 +132,9 @@ elif zone == 'Med':
     
 elif zone == 'tmp':
     lonmin = -35
-    lonmax = -32
-    latmin = 39
-    latmax = 41
-
+    lonmax = -33
+    latmin = 39.3
+    latmax = 40.6
 
 
 # =============================================================================
@@ -143,7 +142,7 @@ elif zone == 'tmp':
 # =============================================================================
 # Lecture du fichier d'entrée
 nc_dico=ncl.read_nc(file_path,['traj_lat'])
-variables = ['traj_lat','traj_lon','init_t', 'traj_time']
+variables = ['traj_lat','traj_lon','init_t', 'traj_time','SCL']
 if hab_mode != 'void' and mortality:
     variables.append('traj_temp')
 
@@ -151,6 +150,6 @@ if hab_mode != 'void' and mortality:
 # Read nc file
 dico = ncl.read_nc(file_path, variables)
 data_lists = ncl.data_lists(param, end_day, dico['init_t'])
-pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
+pl.plot_animation_frames_1turtle(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
                           [lonmin, lonmax], tracer, save_path, param, data_lists, mortality, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

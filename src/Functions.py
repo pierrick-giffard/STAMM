@@ -13,7 +13,7 @@ Functions needed to:
 # IMPORTS
 # =============================================================================
 #Python libraries
-from parcels import FieldSet, ParticleSet, AdvectionRK4, AdvectionEE
+from parcels import FieldSet, ParticleSet, AdvectionRK4, AdvectionEE, Field
 from datetime import timedelta
 import numpy as np
 import time
@@ -66,19 +66,23 @@ def create_fieldset(param, ndays_simu, t_init):
         ffiles = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, vgpm=param['vgpm'])
         #
         filenames['T'] = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
-        filenames['NPP'] = {'lon': mesh_food, 'lat': mesh_food, 'data': ffiles}
+        NPPfiles = {'lon': mesh_food, 'lat': mesh_food, 'data': ffiles}
         #
         variables['T'] = param['T_var']
-        variables['NPP'] = param['food_var']
         #
         dimensions['T'] = {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}
-        dimensions['NPP'] = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
- 
-    #Fieldset creation
+        NPPdim = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
+        #
+        NPP = Field.from_netcdf(NPPfiles, param['food_var'], NPPdim, field_chunksize='auto')
+    
     if time_periodic:
-        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=timedelta(days=time_periodic))
-    else:
-        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions)#, field_chunksize=(800, 800))
+        time_periodic *= 86400 #days to seconds
+        
+    #Fieldset creation
+    fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize='auto')
+    if key_alltracers:
+        fieldset.add_field(NPP)
+
     #East/West periodicity
     if param['periodicBC'] and not param['halo']:
         add_halo(fieldset)
@@ -249,7 +253,8 @@ def define_passive_kernels(fieldset, pset, param):
     periodicBC = param['periodicBC']
     mode = param['mode']
     #
-    kernels_list = [pk.IncrementAge, 
+    kernels_list = [pk.store_variables,
+                    pk.IncrementAge, 
                     pk.BeachTesting, 
                     pk.UndoMove]
     #
@@ -309,21 +314,16 @@ def sum_kernels(k_adv, k_active, k_passive):
     Sums all the kernels and returns the summed kernel.
     WARNING: The position is important.
     """
+    kernels = k_passive[0] #store_variables kernel
+    print_kernels = [k_passive[0].funcname]
     if k_active != []:
-        kernels = k_active[0]
-        print_kernels = [k_active[0].funcname]
-        #
-        for k in k_active[1:]:
+        for k in k_active:
             kernels = kernels + k
             print_kernels.append(k.funcname)
-        kernels += k_adv
-        print_kernels.append(k_adv.funcname)
+    kernels += k_adv
+    print_kernels.append(k_adv.funcname)
     #    
-    else:   
-        kernels = k_adv
-        print_kernels = [k_adv.funcname]
-    #
-    for k in k_passive:
+    for k in k_passive[1:]:
         kernels = kernels + k
         print_kernels.append(k.funcname)
     #

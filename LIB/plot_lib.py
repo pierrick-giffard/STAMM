@@ -129,7 +129,6 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
     V_var = param['V_var']
     food_path = param['food_dir'] + '/'
    
-    
     #Feeding habitat
     if hab_mode == 'food' or hab_mode == 'tot':
         if tracer == "mnk":
@@ -161,7 +160,7 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
         current_T_file = T_files[numday]
         T_dict = ncl.read_nc(current_T_file, [lat,lon,temp])
         T = np.squeeze(T_dict[temp])
-        T_hab = tul.t_hab(T,SCL+0.6,To,param['species'])
+        T_hab = tul.t_hab(T,SCL,To,param['species'])
         latmat = np.asarray(T_dict[lat])
         lonmat = np.asarray(T_dict[lon])
     
@@ -196,7 +195,7 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
         hab = T_hab
         legend = u"Thermal Habitat suitability index"
         cmap = 'pink_r'
-        levels = np.arange(0.1,0.5,0.01)
+        levels = np.arange(0.,0.2,0.01)
         ticks = levels
     elif hab_mode == 'tot':
         hab = T_hab*Food_hab
@@ -367,6 +366,87 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
             display_tracks(ax, lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4',alpha=0.6)
         else:
             display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
+        
+        # Plot starting point
+        show_start_point(ax, lat,lon)
+
+        lon_space = (lonmax - lonmin)/7
+        lat_space = (latmax - latmin)/7
+        # Display map.
+        plot_map(ax, latmin, latmax, lonmin, lonmax, lon_space,lat_space)
+        plt.xlim([lonmin,lonmax])
+        plt.ylim([latmin,latmax])
+        
+        #save figure
+        m = str(("%04d") %step)
+        plt.savefig(save_path + 'frame_' + m + '.png', bbox_inches='tight', dpi=dpi)
+        plt.close()
+ 
+       
+def plot_animation_frames_1turtle(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, mortality = True, dpi=100):
+    """ 
+    Plot animation frames for 1 turtle with a dt < 24h (for example 24 dt / day)
+    Also plot 4 points at a distance grad_dx to see where gradients are computed
+    """  
+    #Specific parameters
+    delta = 24 #24 positions for 1 data file (dt = 1h)
+    deg = 111195 #1degree = 111,195 km approx
+    grad_dx = param['grad_dx']
+    #
+    species = param['species']
+    #
+    latmin = min(latlim)
+    latmax = max(latlim)
+    lonmin = min(lonlim)
+    lonmax = max(lonlim)
+
+    dmin = 80.
+    dmax = 200. 
+    lat = dico['traj_lat'][:-1,:]          
+    lon = dico['traj_lon'][:-1,:]
+    init_t = dico['init_t']
+    traj_time = dico['traj_time'][:-1,:]
+   
+    
+    date_start_physfile = dt.datetime(param['ystart'],1,1) #à modifier éventuellement
+        
+    month_names = ['Jan.','Feb.','Mar.','Apr.','May','Jun.','Jul.','Aug.','Sep.','Oct.','Nov.','Dec.']
+    #
+    for step in range(0,end_day): #not days but time_steps
+        print('\n')
+        print(step, 'of', end_day-h)
+        days_since_ref = int(init_t.min()) + 1 + step//delta
+        date_title = date_start_physfile + dt.timedelta(days_since_ref)
+        date = date_start_physfile + dt.timedelta(days_since_ref)
+        # Frame title
+        m = '00'
+        month = month_names[date_title.month-1]
+        day = str(("%02d") %date_title.day)
+        year = str(date_title.year)
+        title ='| '+day+' '+month+' '+year+' |'
+        print('  ',title)
+        print('File date : ',date.strftime("%d-%m-%Y"))
+        #
+        newlat,newlon,date_mat = ncl.age_to_date(traj_time,init_t,lat,lon)
+        #
+        ax = display_fig(frame_title=title)
+        # Display habitat.
+        if hab_mode != 'void':
+            # Calcul des paramètre relatifs à la nage active et à l'habitat
+            SCL = dico['SCL'][step,0]
+            food_max = tul.compute_Fmax(step+start_day,tracer,species,SCL,param['P0'])
+            numday = days_since_ref - int(init_t.min())
+            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, param, data_lists,date)
+            print(numday)
+
+        display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
+        #
+        dx_lon =  grad_dx * np.cos(newlat[step,0] * np.pi / 180) / deg
+        dx_lat =  grad_dx / deg
+        display_tracks(ax, lat=newlat[step,:]-dx_lat,lon=newlon[step,:],ms=11,col='k',alpha=0.6)
+        display_tracks(ax, lat=newlat[step,:]+dx_lat,lon=newlon[step,:],ms=11,col='k',alpha=0.6)
+        display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:]-dx_lon,ms=11,col='k',alpha=0.6)
+        display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:]+dx_lon,ms=11,col='k',alpha=0.6)
         
         # Plot starting point
         show_start_point(ax, lat,lon)

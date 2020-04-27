@@ -63,6 +63,22 @@ fc.initialization(fieldset, ndays_simu, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
 pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init, param) 
 
+print("\n")
+print("\n")
+print(fieldset.__dict__)
+print("\n")
+print("\n")
+print(fieldset.U.__dict__)
+print("\n")
+print("\n")
+print(fieldset.npp.__dict__)
+print("\n")
+print("\n")
+print(fieldset.U.grid.__dict__)
+print("\n")
+print("\n")
+print(fieldset.npp.grid.__dict__)
+
 
 
 
@@ -91,7 +107,7 @@ pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
 output_file.export()
 #plotTrajectoriesFile('pb_interp.nc',tracerfile='/data/rd_exchange2/pgiffard/DATA/GLORYS12/GLORYS12_PGS_2D_20020606_UVT.nc',tracerlon='longitude',tracerlat='latitude',tracerfield='uo');
 #plotTrajectoriesFile(OutputFile)
-#fc.modify_output(OutputFile, t_init, param)
+fc.modify_output(OutputFile, t_init, param)
 
 
 tt=time.time()-t0

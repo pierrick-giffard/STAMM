@@ -6,6 +6,15 @@ Definition of kernels used for all particles (both in active and passive modes).
 
 import math
 
+def store_variables(particle, fieldset, time):
+    """
+    Store passive variables before the are re-written.
+    Has to be the first kernel.
+    """
+    particle.prev_lon = particle.lon
+    particle.prev_lat = particle.lat
+
+
 
 def IncrementAge(particle, fieldset, time):
    """"
@@ -25,7 +34,7 @@ def SampleTracers(particle, fieldset, time):
     """
     if particle.active == 1:
         particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
-        particle.NPP = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
+        particle.NPP = fieldset.npp[time, particle.depth, particle.lat, particle.lon]
         uc, vc = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
         particle.u_current = uc / math.cos(particle.lat * math.pi / 180) * fieldset.deg
         particle.v_current = vc * fieldset.deg
@@ -93,6 +102,8 @@ def UndoMove(particle, fieldset, time):
             particle.active = 0
     else:
         particle.onland = 0
+    n = particle.prev_lon
+    print("%f"%n)
 
 
 
