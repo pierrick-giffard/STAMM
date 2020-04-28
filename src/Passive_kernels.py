@@ -19,6 +19,7 @@ def store_variables(particle, fieldset, time):
 def IncrementAge(particle, fieldset, time):
    """"
    Increment turtles age (in days).
+   Deactivate turtles that have already lived 'ndays_simu' days.
    """
    particle.age += particle.dt/86400.
    #
@@ -34,7 +35,7 @@ def SampleTracers(particle, fieldset, time):
     """
     if particle.active == 1:
         particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
-        particle.NPP = fieldset.npp[time, particle.depth, particle.lat, particle.lon]
+        particle.NPP = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
         uc, vc = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
         particle.u_current = uc / math.cos(particle.lat * math.pi / 180) * fieldset.deg
         particle.v_current = vc * fieldset.deg
@@ -90,7 +91,7 @@ def UndoMove(particle, fieldset, time):
     Send particle back to last position in case it is on land.
     If it is on land more than onland_max times in a row, it is deleted.
     """
-    onland_max = 50
+    onland_max = 10
     if particle.beached == 1:
         particle.beached = 0
         particle.lon = particle.prev_lon
@@ -98,12 +99,11 @@ def UndoMove(particle, fieldset, time):
         particle.onland += 1
         #
         if particle.onland > onland_max:
-            print("Particle [%d] was disabled after beaching 50 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
+            print("Particle [%d] was disabled after beaching 10 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
             particle.active = 0
     else:
         particle.onland = 0
-    n = particle.prev_lon
-    print("%f"%n)
+
 
 
 

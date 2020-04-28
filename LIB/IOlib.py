@@ -61,6 +61,9 @@ def read_namelist(filename, display=True):
              'cold_resistance':'30',
              'vgpm':'False',
              'growth':'VGBF',
+             'grid_phy':'',
+             'lon_T':'',
+             'lat_T':''
              }
 
     namelist = open(filename,'r')
@@ -146,7 +149,7 @@ def check_param(param,output_file):
     param_check = {'init_file', 'nturtles', 'ndays_simu', 't_output', 'mode', 'key_alltracers',\
                    'periodicBC', 'tstep', 'adv_scheme','halo',\
                    'U_dir', 'V_dir', 'mesh_phy', 'lon_phy', 'lat_phy', 'time_var_phy', 'U_var','V_var',
-                   'U_suffix', 'V_suffix','ystart'}
+                   'U_suffix', 'V_suffix','ystart', 'grid_phy'}
     
     if param['key_alltracers'] == True:
         param_check = set(list({'T_dir','food_dir', 'T_var', 'food_var','T_suffix', 'food_suffix',\
@@ -154,6 +157,8 @@ def check_param(param,output_file):
     if param['mode'] == 'active':
         param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
 
+    if param['grid_phy'] == 'C':
+        param_check = set(list({'lat_T', 'lon_T'}) + list(param_check))
                    
     for key in param.keys():
         value = param[key]
@@ -164,7 +169,12 @@ def check_param(param,output_file):
         raise ValueError('In active mode key_alltracers has to be True')
     
     if param['cold_death'] and param['key_alltracers'] == False:
-        raise ValueError('To compute cold_death key_alltracers has to be True')    
+        raise ValueError('To compute cold_death key_alltracers has to be True')
+    
+    if param['grid_phy'] != 'A' and param['grid_phy'] != 'C':
+        raise ValueError("Set grid_phy to A or to C")
+    
+
     
 
 def read_positions(param):
@@ -302,8 +312,8 @@ def define_start_end(ndays_simu, param, t_init, last_date):
     if date_end > last_date:
         raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto")
     #
-    print('   Date of first file: ', date_start.strftime("%Y-%m-%d"))
-    print('   Date of last file:  ', date_end.strftime("%Y-%m-%d"))    
+    print('   Date of first file: ', date_start)
+    print('   Date of last file:  ', date_end)    
     print('\n')
     return date_start, date_end, time_periodic
 

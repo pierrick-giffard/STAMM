@@ -15,8 +15,7 @@ def compute_SCL_VGBF(particle, fieldset, time):
     Compute Straight Carapace Length (meters) at time t based on SCL at time t-1.
     Uses a Von Bertalanffy function (VGBF).
     """
-    L = particle.SCL + fieldset.k * (fieldset.SCLmax - particle.SCL) * particle.dt / 31536000 #dt has to be in years --> 86400*365
-    particle.SCL = L
+    particle.SCL = particle.SCL + fieldset.k * (fieldset.SCLmax - particle.SCL) * particle.dt / 31536000 #dt has to be in years --> 86400*365
 
 
 
@@ -99,11 +98,11 @@ def compute_habitat(particle, fieldset, time):
                fieldset.T[time, particle.depth, particle.lat - dx_lat, particle.lon],#bottom
                fieldset.T[time, particle.depth, particle.lat + dx_lat, particle.lon]]#top
         
-        NPP0 = [fieldset.npp[time, particle.depth, particle.lat, particle.lon],#position
-              fieldset.npp[time, particle.depth, particle.lat, particle.lon - dx_lon],#left
-              fieldset.npp[time, particle.depth, particle.lat, particle.lon + dx_lon],#right
-              fieldset.npp[time, particle.depth, particle.lat - dx_lat, particle.lon],#bottom
-              fieldset.npp[time, particle.depth, particle.lat + dx_lat, particle.lon]]#top       
+        NPP0 = [fieldset.NPP[time, particle.depth, particle.lat, particle.lon],#position
+              fieldset.NPP[time, particle.depth, particle.lat, particle.lon - dx_lon],#left
+              fieldset.NPP[time, particle.depth, particle.lat, particle.lon + dx_lon],#right
+              fieldset.NPP[time, particle.depth, particle.lat - dx_lat, particle.lon],#bottom
+              fieldset.NPP[time, particle.depth, particle.lat + dx_lat, particle.lon]]#top       
         #Save T and NPP at particle location
         particle.T = T0[0]
         particle.NPP = NPP0[0]
@@ -193,7 +192,6 @@ def compute_habitat(particle, fieldset, time):
         if particle.hab < 0 or particle.hab > 1:
             print("Habitat is %f at lon,lat = %f,%f. Execution stops."%(particle.hab,particle.lon,particle.lat))
             exit(0)
-        print("%f"%particle.time)
 
 
 
@@ -214,7 +212,7 @@ def compute_swimming_direction(particle, fieldset, time):
         #Compute theta
         prev_theta = particle.theta
         current_theta = random.vonmisesvariate(theta0,fieldset.alpha*grad)
-        particle.theta = 0.5*prev_theta + 0.5*current_theta
+        particle.theta = current_theta#0.5*prev_theta + 0.5*current_theta
 
 
 def compute_swimming_velocity(particle, fieldset, time):

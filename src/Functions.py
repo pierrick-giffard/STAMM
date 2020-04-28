@@ -20,7 +20,7 @@ import time
 import netCDF4
 import math
 import subprocess
-import sys, os
+import sys, os, operator
 
 #Personal libraries
 import Advection_kernel as adv
@@ -60,28 +60,38 @@ def create_fieldset(param, ndays_simu, t_init):
                  'V': param['V_var']}
     #Dimensions: Caution, C-grids need f nodes
     dimensions = {'U': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']},
-                  'V': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}} 
+                  'V': {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}}
+    if time_periodic:
+        time_periodic *= 86400 #days to seconds
+    #Fieldset creation
+    if param['grid_phy'] == 'A':
+        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize='auto')
+    else:
+        fieldset = FieldSet.from_c_grid_dataset(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize='auto')
+    
+    
     if key_alltracers:
         tfiles = IO.forcing_list(param['T_dir'], param['T_suffix'], date_start, date_end)
         ffiles = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, vgpm=param['vgpm'])
-        #
-        filenames['T'] = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
+        #Filenames
+        Tfiles = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
         NPPfiles = {'lon': mesh_food, 'lat': mesh_food, 'data': ffiles}
-        #
-        variables['T'] = param['T_var']
-        #
-        dimensions['T'] = {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}
+        #Dimensions
+        if param['grid_phy'] == 'A':
+            Tdim = {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}
+        else:
+            Tdim = {'lon': param['lon_T'], 'lat': param['lat_T'], 'time': param['time_var_phy']}
         NPPdim = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
-        #
-        NPP = Field.from_netcdf(NPPfiles, param['food_var'], NPPdim, field_chunksize='auto')
-    
-    if time_periodic:
-        time_periodic *= 86400 #days to seconds
+        #Field creation
+        T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', field_chunksize='auto')
+        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', field_chunksize='auto')
         
-    #Fieldset creation
-    fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize='auto')
-    if key_alltracers:
+        #
+        fieldset.add_field(T)
         fieldset.add_field(NPP)
+        
+    
+        
 
     #East/West periodicity
     if param['periodicBC'] and not param['halo']:
