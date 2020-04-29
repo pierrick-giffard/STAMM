@@ -72,13 +72,13 @@ print("\n")
 print(fieldset.U.__dict__)
 print("\n")
 print("\n")
-print(fieldset.npp.__dict__)
+print(fieldset.NPP.__dict__)
 print("\n")
 print("\n")
 print(fieldset.U.grid.__dict__)
 print("\n")
 print("\n")
-print(fieldset.npp.grid.__dict__)
+print(fieldset.NPP.grid.__dict__)
 """
 
 
@@ -99,7 +99,7 @@ kernels = fc.sum_kernels(k_adv, k_active, k_passive)
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(seconds=t_output))
 pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
               output_file=output_file,\
-              recovery={ErrorCode.ErrorOutOfBounds: pk.DisableParticle})
+              recovery={ErrorCode.ErrorOutOfBounds: pk.DisableParticle})#, ErrorCode.ErrorInterpolation: pk.InterpError})
 
 
 # =============================================================================
@@ -107,7 +107,7 @@ pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
 # =============================================================================
 output_file.export()
 #plotTrajectoriesFile('pb_interp.nc',tracerfile='/data/rd_exchange2/pgiffard/DATA/GLORYS12/GLORYS12_PGS_2D_20020606_UVT.nc',tracerlon='longitude',tracerlat='latitude',tracerfield='uo');
-#plotTrajectoriesFile(OutputFile)
+plotTrajectoriesFile(OutputFile)
 fc.modify_output(OutputFile, t_init, param)
 
 

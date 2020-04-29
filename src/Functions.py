@@ -66,6 +66,7 @@ def create_fieldset(param, ndays_simu, t_init):
     #Fieldset creation
     if param['grid_phy'] == 'A':
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize='auto')
+        #add_LandMask(ufiles[0], param['U_var'], param, fieldset)
     else:
         fieldset = FieldSet.from_c_grid_dataset(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize='auto')
     
@@ -83,16 +84,12 @@ def create_fieldset(param, ndays_simu, t_init):
             Tdim = {'lon': param['lon_T'], 'lat': param['lat_T'], 'time': param['time_var_phy']}
         NPPdim = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
         #Field creation
-        T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', field_chunksize='auto')
-        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', field_chunksize='auto')
-        
-        #
+        T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto')
+        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto')
+        #Add to fieldset
         fieldset.add_field(T)
         fieldset.add_field(NPP)
         
-    
-        
-
     #East/West periodicity
     if param['periodicBC'] and not param['halo']:
         add_halo(fieldset)
@@ -136,7 +133,22 @@ def add_halo(fieldset):
         fieldset.add_constant('halo_west', fieldset.U.grid.lon[0])
         fieldset.add_constant('halo_east', fieldset.U.grid.lon[-1])
     #          
-    fieldset.add_periodic_halo(zonal=True) 
+    fieldset.add_periodic_halo(zonal=True)
+
+""" not working for the moment
+def add_LandMask(file, var, param, fieldset):
+    nc = netCDF4.Dataset(file)
+    values = nc.variables[var][:]
+    print(values)
+    data = np.where(values == np.nan, 0, 1) 
+    if param['grid_phy'] == 'A':
+        mask = Field('LandMask', data, grid = fieldset.U.grid)
+    elif param['grid_phy'] == 'C' and key_alltracers==True:
+        mask = Field('LandMask', data, grid = fieldset.T.grid)
+    else:
+        raise ValueError("LandMask à implementer..., (recuperer les lon/lat centres).")
+    fieldset.add_field(mask)
+"""
 
 # =============================================================================
 # PARTICLESET
@@ -179,6 +191,8 @@ def initialization(fieldset, ndays_simu, param):
         fieldset.P0 = param['P0']
         fieldset.grad_dx = param['grad_dx']
         fieldset.alpha = param['alpha']
+        fieldset.SCL0 = param['SCL0']
+        fieldset.t = param['tactic_factor']
         ### SPECIES PARAMETERS ###
         if param['species'] == 'leatherback':
             file = leath
@@ -188,7 +202,6 @@ def initialization(fieldset, ndays_simu, param):
         fieldset.a = file.a
         fieldset.b = file.b
         fieldset.d = file.d
-        fieldset.SCL0 = file.SCL0
         if param['growth'] == 'VGBF':
             fieldset.k = file.k
             fieldset.SCLmax = file.SCLmax

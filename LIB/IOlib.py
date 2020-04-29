@@ -63,7 +63,9 @@ def read_namelist(filename, display=True):
              'growth':'VGBF',
              'grid_phy':'',
              'lon_T':'',
-             'lat_T':''
+             'lat_T':'',
+             'SCL0':'',
+             'tactic_factor':'1'
              }
 
     namelist = open(filename,'r')
@@ -92,8 +94,7 @@ def read_namelist(filename, display=True):
             items[key] = int(items[key])
         except ValueError:
             sys.exit("ERROR : %s must be integer" %(key))
- 
-        
+   
     #Convert booleans
     for key in ['periodicBC','key_alltracers', 'cold_death','vgpm','halo']:
         if items[key] == '':
@@ -121,7 +122,7 @@ def read_namelist(filename, display=True):
     
     #Active items
     if items['mode']=='active':
-        for key in ['alpha','vscale','P0','grad_dx']:        
+        for key in ['alpha','vscale','P0','grad_dx', 'SCL0', 'tactic_factor']:        
             try:
                 items[key] = float(items[key])
             except ValueError:
@@ -155,7 +156,7 @@ def check_param(param,output_file):
         param_check = set(list({'T_dir','food_dir', 'T_var', 'food_var','T_suffix', 'food_suffix',\
                                 'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
-        param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx'}) + list(param_check))
+        param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx', 'SCL0'}) + list(param_check))
 
     if param['grid_phy'] == 'C':
         param_check = set(list({'lat_T', 'lon_T'}) + list(param_check))
@@ -308,6 +309,7 @@ def define_start_end(ndays_simu, param, t_init, last_date):
     #if time_periodic is integer
     else:
         date_end = date_start + timedelta(days=time_periodic)
+        time_periodic += 1
     #
     if date_end > last_date:
         raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto")

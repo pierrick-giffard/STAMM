@@ -9,7 +9,6 @@ Parameters for Leatherback sea turtles.
 # =============================================================================
 # SCL
 # =============================================================================
-SCL0 = 0.063 #meters
 ### Von Bertalanffy (VGBF) ###
 #Ref : Jones, T.T., Hastings, M.D., Bostrom, B.L., Pauly, D., Jones, D.R., 2011. Growth of captive leatherback turtles, Dermochelys coriacea, with inferences on growth in the wild: Implications for population decline and recovery. Journal of Experimental Marine Biology and Ecology 399, 84–92.
 k = 0.226

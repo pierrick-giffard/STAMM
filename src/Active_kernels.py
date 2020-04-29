@@ -199,20 +199,25 @@ def compute_swimming_direction(particle, fieldset, time):
     """
     Compute particule.theta
     Theta has to be between 0 and 2*pi for random.vommises, 0 corresponding to east.
+    A tactic factor is used (t = [0,1]) as a memory effect (Benhamou 1991, Elementary orientation mechanisms).
     """
     if particle.active == 1:
         #Compute theta0
         theta0 = atan2(particle.ygradh,particle.xgradh) #return 0 in case xgradh=ygradh=0 (east !)
                                                         #but ok because vonmises becomes uniform without gradient
         if theta0 < 0:
-            theta0 = 2 * math.pi + theta0 #theta0 has to be between 0 and 2*pi
+            theta0 += 2 * math.pi #theta0 has to be between 0 and 2*pi
         
         grad = sqrt(math.pow(particle.xgradh, 2) + math.pow(particle.ygradh, 2))
         
         #Compute theta
         prev_theta = particle.theta
         current_theta = random.vonmisesvariate(theta0,fieldset.alpha*grad)
-        particle.theta = current_theta#0.5*prev_theta + 0.5*current_theta
+        particle.theta = atan2((fieldset.t * sin(current_theta) + (1 - fieldset.t) * sin(prev_theta)) , (fieldset.t * cos(current_theta) + (1 - fieldset.t) * cos(prev_theta)))  
+        #
+        if particle.theta < 0:
+            particle.theta += 2 * math.pi #theta0 has to be between 0 and 2*pi
+
 
 
 def compute_swimming_velocity(particle, fieldset, time):
