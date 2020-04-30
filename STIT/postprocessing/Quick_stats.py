@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-USE: Quick_stats.py   Outputfile.nc
-
 Give some quick statistics about STAMM Outputs: mean, min, max and std of all variables.
+
+USE:    python Quick_stats.py output1.nc output2.nc output3.nc
+        work with one or several output files
+
 """
 
 
@@ -24,15 +26,15 @@ import netCDF_lib as ncl
 # =============================================================================
 # DATA
 # =============================================================================
-infile = sys.argv[1]
+infiles = sys.argv[1:]
 mode = 'active'
 key_alltracers = True
-#infile = 'C:/Users/pgiffard/Desktop/test_ref.nc'#sys.argv[1]#  #tmp
-OutFile = infile.replace(".nc","_Quick_stats.csv")
+#infiles = 'C:/Users/pgiffard/Desktop/test_ref.nc'#sys.argv[1]#  #tmp
+   
 variables = ['traj_lat',
-             'traj_lon',
-             'u_current',
-             'v_current']
+            'traj_lon',
+            'u_current',
+            'v_current']
 
 if key_alltracers:
     variables.append('traj_temp')
@@ -48,38 +50,44 @@ if mode == 'active':
     variables.append('xgrad')
     variables.append('ygrad')
     variables.append('SCL')
-dic = ncl.read_nc(infile, variables)
 
 
-# =============================================================================
-# STATISTICS
-# =============================================================================
-
-disabled_turtles, disabled_time = tul.find_disabled(infile)
-print('Inactive turtles are not taken into account for diagnostics.')
-
-stats = {}.fromkeys(variables)
-stats['disabled_turtles'] = len(disabled_turtles)
-for v in variables:
-    print(v)
-    array = tul.insert_nan(dic[v], disabled_turtles, disabled_time)[1:,:] #insert nan and remove first value
-    Mean = np.nanmean(array)
-    Min = np.nanmin(array)
-    Max = np.nanmax(array)
-    std = np.nanstd(array)
-    stats[v] = [Mean, Min, Max, std]
+for file in infiles: 
+    namef = ncl.get_name(file)
+    print(file)
+    OutFile = file.replace(".nc","_Quick_stats.csv")
+    dic = ncl.read_nc(file, variables)
 
 
-# =============================================================================
-# TABLE
-# =============================================================================
-columns=['Mean', 'Min', 'Max', 'std']
-df = pd.DataFrame(stats, index=columns)
-df = df.transpose()
-df.to_csv(OutFile)
-print(df)
-print('\n')
-print('*******************************************************************')
-print("Wrote", OutFile)
-print('*******************************************************************')    
-       
+    # =============================================================================
+    # STATISTICS
+    # =============================================================================
+
+    disabled_turtles, disabled_time = tul.find_disabled(file)
+    print('Inactive turtles are not taken into account for diagnostics.')
+
+    stats = {}.fromkeys(variables)
+    stats['disabled_turtles'] = len(disabled_turtles)
+    for v in variables:
+        print(v)
+        array = tul.insert_nan(dic[v], disabled_turtles, disabled_time)[1:,:] #insert nan and remove first value
+        Mean = np.nanmean(array)
+        Min = np.nanmin(array)
+        Max = np.nanmax(array)
+        std = np.nanstd(array)
+        stats[v] = [Mean, Min, Max, std]
+
+
+    # =============================================================================
+    # TABLE
+    # =============================================================================
+    columns=['Mean', 'Min', 'Max', 'std']
+    df = pd.DataFrame(stats, index=columns)
+    df = df.transpose()
+    df.to_csv(OutFile)
+    print(df)
+    print('\n')
+    print('*******************************************************************')
+    print("Wrote", OutFile)
+    print('*******************************************************************')    
+        

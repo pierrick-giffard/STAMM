@@ -37,7 +37,7 @@ def SampleTracers(particle, fieldset, time):
         particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
         particle.NPP = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
         uc, vc = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
-        particle.u_current = uc / math.cos(particle.lat * math.pi / 180) * fieldset.deg
+        particle.u_current = uc * fieldset.deg * math.cos(particle.lat * math.pi / 180) 
         particle.v_current = vc * fieldset.deg
         
 

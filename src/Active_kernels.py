@@ -87,7 +87,7 @@ def compute_habitat(particle, fieldset, time):
     """
     if particle.active == 1:
         #Convert dx to lon and lat
-        dx_lon =  fieldset.grad_dx * cos(particle.lat * math.pi / 180) / fieldset.deg
+        dx_lon =  fieldset.grad_dx / (fieldset.deg * cos(particle.lat * math.pi / 180)) 
         dx_lat =  fieldset.grad_dx / fieldset.deg
         #
         #Get 5 T and 5 NPP

@@ -15,7 +15,7 @@ def RK4_swim(particle, fieldset, time):
     """
     if particle.active == 1:
         #From m/s to °/s
-        u_swim = particle.u_swim * math.cos(particle.lat * math.pi / 180) / fieldset.deg
+        u_swim = particle.u_swim / (fieldset.deg * math.cos(particle.lat * math.pi / 180))
         v_swim = particle.v_swim / fieldset.deg
           
         (u1, v1) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
@@ -44,8 +44,8 @@ def RK4_swim(particle, fieldset, time):
         particle.lon += Utot * particle.dt
         particle.lat += Vtot * particle.dt
         
-        particle.u_current = Utot / math.cos(particle.lat * math.pi / 180) * fieldset.deg #save current velocity
-        particle.v_current = Vtot * fieldset.deg #save current velocity
+        particle.u_current = Utot * fieldset.deg * math.cos(particle.lat * math.pi / 180)  #save current velocity
+        particle.v_current = Vtot * fieldset.deg                                           #save current velocity
 
 
 
@@ -56,7 +56,7 @@ def Euler_swim(particle, fieldset, time):
     """
     if particle.active == 1:
         #From m/s to °/s
-        u_swim = particle.u_swim * math.cos(particle.lat * math.pi / 180) / fieldset.deg
+        u_swim = particle.u_swim / (fieldset.deg * math.cos(particle.lat * math.pi / 180))
         v_swim = particle.v_swim / fieldset.deg
         #
         (u1, v1) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
@@ -65,8 +65,8 @@ def Euler_swim(particle, fieldset, time):
         particle.lon += u1 * particle.dt
         particle.lat += v1 * particle.dt
         #
-        particle.u_current = u1 / math.cos(particle.lat * math.pi / 180) * fieldset.deg #save current velocity
-        particle.v_current = v1 * fieldset.deg #save current velocity
+        particle.u_current = u1 * fieldset.deg * math.cos(particle.lat * math.pi / 180) #save current velocity
+        particle.v_current = v1 * fieldset.deg                                          #save current velocity
             
     
 

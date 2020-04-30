@@ -64,11 +64,12 @@ def create_fieldset(param, ndays_simu, t_init):
     if time_periodic:
         time_periodic *= 86400 #days to seconds
     #Fieldset creation
+    chs = {'longitude':256, 'latitude':256}
     if param['grid_phy'] == 'A':
-        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize='auto')
+        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
         #add_LandMask(ufiles[0], param['U_var'], param, fieldset)
     else:
-        fieldset = FieldSet.from_c_grid_dataset(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize='auto')
+        fieldset = FieldSet.from_c_grid_dataset(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
     
     
     if key_alltracers:
@@ -84,8 +85,8 @@ def create_fieldset(param, ndays_simu, t_init):
             Tdim = {'lon': param['lon_T'], 'lat': param['lat_T'], 'time': param['time_var_phy']}
         NPPdim = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
         #Field creation
-        T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto')
-        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto')
+        T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
+        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize={'time':1,'fakeDim0':256, 'fakeDim1':256})
         #Add to fieldset
         fieldset.add_field(T)
         fieldset.add_field(NPP)
