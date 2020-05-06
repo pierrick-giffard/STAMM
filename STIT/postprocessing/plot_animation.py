@@ -23,26 +23,26 @@ import IOlib as IO
 # USERS PARAMETERS
 # =============================================================================
 #background
-hab_mode = 'temp' # 'food', 'temp', 'tot', 'current', 'void'
+hab_mode = 'current' # 'food', 'temp', 'tot', 'current', 'void'
 #option 'void' for no background,
 mortality = False #set to False not to calculate dead turtles
 
-#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med', 'tmp'
-zone = 'tmp'
+#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med', 'COR', 'tmp'
+zone = 'COR'
 
 # time delta between 2 frames (in days)
-h = 1
+h = 2
 
 
 #Dates
 start_day = 0
-end_day = 100
+end_day = 1100
 
 #gridfile for NPP lon/lat
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
 
 # Video
-fps = 3 #images/sec
+fps = 8 #images/sec
 dpi = 150 #images resolution
 #
 tracer = "PP" #PP or mnk
@@ -129,6 +129,12 @@ elif zone == 'Med':
     lonmax = 20
     latmin = 30
     latmax = 45
+
+elif zone == 'COR': #coral sea
+    lonmin = 140
+    lonmax = 180
+    latmin = -40
+    latmax = -10
     
 elif zone == 'tmp':
     lonmin = -35
@@ -142,14 +148,15 @@ elif zone == 'tmp':
 # =============================================================================
 # Lecture du fichier d'entrée
 nc_dico=ncl.read_nc(file_path,['traj_lat'])
-variables = ['traj_lat','traj_lon','init_t', 'traj_time','SCL']
+variables = ['traj_lat','traj_lon','init_t', 'traj_time']
 if hab_mode != 'void' and mortality:
+    variables.append('SCL')
     variables.append('traj_temp')
 
        
 # Read nc file
 dico = ncl.read_nc(file_path, variables)
 data_lists = ncl.data_lists(param, end_day, dico['init_t'])
-pl.plot_animation_frames_1turtle(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
+pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
                           [lonmin, lonmax], tracer, save_path, param, data_lists, mortality, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

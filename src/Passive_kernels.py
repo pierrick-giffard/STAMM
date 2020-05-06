@@ -11,8 +11,10 @@ def store_variables(particle, fieldset, time):
     Store passive variables before the are re-written.
     Has to be the first kernel.
     """
-    particle.prev_lon = particle.lon
-    particle.prev_lat = particle.lat
+    if particle.active == 1:
+        particle.prev_lon = particle.lon
+        particle.prev_lat = particle.lat
+        
 
 
 
@@ -31,15 +33,22 @@ def IncrementAge(particle, fieldset, time):
 def SampleTracers(particle, fieldset, time):
     """
     Sample tracers at particle location in passive mode.
-    In active mode sampling is integrated to function compute_habitat and to advection kernel.
+    In active mode sampling is integrated to function compute_habitat.
     """
     if particle.active == 1:
         particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
         particle.NPP = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
+        
+        
+def SampleCurrent(particle, fieldset, time):
+    """
+    Sample u_current and v_current in passive mode.
+    In active mode, sampling is integrated to advection kernel.
+    """
+    if particle.active == 1:
         uc, vc = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
         particle.u_current = uc * fieldset.deg * math.cos(particle.lat * math.pi / 180) 
         particle.v_current = vc * fieldset.deg
-        
 
 
 def Periodic(particle, fieldset, time):
@@ -90,6 +99,7 @@ def UndoMove(particle, fieldset, time):
     """
     Send particle back to last position in case it is on land.
     If it is on land more than onland_max times in a row, it is deleted.
+    The tactic factor is set to 1 during 1 time step when a particle is on land.
     """
     onland_max = 50
     if particle.beached == 1:
@@ -97,6 +107,7 @@ def UndoMove(particle, fieldset, time):
         particle.lon = particle.prev_lon
         particle.lat = particle.prev_lat
         particle.onland += 1
+        particle.t = 1 #set tactic factor to 1 (no memory)
         #
         if particle.onland > onland_max:
             print("Particle [%d] was disabled after beaching 50 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))

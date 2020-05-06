@@ -48,6 +48,7 @@ def define_Turtle_Class(fieldset, param):
             ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
             SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=fieldset.SCL0)
             Topt = Variable('Topt', to_write=False, dtype=np.float32, initial=fieldset.Topt)
+            t = Variable('t', to_write=False, dtype=np.float32, initial=fieldset.tactic_factor)
             if param['growth'] == 'Gompertz':
                 K = Variable('K', to_write=False, dtype=np.float32, initial=fieldset.K0)
                 

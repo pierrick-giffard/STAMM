@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Dec 16 10:33:40 2019
-
-@author: tcandela
+Create initial position file from a .json file and a grid.
+USE:   python  create_init_pos.py  myfile.json
 """
 # =============================================================================
 # IMPORTS
@@ -21,12 +20,13 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 #personal libraries
 sys.path.insert(1, os.path.join(sys.path[0], '../../LIB'))
 import librumeau as brum
+import netCDF_lib as ncl
 import init_pos_lib as ipl
 # =============================================================================
 # PATHS & FILES
 # =============================================================================
 #gridfle parameters
-gridfile = '/homelocal-px/px-171/pgiffard/DATA/PSY4_12_DAYLY/grid.nc'
+gridfile = '/homelocal/pgiffard/DATA/PSY4_12_DAYLY/grid.nc'
 lon_name = 'longitude'
 lat_name = 'latitude'
 mask_name = 'mask'
@@ -34,9 +34,9 @@ grid_type = 'regular' #orca or regular
 #figure plot does not work with orca option, need to change gridtogeo
 
 #infile & outfile
-path = '/homelocal-px/px-171/pgiffard/SRC/STAMM/EXP/init_files/'
-infile = 'VIR_SaintCroix.json'
-outfile = 'initial_positions_Ste-Croix.txt'
+infile = sys.argv[1]
+path = ncl.get_directory(infile)
+outfile = infile.replace(".json","_initial_positions.txt")
 append = True 
 
 #figure
@@ -209,7 +209,7 @@ if os.path.exists(outfile) :
 file = open (outfile, 'a+') 
     
 #lecture du fichier contenant les informations sur la grille pour la conversion (lon,lat) -> (x,y)
-grid = brum.read_nc(gridfile,[lat_name,lon_name,mask_name])
+grid = ncl.read_nc(gridfile,[lat_name,lon_name,mask_name])
 
 if grid_type == 'orca':
     lon_mat = np.squeeze(grid[lon_name])

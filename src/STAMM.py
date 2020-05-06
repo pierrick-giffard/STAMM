@@ -63,7 +63,7 @@ fc.initialization(fieldset, ndays_simu, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
 pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init, param) 
 
-
+"""
 print("\n")
 print("\n")
 #print(fieldset.__dict__)
@@ -79,7 +79,7 @@ print(fieldset.U.grid.__dict__)
 print("\n")
 print("\n")
 print(fieldset.NPP.grid.__dict__)
-
+"""
 
 
 

@@ -64,10 +64,9 @@ def create_fieldset(param, ndays_simu, t_init):
     if time_periodic:
         time_periodic *= 86400 #days to seconds
     #Fieldset creation
-    chs = {'longitude':256, 'latitude':256}
+    chs = 'auto' #Chunksize
     if param['grid_phy'] == 'A':
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
-        #add_LandMask(ufiles[0], param['U_var'], param, fieldset)
     else:
         fieldset = FieldSet.from_c_grid_dataset(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
     
@@ -86,7 +85,7 @@ def create_fieldset(param, ndays_simu, t_init):
         NPPdim = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
         #Field creation
         T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
-        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize={'time':1,'fakeDim0':256, 'fakeDim1':256})
+        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
         #Add to fieldset
         fieldset.add_field(T)
         fieldset.add_field(NPP)
@@ -193,7 +192,7 @@ def initialization(fieldset, ndays_simu, param):
         fieldset.grad_dx = param['grad_dx']
         fieldset.alpha = param['alpha']
         fieldset.SCL0 = param['SCL0']
-        fieldset.t = param['tactic_factor']
+        fieldset.tactic_factor = param['tactic_factor']
         ### SPECIES PARAMETERS ###
         if param['species'] == 'leatherback':
             file = leath
@@ -203,6 +202,7 @@ def initialization(fieldset, ndays_simu, param):
         fieldset.a = file.a
         fieldset.b = file.b
         fieldset.d = file.d
+        fieldset.vscale = file.vscale
         if param['growth'] == 'VGBF':
             fieldset.k = file.k
             fieldset.SCLmax = file.SCLmax
@@ -282,8 +282,10 @@ def define_passive_kernels(fieldset, pset, param):
                     pk.BeachTesting, 
                     pk.UndoMove]
     #
-    if key_alltracers and mode == 'passive':
-        kernels_list.append(pk.SampleTracers)
+    if mode == 'passive':
+        kernels_list.append(pk.SampleCurrent)
+        if key_alltracers:
+            kernels_list.append(pk.SampleTracers)
     #
     if periodicBC:
         kernels_list.append(pk.Periodic)
@@ -409,10 +411,11 @@ def modify_output(OutputFile, t_init, param):
     if param['mode'] == 'active':
         nc_o.species = param['species']
         nc_o.alpha = param['alpha']
-        nc_o.vscale = param['vscale']
         nc_o.grad_dx = param['grad_dx']
+        nc_o.tactic_factor = param['tactic_factor']
         nc_o.P0 = param['P0']
         nc_o.growth = param['growth']
+        
     #
     nc_o.close()
     nc_i.close()

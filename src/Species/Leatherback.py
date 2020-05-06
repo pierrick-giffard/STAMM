@@ -62,5 +62,6 @@ c = 0.0032#1/312
 # =============================================================================             
 # vmax = vscale * SCL**d
 #Ref : Gaspar, P., Benson, S., Dutton, P., Réveillère, A., Jacob, G., Meetoo, C., Dehecq, A., Fossette, S., 2012. Oceanic dispersal of juvenile leatherback turtles: going beyond passive drift modeling. Marine Ecology Progress Series.     
+vscale = 1.2
 d = 0.126
         

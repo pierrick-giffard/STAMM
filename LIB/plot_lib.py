@@ -389,7 +389,7 @@ def plot_animation_frames_1turtle(gridfile, dico,hab_mode,To,lethargy,coef_SMR,s
     Also plot 4 points at a distance grad_dx to see where gradients are computed
     """  
     #Specific parameters
-    delta = 24 #24 positions for 1 data file (dt = 1h)
+    delta = 2 #24 positions for 1 data file (dt = 1h)
     deg = 111195 #1degree = 111,195 km approx
     grad_dx = param['grad_dx']
     #
@@ -441,7 +441,7 @@ def plot_animation_frames_1turtle(gridfile, dico,hab_mode,To,lethargy,coef_SMR,s
 
         display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
         #
-        dx_lon =  grad_dx * np.cos(newlat[step,0] * np.pi / 180) / deg
+        dx_lon =  grad_dx / (deg  * np.cos(newlat[step,0] * np.pi / 180))
         dx_lat =  grad_dx / deg
         display_tracks(ax, lat=newlat[step,:]-dx_lat,lon=newlon[step,:],ms=11,col='k',alpha=0.6)
         display_tracks(ax, lat=newlat[step,:]+dx_lat,lon=newlon[step,:],ms=11,col='k',alpha=0.6)

@@ -213,7 +213,8 @@ def compute_swimming_direction(particle, fieldset, time):
         #Compute theta
         prev_theta = particle.theta
         current_theta = random.vonmisesvariate(theta0,fieldset.alpha*grad)
-        particle.theta = atan2((fieldset.t * sin(current_theta) + (1 - fieldset.t) * sin(prev_theta)) , (fieldset.t * cos(current_theta) + (1 - fieldset.t) * cos(prev_theta)))  
+        particle.theta = atan2((particle.t * sin(current_theta) + (1 - particle.t) * sin(prev_theta)) , (particle.t * cos(current_theta) + (1 - particle.t) * cos(prev_theta)))
+        particle.t = fieldset.tactic_factor #re-initialize tactic factor in case particle beached
         #
         if particle.theta < 0:
             particle.theta += 2 * math.pi #theta0 has to be between 0 and 2*pi

@@ -71,6 +71,12 @@ elif zone == 'IND':
     ymin = -60
     ymax = 20
 
+elif zone == 'COR': #coral sea
+    xmin = 80
+    xmax = 220
+    ymin = -60
+    ymax = 10
+
 
 lat_space = 20
 lon_space = 40
