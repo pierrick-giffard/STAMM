@@ -23,31 +23,31 @@ import IOlib as IO
 # USERS PARAMETERS
 # =============================================================================
 #background
-hab_mode = 'tot' # 'food', 'temp', 'tot', 'current', 'void'
+hab_mode = 'current' # 'food', 'temp', 'tot', 'current', 'void'
 #option 'void' for no background,
 mortality = True #set to False not to calculate dead turtles
 jeanette = True
 nb_cat = 10
 colors = ['red', 'darkgreen', 'blue', 'yellow', 'magenta', 'cyan', 'darkorange', 'black', 'lawngreen', 'darkviolet']
 #zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med', 'COR', 'tmp'
-zone = 'Atlantic'
+zone = 'test'
 
 # time delta between 2 frames (in days)
-h = 10
+h = 1
 
 #Plot first last_turtle. -1 to plot all turtles
-last_turtle = -1
+last_turtle = 1000
 
 #Dates
 start_day = 0
-end_day = 6500
+end_day = 365
 
 #gridfile for NPP lon/lat
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
 
 # Video
 fps = 8 #images/sec
-dpi = 150 #images resolution
+dpi = 350 #images resolution
 #
 tracer = "PP" #PP or mnk
 # =============================================================================
@@ -78,10 +78,10 @@ print('\n')
 # HABITAT & MORTALITY PARAMETERS
 # =============================================================================
 #Température optimale pour le calcul d'habitat
-To = 24.
+To = 22.
 
 # Temps de léthargie (nombre de jours maximum dans Tw<Tmin)
-lethargy=30.
+lethargy=10.
 
 # Variables pour le calcul de l'habitat thermique et alimentaire
 coef_SMR=5.
@@ -152,6 +152,12 @@ elif zone == 'tmp2':
     latmin = 32
     latmax = 42
 
+elif zone == 'test':
+    lonmin = -85
+    lonmax = -60
+    latmin = 25
+    latmax = 45
+
 
 # =============================================================================
 # CODE
@@ -167,14 +173,15 @@ if hab_mode != 'void' and mortality:
 # Read nc file
 dico = ncl.read_nc(file_path, variables)
 
-if jeannette:
-    group = ncl.classify_lon _init(dico, nb_cat)
+if jeanette:
+    group = ncl.classify_lon_init(dico, nb_cat)
+    print(group)
     if len(colors) != nb_cat:
         print('nb_cat has to be equal to len(colors)')
 else:
-    group = None
+    group = []
 
 data_lists = ncl.data_lists(param, end_day, dico['init_t'])
 pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
-                          [lonmin, lonmax], tracer, save_path, param, data_lists, last_turtle, mortality, group, nb_cat dpi)  
+                          [lonmin, lonmax], tracer, save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

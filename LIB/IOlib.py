@@ -241,14 +241,14 @@ def find_last_date(param):
     last_U = sorted(glob(U_dir + '/*' + U_suffix))[-1]
     file_U = netCDF4.Dataset(last_U)
     t_unit = file_U.variables[time_var_phy].units
-    t_value = int(file_U.variables[time_var_phy][:].data)
+    t_value = int(file_U.variables[time_var_phy][-1].data)
     time_U = netCDF4.num2date(t_value, t_unit)
     file_U.close()
     #
     last_V = sorted(glob(V_dir + '/*' + V_suffix))[-1]
     file_V = netCDF4.Dataset(last_V)
     t_unit = file_V.variables[time_var_phy].units
-    t_value = int(file_V.variables[time_var_phy][:].data)
+    t_value = int(file_V.variables[time_var_phy][-1].data)
     time_V = netCDF4.num2date(t_value, t_unit)
     file_V.close()
     #
@@ -256,14 +256,14 @@ def find_last_date(param):
         last_T = sorted(glob(T_dir + '/*' + T_suffix))[-1]
         file_T = netCDF4.Dataset(last_T)
         t_unit = file_T.variables[time_var_phy].units
-        t_value = int(file_T.variables[time_var_phy][:].data)
+        t_value = int(file_T.variables[time_var_phy][-1].data)
         time_T = netCDF4.num2date(t_value, t_unit)
         file_T.close()
         #
         last_food = sorted(glob(food_dir + '/*' + food_suffix))[-1]
         file_food = netCDF4.Dataset(last_food)
         t_unit = file_food.variables[time_var_food].units
-        t_value = int(file_food.variables[time_var_food][:].data)
+        t_value = int(file_food.variables[time_var_food][-1].data)
         time_food = netCDF4.num2date(t_value, t_unit)
         file_food.close()
         #

@@ -209,7 +209,9 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
         cmap = 'pink_r'
         levels = np.arange(0,2.1,0.1)
         ticks = np.arange(0,2.2,0.2)
+        hab = np.where(hab>levels[-1], levels[-1], hab)
    
+    
     hab[hab<0.001] = float('nan')
     hab2 = np.column_stack((hab[:,max(np.where(lonmat[lonmat<lonmax])[0]):-2],hab[:,:max(np.where(lonmat[lonmat<lonmax])[0])]))
     lonmat2 = np.hstack((lonmat[max(np.where(lonmat[lonmat<lonmax])[0]):-2]-360,lonmat[:max(np.where(lonmat[lonmat<lonmax])[0])]))
@@ -255,9 +257,9 @@ def display_colorbar(f,im, ax_cb, label):
     cb.outline.set_linewidth(0.5)
     cb.ax.xaxis.set_tick_params(width=0.5)
 
-def display_tracks(ax, lat='NA',lon='NA',dates='NA',ms=0.00,col='b',alpha=0.5) :
+def display_tracks(ax, lat='NA',lon='NA',dates='NA',ms=0.00,col='b', marker= 'o',alpha=0.5) :
     """ """
-    ax.scatter(lon, lat, marker='o',s=ms, edgecolor='none',c=col, alpha=alpha)
+    ax.scatter(lon, lat, marker=marker,s=ms, edgecolor='none',c=col, alpha=alpha)
 
 def plot_map(ax, latmin, latmax, lonmin, lonmax,value=0.6,res=0.25,alpha=1, lon_space=20,lat_space=10) :
     """ Plot continents. """
@@ -284,7 +286,7 @@ def show_start_point(ax, lat,lon) :
    ax.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',
             markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)   
    
-def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, last_turtle, mortality, dpi=100):
+def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi=100):
     """ Plot animation frames with turtles positions and approximate habitat. """  
     species = param['species']
     nturtles = param['nturtles'] - 1 if last_turtle == -1 else last_turtle
@@ -300,6 +302,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
     lon = dico['traj_lon'][:,:last_turtle]
     init_t = dico['init_t'][:last_turtle]
     traj_time = dico['traj_time'][:,:last_turtle]
+    group = group[:last_turtle]
     #
     #Correction de certaines longitudes
     #lon[np.where(lon<200)]=lon[np.where(lon<200)]+360
@@ -355,21 +358,29 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         # Blue dots : alive turtles
         # Black dots: dead turtles
         # Dead turtles are removed from the animation 90 days after they died
-        if hab_mode != 'void' and mortality:
+        if hab_mode != 'void' and mortality and len(group)==0:
             index_dead_at_date = np.where((date_death_entier<=date_today_entier)&(date_death_entier+90>date_today_entier)) #+90 > dead disappear after 90 days
             index_alive_at_date = np.where(date_death_entier>date_today_entier)
-        if hab_mode == 'void' and mortality:
+        if hab_mode == 'void' and mortality and len(group)==0:
             index_dead_at_date=[]
             index_alive_at_date=np.arange(lat.shape[1])
+            
         # Display position (scatter)
-        if mortality:
-            display_tracks(ax, lat=newlat[step,index_dead_at_date],lon=newlon[step,index_dead_at_date],ms=11,col='k',alpha=0.6)
-            display_tracks(ax, lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4',alpha=0.6)
-        else:
+        if mortality and len(group)==0:
+            display_tracks(ax, lat=newlat[step,index_dead_at_date],lon=newlon[step,index_dead_at_date],ms=11,col='k', marker = 'o',alpha=0.6)
+            display_tracks(ax, lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4', marker = 'o',alpha=0.6)        
+        elif len(group)==0:
             display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
         
+        if hab_mode != 'void' and mortality and len(group)>0:
+            for cat in np.arange(nb_cat):
+                index_dead_at_date = np.where((date_death_entier <= date_today_entier) & (date_death_entier + 90 > date_today_entier) & (group == cat)) #+90 > dead disappear after 90 days
+                index_alive_at_date = np.where((date_death_entier > date_today_entier) & (group == cat))
+
+                display_tracks(ax, lat=newlat[step,index_dead_at_date], lon=newlon[step,index_dead_at_date], ms=5, col=colors[cat], marker = 'x', alpha=0.6)
+                display_tracks(ax, lat=newlat[step,index_alive_at_date], lon=newlon[step,index_alive_at_date], ms=5, col=colors[cat], marker = 'o', alpha=0.6)                  
         # Plot starting point
-        show_start_point(ax, lat,lon)
+        #show_start_point(ax, lat,lon)
 
         lon_space = (lonmax - lonmin)/7
         lat_space = (latmax - latmin)/7

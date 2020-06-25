@@ -64,7 +64,7 @@ def create_fieldset(param, ndays_simu, t_init):
     if time_periodic:
         time_periodic *= 86400 #days to seconds
     #Fieldset creation
-    chs = False #Chunksize
+    chs = 'auto' #Chunksize
     if param['grid_phy'] == 'A':
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
     else:
@@ -185,34 +185,38 @@ def initialization(fieldset, ndays_simu, param):
     fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
     fieldset.ndays_simu = ndays_simu
     fieldset.tactic_factor = param['tactic_factor']
+    fieldset.SCL0 = param['SCL0']
+    
+    if param['species'] == 'leatherback':
+        file = leath
+    elif param['species'] == 'loggerhead':
+        file = log
+    
+    # Growth
+    if param['growth'] == 'VGBF':
+        fieldset.k = file.k
+        fieldset.SCLmax = file.SCLmax
+        fieldset.beta_jones = file.beta_jones
+    elif param['growth'] == 'Gompertz':
+        fieldset.alpha_gomp = file.alpha_gomp
+        fieldset.beta = file.beta
+        fieldset.M0 = file.M0
+        fieldset.S = file.S
+        fieldset.K0 = file.K0
+        fieldset.c = file.c
+        
     if param['mode'] == 'active':
         ### NAMELIST PARAMETERS ###
         fieldset.P0 = param['P0']
         fieldset.grad_dx = param['grad_dx']
-        fieldset.alpha = param['alpha']
-        fieldset.SCL0 = param['SCL0']
+        fieldset.alpha = param['alpha']      
 	
         ### SPECIES PARAMETERS ###
-        if param['species'] == 'leatherback':
-            file = leath
-        elif param['species'] == 'loggerhead':
-            file = log
-        #
         fieldset.a = file.a
         fieldset.b = file.b
         fieldset.d = file.d
         fieldset.vscale = file.vscale
-        if param['growth'] == 'VGBF':
-            fieldset.k = file.k
-            fieldset.SCLmax = file.SCLmax
-            fieldset.beta_jones = file.beta_jones
-        elif param['growth'] == 'Gompertz':
-            fieldset.alpha_gomp = file.alpha_gomp
-            fieldset.beta = file.beta
-            fieldset.M0 = file.M0
-            fieldset.S = file.S
-            fieldset.K0 = file.K0
-            fieldset.c = file.c
+
         if file.Tmin_Topt == 'constant':
             fieldset.Tmin = file.Tmin
             fieldset.Topt = file.Topt
@@ -273,8 +277,14 @@ def define_passive_kernels(fieldset, pset, param):
     key_alltracers = param['key_alltracers']
     periodicBC = param['periodicBC']
     mode = param['mode']
+    growth = param['growth']
     #
+    if growth == 'VGBF':
+        compute_SCL = pk.compute_SCL_VGBF  
+    elif growth == 'Gompertz':
+        compute_SCL = pk.compute_SCL_Gompertz
     kernels_list = [pk.store_variables,
+                    compute_SCL,
                     pk.IncrementAge, 
                     pk.BeachTesting, 
                     pk.UndoMove]
@@ -306,16 +316,12 @@ def define_active_kernels(pset, param):
     growth = param['growth']
     #
     kernels_list = []
-    if mode == 'active':      
+    if mode == 'active':
         if growth == 'VGBF':
-            compute_SCL = ak.compute_SCL_VGBF
             compute_PPmax = ak.compute_PPmax_VGBF   
         elif growth == 'Gompertz':
-            compute_SCL = ak.compute_SCL_Gompertz
             compute_PPmax = ak.compute_PPmax_Gompertz
-        #
-        kernels_list = [compute_SCL,
-                        ak.compute_Mass,
+        kernels_list = [ak.compute_Mass,
                         compute_PPmax,
                         ak.compute_vmax,
                         ak.compute_habitat,

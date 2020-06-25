@@ -14,8 +14,31 @@ def store_variables(particle, fieldset, time):
     if particle.active == 1:
         particle.prev_lon = particle.lon
         particle.prev_lat = particle.lat
-        
+ 
+       
+def compute_SCL_VGBF(particle, fieldset, time):
+    """
+    Compute Straight Carapace Length (meters) at time t based on SCL at time t-1.
+    Uses a Von Bertalanffy function (VGBF).
+    """
+    particle.SCL = particle.SCL + fieldset.k * (fieldset.SCLmax - particle.SCL) * particle.dt / 31536000 #dt has to be in years --> 86400*365
 
+
+
+def compute_SCL_Gompertz(particle, fieldset, time):
+    """
+    Compute Straight Carapace Length (meters). Age is in days.
+    Uses a modified Gompertz equation in which growth depends on habitat.
+    This model needs SCL in cm.
+    """
+    if particle.active == 1:
+        prev_SCL = particle.SCL * 100 #this model needs centimeters
+        prev_K = particle.K
+        #
+        SCL = prev_SCL + fieldset.alpha_gomp * particle.hab * log(prev_K / prev_SCL) * prev_K *  particle.dt / 86400
+        particle.K = prev_K + fieldset.beta * particle.hab * 1 / (1 + exp(-(fieldset.M0 - prev_SCL) / fieldset.S)) *  particle.dt / 86400
+        #
+        particle.SCL = SCL / 100 #back to meters
 
 
 def IncrementAge(particle, fieldset, time):
