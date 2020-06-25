@@ -24,6 +24,7 @@ def define_Turtle_Class(fieldset, param):
         age = Variable('age', to_write=True, dtype=np.float64, initial=0.)
         onland = Variable('onland', to_write=False, dtype=np.float32, initial=0.) #number of beachings in a row
         beached = Variable('beached', to_write=False, dtype=np.float32, initial=0.) #0=ocean, 1=onland
+        t = Variable('t', to_write=False, dtype=np.float32, initial=fieldset.tactic_factor)
         if param['mode'] == 'passive':
             u_swim = Variable('u_swim', to_write=False, dtype=np.float32)
             v_swim = Variable('v_swim', to_write=False, dtype=np.float32)
@@ -48,7 +49,6 @@ def define_Turtle_Class(fieldset, param):
             ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
             SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=fieldset.SCL0)
             Topt = Variable('Topt', to_write=False, dtype=np.float32, initial=fieldset.Topt)
-            t = Variable('t', to_write=False, dtype=np.float32, initial=fieldset.tactic_factor)
             if param['growth'] == 'Gompertz':
                 K = Variable('K', to_write=False, dtype=np.float32, initial=fieldset.K0)
                 

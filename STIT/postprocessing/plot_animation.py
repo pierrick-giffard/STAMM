@@ -23,20 +23,22 @@ import IOlib as IO
 # USERS PARAMETERS
 # =============================================================================
 #background
-hab_mode = 'current' # 'food', 'temp', 'tot', 'current', 'void'
+hab_mode = 'tot' # 'food', 'temp', 'tot', 'current', 'void'
 #option 'void' for no background,
-mortality = False #set to False not to calculate dead turtles
+mortality = True #set to False not to calculate dead turtles
 
 #zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med', 'COR', 'tmp'
-zone = 'COR'
+zone = 'Atlantic'
 
 # time delta between 2 frames (in days)
-h = 2
+h = 10
 
+#Plot first last_turtle. -1 to plot all turtles
+last_turtle = -1
 
 #Dates
 start_day = 0
-end_day = 1100
+end_day = 6500
 
 #gridfile for NPP lon/lat
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
@@ -53,11 +55,11 @@ file_path = sys.argv[1]
 namelist = sys.argv[2]
 #Defaults save paths
 directory = ncl.get_directory(file_path)
-save_path = directory + 'animation' + '/'
+filename = ncl.get_name(file_path)
+save_path = directory + 'animation_' + filename + '/'
 if not Path(save_path).exists():
     Path(save_path).mkdir(parents=True)
 #
-filename = ncl.get_name(namelist)
 videofile = save_path + '/' + filename + '_animation.avi'
 #   
 param = IO.read_namelist(namelist, display=False)
@@ -89,10 +91,10 @@ coef_SMR=5.
 #ZONES
 # =============================================================================
 if zone == 'Atlantic':
-    lonmin = -105. #-110
-    lonmax = -30 #36
-    latmin = 0#-7
-    latmax = 50#62
+    lonmin = -110
+    lonmax = 36
+    latmin = 0
+    latmax = 62
 
 elif zone == 'Caribbean':
     lonmin = 260.
@@ -138,9 +140,15 @@ elif zone == 'COR': #coral sea
     
 elif zone == 'tmp':
     lonmin = -35
-    lonmax = -33
-    latmin = 39.3
-    latmax = 40.6
+    lonmax = -32
+    latmin = 38.4
+    latmax = 41
+
+elif zone == 'tmp2':
+    lonmin = -42
+    lonmax = -25
+    latmin = 32
+    latmax = 42
 
 
 # =============================================================================
@@ -158,5 +166,5 @@ if hab_mode != 'void' and mortality:
 dico = ncl.read_nc(file_path, variables)
 data_lists = ncl.data_lists(param, end_day, dico['init_t'])
 pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
-                          [lonmin, lonmax], tracer, save_path, param, data_lists, mortality, dpi)  
+                          [lonmin, lonmax], tracer, save_path, param, data_lists, last_turtle, mortality, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

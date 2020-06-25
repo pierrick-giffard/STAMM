@@ -126,7 +126,7 @@ class echantillon :
         self.beach=beach
 
     ## public - to be used
-    def gen_positions(self, nb_part, nb_year, lat_mat, lon_mat, mask, coord_mode, grid_type, beach_orientation, disk_radius):
+    def gen_positions(self, nb_part, nb_year, lat_mat, lon_mat, mask, coord_mode, grid_type, beach_orientation, disk_radius, width):
         """
         generate the sample
         the number of particles and number of seasons are given as arguments
@@ -136,7 +136,7 @@ class echantillon :
         self.beach_orientation = beach_orientation
         self.random_time()
         for j in range(self.nb_part):
-            self.random_position(self.vect_t[j], lat_mat, lon_mat, mask, coord_mode, grid_type, beach_orientation, disk_radius)
+            self.random_position(self.vect_t[j], lat_mat, lon_mat, mask, coord_mode, grid_type, beach_orientation, disk_radius, width)
             print("Turtle %s of %d"%(j+1,nb_part), end='\r')
 
 
@@ -368,7 +368,7 @@ class echantillon :
 
     # space randomisation
   
-    def random_position(self, tt, lat_mat, lon_mat, mask, coord_mode,grid_type, beach_orientation, disk_radius):
+    def random_position(self, tt, lat_mat, lon_mat, mask, coord_mode,grid_type, beach_orientation, disk_radius, width):
         """
            beach and dropping zone in (X,Y) coordinates ((X,Y) is a rotation of the geographical coordinates (x,y) of angle theta)
     
@@ -434,14 +434,47 @@ class echantillon :
             r = disk_radius * math.sqrt(rd.random())
             theta = rd.random() * 2 * math.pi
             #
-            X = x0 + r * math.cos(theta) / (111195 * math.cos(y0*math.pi/180))
-            Y = y0 + r * math.sin(theta) / 111195
+            X = x0 + r * math.cos(theta) #/ (111195 * math.cos(y0*math.pi/180)) uncomment if disk_radius in meters
+            Y = y0 + r * math.sin(theta) #/ 111195
             #
             if grid_type == 'orca':
                 x_grid,y_grid=brum.fx_inv(X,Y,lon_mat,lat_mat)
             else:
                 x_grid,y_grid=brum.geo_to_grid(X,Y,lon_mat,lat_mat)
+       
+
+        if self.beach.release_mode == 'rectangle':
+            xB=self.beach.north_pt[1]#*np.pi/180
+            yB=self.beach.north_pt[0]#*np.pi/180
+            xA=self.beach.south_pt[1]#*np.pi/180
+            yA=self.beach.south_pt[0]#*np.pi/180
             
+            theta=np.arctan((yB-yA)/(xB-xA))
+            lat_moy=(yA+yB)/2 * np.pi/180
+            AB = np.sqrt(((xB-xA)*111.195*np.cos(lat_moy))**2 + ((yB-yA)*111.195)**2) #km
+            l = rd.uniform(-1, 1) * width/2
+            d = rd.random() * AB 
+            xC = xB + d * np.cos(theta) / (111.195*np.cos(lat_moy))
+            yC = yB + d * np.sin(theta) / 111.195
+            
+            Y = yC + l * np.sin(theta) / 111.195
+
+            if xB > xA:
+                if l <= 0:
+                    X = xC - l * np.sin(theta) / (111.195*np.cos(lat_moy))
+                elif l > 0:
+                    X = xC + l * np.sin(theta) / (111.195*np.cos(lat_moy))
+
+            elif xB < xA:
+                if l <= 0:
+                    X = xC + l * np.sin(theta) / (111.195*np.cos(lat_moy))
+                elif l > 0:
+                    X = xC - l * np.sin(theta) / (111.195*np.cos(lat_moy))
+
+            if grid_type == 'orca':
+                x_grid,y_grid=brum.fx_inv(X,Y,lon_mat,lat_mat)
+            else:
+                x_grid,y_grid=brum.geo_to_grid(X,Y,lon_mat,lat_mat)           
             
         if self.beach.release_mode == 'square':
             xA=self.beach.north_pt[1]*np.pi/180
@@ -545,8 +578,8 @@ def beach_json(release_zone_size, lon_name, lat_name, beach_carac, nesting_year,
         release_mode = beach_carac["release_mode"]
     except:
         release_mode = 'square'
-    if release_mode not in ['square', 'disk']:
-        raise ValueError('Please set release_mode to square or disk')
+    if release_mode not in ['square', 'disk', 'rectangle']:
+        raise ValueError('Please set release_mode to square, rectangle or disk')
     
     lon_bc = (north_pt[1]+south_pt[1])/2 #longitude of beach center
     lat_bc = (north_pt[0]+south_pt[0])/2 #latitude of beach center
@@ -559,12 +592,13 @@ def beach_json(release_zone_size, lon_name, lat_name, beach_carac, nesting_year,
     x = x*180/np.pi
     y = y*180/np.pi
     
-    if north_pt[1] < lon_bc:
-        north_pt = (lat_bc + y, lon_bc - x)
-        south_pt = (lat_bc - y, lon_bc + x)
-    else:
-        north_pt = (lat_bc + y, lon_bc + x)
-        south_pt = (lat_bc - y, lon_bc - x)
+    if release_mode == 'square': 
+        if north_pt[1] < lon_bc:
+            north_pt = (lat_bc + y, lon_bc - x)
+            south_pt = (lat_bc - y, lon_bc + x)
+        else:
+            north_pt = (lat_bc + y, lon_bc + x)
+            south_pt = (lat_bc - y, lon_bc - x)
 
     return beach(time=nesting_period(start_jday,end_jday,peak_jday),
                  north_pt=north_pt,south_pt=south_pt,

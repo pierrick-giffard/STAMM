@@ -64,7 +64,7 @@ def create_fieldset(param, ndays_simu, t_init):
     if time_periodic:
         time_periodic *= 86400 #days to seconds
     #Fieldset creation
-    chs = 'auto' #Chunksize
+    chs = False #Chunksize
     if param['grid_phy'] == 'A':
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
     else:
@@ -184,15 +184,13 @@ def initialization(fieldset, ndays_simu, param):
     fieldset.deg = 111120. #1degree = 111,120 km approx (same as in parcels)
     fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
     fieldset.ndays_simu = ndays_simu
+    fieldset.tactic_factor = param['tactic_factor']
     if param['mode'] == 'active':
         ### NAMELIST PARAMETERS ###
-        fieldset.active = 1
-        fieldset.vscale = param['vscale']
         fieldset.P0 = param['P0']
         fieldset.grad_dx = param['grad_dx']
         fieldset.alpha = param['alpha']
         fieldset.SCL0 = param['SCL0']
-        fieldset.tactic_factor = param['tactic_factor']
         ### SPECIES PARAMETERS ###
         if param['species'] == 'leatherback':
             file = leath
@@ -226,8 +224,6 @@ def initialization(fieldset, ndays_simu, param):
         else:
             raise ValueError('Please set Tmin_Topt to constant or variable')
         param['Tmin_Topt'] = file.Tmin_Topt
-    else:
-        fieldset.active = 0
     if param['key_alltracers']:
         fieldset.key_alltracers = 1
     else:

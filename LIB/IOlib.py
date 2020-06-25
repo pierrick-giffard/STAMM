@@ -30,7 +30,6 @@ def read_namelist(filename, display=True):
              'species':'',
              'mode':'active',
              'alpha':'',
-             'vscale':'',
              'P0':'',
              'grad_dx':'',
              'periodicBC':'True',
@@ -122,7 +121,7 @@ def read_namelist(filename, display=True):
     
     #Active items
     if items['mode']=='active':
-        for key in ['alpha','vscale','P0','grad_dx', 'SCL0', 'tactic_factor']:        
+        for key in ['alpha','P0','grad_dx', 'SCL0']:        
             try:
                 items[key] = float(items[key])
             except ValueError:
@@ -156,7 +155,7 @@ def check_param(param,output_file):
         param_check = set(list({'T_dir','food_dir', 'T_var', 'food_var','T_suffix', 'food_suffix',\
                                 'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
-        param_check = set(list({'species','P0', 'alpha', 'vscale', 'grad_dx', 'SCL0'}) + list(param_check))
+        param_check = set(list({'species','P0', 'alpha', 'grad_dx', 'SCL0'}) + list(param_check))
 
     if param['grid_phy'] == 'C':
         param_check = set(list({'lat_T', 'lon_T'}) + list(param_check))
@@ -351,7 +350,9 @@ def forcing_list(f_dir, f_suffix, date_start, date_end, print_date = False, vgpm
             files += sorted(glob(f_dir + '/*' + '.' + str(yr) + '*' + f_suffix))
         #remove useless files
         del(files[:tmin.days//8])
-        del(files[((date_end-date_start).days)//8+4:]) 
+        del(files[((date_end-date_start).days)//8+4:])
+        if (date_end - datetime(date_end.year, 1, 1)).days >= 360: #add first file of following year
+            files.append(glob(f_dir + '/*' + '.' + str(date_end.year + 1) + '001' + f_suffix)[0])
     #
     if files == []:
         print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%date_start.year)

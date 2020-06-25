@@ -39,7 +39,7 @@ b = 2.86
 #Topt = T0. - to * sqrt(M)
 #Tmin = T0. - tm * sqrt(M)  
 Tmin_Topt = 'variable' 
-T0 = 24.
+T0 = 22.
 to = 0.21
 tm = 1.05       
 

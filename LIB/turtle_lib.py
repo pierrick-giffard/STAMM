@@ -107,7 +107,20 @@ def insert_nan(array, turtles_idx, time_idx):
     return array
 
 
-
+def compute_SCL_VGBF(SCL0, species, dt):
+    """
+    Compute Straight Carapace Length (meters) at time t based on SCL at time t-1.
+    Uses a Von Bertalanffy function (VGBF).
+    dt is in days
+    """
+    if species == 'leatherback':
+        k = 0.226
+        SCLmax = 1.43
+    elif species == 'loggerhead':
+        k = 0.0981
+        SCLmax = 1.09 
+    SCL = SCL0 + k * (SCLmax - SCL0) * dt / 365 #dt has to be in years --> 86400*365
+    return SCL
 
 
 def age_to_SCL(age,species) :
@@ -128,6 +141,7 @@ def age_to_SCL(age,species) :
         SCL = 1.43*(1-np.exp(-0.226*(age/365.+0.17)))
     
     return SCL
+
 
 def compute_M(species, SCL):
     """

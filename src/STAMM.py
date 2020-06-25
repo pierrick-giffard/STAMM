@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Main code of STAMM, the Sea Turtle Active Movement Model.
-Built with parcels version 2.1.4.
+Built with parcels version 2.2.0
 
 Author: Pierrick Giffard working in Philippe Gaspar's team at Mercator Ocean.
-February 2020.
+February - May 2020.
 """
 
 # =============================================================================
@@ -63,26 +64,6 @@ fc.initialization(fieldset, ndays_simu, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
 pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init, param) 
 
-"""
-print("\n")
-print("\n")
-#print(fieldset.__dict__)
-print("\n")
-print("\n")
-print(fieldset.U.__dict__)
-print("\n")
-print("\n")
-print(fieldset.NPP.__dict__)
-print("\n")
-print("\n")
-print(fieldset.U.grid.__dict__)
-print("\n")
-print("\n")
-print(fieldset.NPP.grid.__dict__)
-"""
-
-
-
 # =============================================================================
 # KERNELS
 # =============================================================================
@@ -106,7 +87,6 @@ pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
 # OUTPUT
 # =============================================================================
 output_file.export()
-#plotTrajectoriesFile('pb_interp.nc',tracerfile='/data/rd_exchange2/pgiffard/DATA/GLORYS12/GLORYS12_PGS_2D_20020606_UVT.nc',tracerlon='longitude',tracerlat='latitude',tracerfield='uo');
 plotTrajectoriesFile(OutputFile)
 fc.modify_output(OutputFile, t_init, param)
 

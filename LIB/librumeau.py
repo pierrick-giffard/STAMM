@@ -71,15 +71,17 @@ def geo_to_grid(lon, lat, lon_mat, lat_mat):
 
     return x,y
  
-    
 
-def fx_inv(lon,lat,lon_mat,lat_mat):
+
+
+def fx_inv(lon,lat,lon_mat,lat_mat, integer = False):
     """
     This function gets the x,y position on grid corresponding to longitude and latitude
         lon : f, longitude
         lat : f, latitude
         lon_mat : matrix containing the value of the longitude at each grid point
         lat_mat : matrix containing the value of the latitude at each grid point
+        integer : True to return integers
     """
 
     lon_min = np.min(lon_mat)
@@ -92,10 +94,12 @@ def fx_inv(lon,lat,lon_mat,lat_mat):
         print("Longitude or latitude out of range, must be between ", np.min(lon_mat), " & ", np.max(lon_mat), " for longitude and ", np.min(lat_mat), " & ", np.max(lat_mat), " for latitude")
         return 
     else:
-        distance = (lon-lon_mat)**2+(lat-lat_mat)**2
-        inds = np.argmin(distance)     
+        distance = (lon - lon_mat)**2  + (lat - lat_mat)**2
+        inds = np.argmin(distance)
         #argmin compute index of the flattened array (array.flat()), unravel_index gives the corresponding indexes of the 2D array
-        i2,i1 = np.unravel_index(inds,distance.shape) 
+        i2, i1 = np.unravel_index(inds, distance.shape)
+        if integer:
+            return i1, i2
 
     # Compute position of 4 neighbours on grid
         #   nw ---- ne  i2+1

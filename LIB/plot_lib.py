@@ -189,19 +189,19 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
         hab = Food_hab
         legend = u"Foraging Habitat suitability index"
         cmap = 'pink_r'
-        levels = np.arange(0,1.1,0.1)
+        levels = np.arange(0.,1.1,0.1)
         ticks = levels
     elif hab_mode == 'temp':
         hab = T_hab
         legend = u"Thermal Habitat suitability index"
         cmap = 'pink_r'
-        levels = np.arange(0.,0.2,0.01)
+        levels = np.arange(0.,1.1,0.1)
         ticks = levels
     elif hab_mode == 'tot':
         hab = T_hab*Food_hab
         legend = u"Habitat suitability index"
         cmap = 'pink_r'
-        levels = np.arange(0.,1.1,0.1)
+        levels = np.arange(0,1.1,0.1)
         ticks = levels
     elif hab_mode == 'current':
         hab = norm
@@ -284,10 +284,10 @@ def show_start_point(ax, lat,lon) :
    ax.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',
             markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)   
    
-def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, mortality = True, dpi=100):
+def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, last_turtle, mortality, dpi=100):
     """ Plot animation frames with turtles positions and approximate habitat. """  
     species = param['species']
-    nturtles = param['nturtles']
+    nturtles = param['nturtles'] - 1 if last_turtle == -1 else last_turtle
     #
     latmin = min(latlim)
     latmax = max(latlim)
@@ -296,10 +296,10 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
 
     dmin = 80.
     dmax = 200. 
-    lat = dico['traj_lat'][:-1,:]          
-    lon = dico['traj_lon'][:-1,:]
-    init_t = dico['init_t']
-    traj_time = dico['traj_time'][:-1,:]
+    lat = dico['traj_lat'][:,:last_turtle]          
+    lon = dico['traj_lon'][:,:last_turtle]
+    init_t = dico['init_t'][:last_turtle]
+    traj_time = dico['traj_time'][:,:last_turtle]
     #
     #Correction de certaines longitudes
     #lon[np.where(lon<200)]=lon[np.where(lon<200)]+360
@@ -309,17 +309,18 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
     lon[lon>=lonmax]-=360
     
     if hab_mode != 'void' and mortality:
-        temp = dico['traj_temp'][start_day:end_day,:]
+        temp = dico['traj_temp'][start_day:end_day,:last_turtle]
         date_death = tul.find_date_death(nturtles,temp,To,coef_SMR,lethargy,init_t, end_day-start_day)
     
     date_start_physfile = dt.datetime(param['ystart'],1,1) #à modifier éventuellement
     date_start_physfile_entier= date_start_physfile.toordinal()
     
     if hab_mode != 'void' and mortality:
-        date_death_entier = date_death+date_start_physfile_entier
+        date_death_entier = date_death + date_start_physfile_entier
         
     month_names = ['Jan.','Feb.','Mar.','Apr.','May','Jun.','Jul.','Aug.','Sep.','Oct.','Nov.','Dec.']
     #
+    SCL = param['SCL0'] + tul.age_to_SCL(start_day,species) #not exact if (SCL0 is not hatchling SCL and start_day > 0)
     for step in range(start_day,end_day,h):
         print('\n')
         print(step, 'of', end_day-h)
@@ -331,7 +332,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         # Frame title
         date_today_entier = date.toordinal()
         m = '00'
-        month = month_names[date_title.month-1]
+        month = month_names[date_title.month - 1]
         day = str(("%02d") %date_title.day)
         year = str(date_title.year)
         title ='| '+day+' '+month+' '+year+' |'
@@ -344,7 +345,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         # Display habitat.
         if hab_mode != 'void':
             # Calcul des paramètre relatifs à la nage active et à l'habitat
-            SCL = tul.age_to_SCL(step+start_day,species)
+            SCL = tul.compute_SCL_VGBF(SCL, species, h) #increment SCL of h days
             food_max = tul.compute_Fmax(step+start_day,tracer,species,SCL,param['P0'])
             numday = days_since_ref - int(init_t.min())
             plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, param, data_lists,date)
@@ -383,17 +384,20 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         plt.close()
  
        
-def plot_animation_frames_1turtle(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, mortality = True, dpi=100):
+def plot_animation_frames_tuned(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, last_turtle, mortality = True, dpi=100):
     """ 
     Plot animation frames for 1 turtle with a dt < 24h (for example 24 dt / day)
     Also plot 4 points at a distance grad_dx to see where gradients are computed
+    Might work with several turtles
     """  
-    #Specific parameters
-    delta = 2 #24 positions for 1 data file (dt = 1h)
+    #Tuned parameters
+    delta = 24 #24 positions for 1 data file (dt = 1h)
+    grad = False #to plot points where gradient is computed
     deg = 111195 #1degree = 111,195 km approx
     grad_dx = param['grad_dx']
     #
     species = param['species']
+    nturtles = param['nturtles'] - 1 if last_turtle == -1 else last_turtle
     #
     latmin = min(latlim)
     latmax = max(latlim)
@@ -402,20 +406,20 @@ def plot_animation_frames_1turtle(gridfile, dico,hab_mode,To,lethargy,coef_SMR,s
 
     dmin = 80.
     dmax = 200. 
-    lat = dico['traj_lat'][:-1,:]          
-    lon = dico['traj_lon'][:-1,:]
-    init_t = dico['init_t']
-    traj_time = dico['traj_time'][:-1,:]
-   
+    lat = dico['traj_lat'][:,:last_turtle]          
+    lon = dico['traj_lon'][:,:last_turtle]
+    init_t = dico['init_t'][:last_turtle]
+    traj_time = dico['traj_time'][:,:last_turtle]
     
     date_start_physfile = dt.datetime(param['ystart'],1,1) #à modifier éventuellement
         
     month_names = ['Jan.','Feb.','Mar.','Apr.','May','Jun.','Jul.','Aug.','Sep.','Oct.','Nov.','Dec.']
     #
-    for step in range(0,end_day): #not days but time_steps
+    SCL = param['SCL0'] + tul.age_to_SCL(start_day,species) #not exact if (SCL0 is not hatchling SCL and start_day > 0)
+    for step in range(0,end_day,h): #here not days but time_steps
         print('\n')
         print(step, 'of', end_day-h)
-        days_since_ref = int(init_t.min()) + 1 + step//delta
+        days_since_ref = int(init_t.min()) + 1 + step//delta #increment days each delta time steps
         date_title = date_start_physfile + dt.timedelta(days_since_ref)
         date = date_start_physfile + dt.timedelta(days_since_ref)
         # Frame title
@@ -433,20 +437,21 @@ def plot_animation_frames_1turtle(gridfile, dico,hab_mode,To,lethargy,coef_SMR,s
         # Display habitat.
         if hab_mode != 'void':
             # Calcul des paramètre relatifs à la nage active et à l'habitat
-            SCL = dico['SCL'][step,0]
+            SCL = tul.compute_SCL_VGBF(SCL, species, 1)
             food_max = tul.compute_Fmax(step+start_day,tracer,species,SCL,param['P0'])
             numday = days_since_ref - int(init_t.min())
             plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, param, data_lists,date)
             print(numday)
 
         display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
-        #
-        dx_lon =  grad_dx / (deg  * np.cos(newlat[step,0] * np.pi / 180))
-        dx_lat =  grad_dx / deg
-        display_tracks(ax, lat=newlat[step,:]-dx_lat,lon=newlon[step,:],ms=11,col='k',alpha=0.6)
-        display_tracks(ax, lat=newlat[step,:]+dx_lat,lon=newlon[step,:],ms=11,col='k',alpha=0.6)
-        display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:]-dx_lon,ms=11,col='k',alpha=0.6)
-        display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:]+dx_lon,ms=11,col='k',alpha=0.6)
+        #For gradients points
+        if grad:
+            dx_lon =  grad_dx / (deg  * np.cos(newlat[step,0] * np.pi / 180))
+            dx_lat =  grad_dx / deg
+            display_tracks(ax, lat=newlat[step,:]-dx_lat,lon=newlon[step,:],ms=11,col='k',alpha=0.6)
+            display_tracks(ax, lat=newlat[step,:]+dx_lat,lon=newlon[step,:],ms=11,col='k',alpha=0.6)
+            display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:]-dx_lon,ms=11,col='k',alpha=0.6)
+            display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:]+dx_lon,ms=11,col='k',alpha=0.6)
         
         # Plot starting point
         show_start_point(ax, lat,lon)

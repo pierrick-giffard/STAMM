@@ -50,7 +50,7 @@ def get_directory(infile):
 
 def age_to_date(traj_time, t_init, lat, lon) :
     """
-    Order lat and lon in time instead of age.
+    Order lat and lon in time instead of age. They can be any other array.
     Returns lon and lat, arrays of size ndays_simu + (t_init[-1] - t_init[0]).
     Returns date_mat, an array giving date since 01/01/ystart at each tstep (same for all turtles)
     nan values when no value

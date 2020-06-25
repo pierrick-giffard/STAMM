@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+width = 1.852 #km
 # -*- coding: utf-8 -*-
 """
 Create initial position file from a .json file and a grid.
@@ -26,7 +27,7 @@ import init_pos_lib as ipl
 # PATHS & FILES
 # =============================================================================
 #gridfle parameters
-gridfile = '/homelocal/pgiffard/DATA/PSY4_12_DAYLY/grid.nc'
+gridfile = '/homelocal-px/px-171/pgiffard/DATA/PSY4_12_DAYLY/grid.nc'
 lon_name = 'longitude'
 lat_name = 'latitude'
 mask_name = 'mask'
@@ -43,33 +44,33 @@ append = True
 savefig_path = path + 'Release_Map.png'
 
 '''
-To annotate country names and change map scale, go to the part named "PLOT"
+To annotate country names and change map scale, go to part named "PLOT"
 '''
 # =============================================================================
 # USERS PARAMETERS
 # =============================================================================
-mode = 'lonlat'
-#mode = 'xy'
-disk_radius = 50000#m
+mode = 'lonlat' #lonlat or xy
+disk_radius = 0.5 #degrees
+width = 1.852 #km, for rectangle mode
 beach_orientation = 'E' #'W' or 'E'
 #release zone side size (square) in degrees
 release_zone_size = 0.25
 
 #total of released turtles
-nturtles = 5000
+nturtles = 1000
 
 ##zone to plot               #
-xmin = -86.0                #
-xmax = -76.0                #  
-ymin = 7.5                  #
-ymax = 14.0                 #
+xmin = -84              #
+xmax = -74              #  
+ymin = 23               #
+ymax = 29.5               #
 #                            #
 lat_space = 1.5             #
 lon_space = 3.0             # PACUARE
 #                            #
 ##dot on the minimap         #
-xdot = -83.0                #
-ydot = 10.25                #
+xdot = -80.0                #
+ydot = 26.8                #
 
 ##zone to plot               #
 #xmin = -89.0                #
@@ -237,7 +238,7 @@ for f in list_files :
     beach_r = ipl.beach_json(release_zone_size, lon_name, lat_name, ipl.read_beach_json(f, grid, lon_name, lat_name), nesting_year, d_min, d_max, date_ref)
     print("Creating intial positions for beach: "+beach_r.beach_name)
     E = ipl.echantillon(beach_r)
-    E.gen_positions(beach_r.nb_turtles, nb_year, lat_mat, lon_mat, griddata, coord_mode, grid_type, beach_orientation, disk_radius)
+    E.gen_positions(beach_r.nb_turtles, nb_year, lat_mat, lon_mat, griddata, coord_mode, grid_type, beach_orientation, disk_radius, width)
     if mode == 'lonlat':
         for i in np.arange(beach_r.nb_turtles):
             E.positions[i].x, E.positions[i].y = brum.grid_to_geo(E.positions[i].x, E.positions[i].y, lon_mat, lat_mat)
