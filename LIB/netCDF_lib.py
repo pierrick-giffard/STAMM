@@ -304,8 +304,25 @@ def data_lists(param, end_day, t_init):
     #
     return data_list
     
+def classify_lon_init(dico, nb_cat):
+    init_lon = dico['traj_lon'][0, :]
     
-    
+    nb_turtles = len(init_lon)
+
+    init_lon_min = np.min(init_lon)  
+    init_lon_max = np.max(init_lon)
+
+    sort_lon = np.linspace(init_lon_min, init_lon_max, nb_cat + 1)
+
+    group = np.zeros(nb_turtles)
+    for turtle in np.arange(nb_turtles):
+        sort = False
+        for cat in np.arange(len(sort_lon) - 1):
+            if (init_lon[turtle] >= sort_lon[cat]) and (init_lon[turtle] < sort_lon[cat + 1]) and (sort == False):
+                group[turtle] = cat
+                sort = True
+    return group
+ 
     
     
     

@@ -121,7 +121,7 @@ def read_namelist(filename, display=True):
     
     #Active items
     if items['mode']=='active':
-        for key in ['alpha','P0','grad_dx', 'SCL0']:        
+        for key in ['alpha','P0','grad_dx', 'SCL0','tactic_factor']:        
             try:
                 items[key] = float(items[key])
             except ValueError:

@@ -191,6 +191,7 @@ def initialization(fieldset, ndays_simu, param):
         fieldset.grad_dx = param['grad_dx']
         fieldset.alpha = param['alpha']
         fieldset.SCL0 = param['SCL0']
+	
         ### SPECIES PARAMETERS ###
         if param['species'] == 'leatherback':
             file = leath

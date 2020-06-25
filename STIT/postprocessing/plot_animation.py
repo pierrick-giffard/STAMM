@@ -26,7 +26,9 @@ import IOlib as IO
 hab_mode = 'tot' # 'food', 'temp', 'tot', 'current', 'void'
 #option 'void' for no background,
 mortality = True #set to False not to calculate dead turtles
-
+jeanette = True
+nb_cat = 10
+colors = ['red', 'darkgreen', 'blue', 'yellow', 'magenta', 'cyan', 'darkorange', 'black', 'lawngreen', 'darkviolet']
 #zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med', 'COR', 'tmp'
 zone = 'Atlantic'
 
@@ -164,7 +166,15 @@ if hab_mode != 'void' and mortality:
        
 # Read nc file
 dico = ncl.read_nc(file_path, variables)
+
+if jeannette:
+    group = ncl.classify_lon _init(dico, nb_cat)
+    if len(colors) != nb_cat:
+        print('nb_cat has to be equal to len(colors)')
+else:
+    group = None
+
 data_lists = ncl.data_lists(param, end_day, dico['init_t'])
 pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
-                          [lonmin, lonmax], tracer, save_path, param, data_lists, last_turtle, mortality, dpi)  
+                          [lonmin, lonmax], tracer, save_path, param, data_lists, last_turtle, mortality, group, nb_cat dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)
