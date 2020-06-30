@@ -323,7 +323,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         
     month_names = ['Jan.','Feb.','Mar.','Apr.','May','Jun.','Jul.','Aug.','Sep.','Oct.','Nov.','Dec.']
     #
-    SCL = param['SCL0'] + tul.age_to_SCL(start_day,species) #not exact if (SCL0 is not hatchling SCL and start_day > 0)
+    SCL = tul.compute_SCL_VGBF(param['SCL0'], species, start_day)
     for step in range(start_day,end_day,h):
         print('\n')
         print(step, 'of', end_day-h)
@@ -372,13 +372,17 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         elif len(group)==0:
             display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
         
-        if hab_mode != 'void' and mortality and len(group)>0:
+        if hab_mode != 'void' and len(group)>0:
             for cat in np.arange(nb_cat):
-                index_dead_at_date = np.where((date_death_entier <= date_today_entier) & (date_death_entier + 90 > date_today_entier) & (group == cat)) #+90 > dead disappear after 90 days
-                index_alive_at_date = np.where((date_death_entier > date_today_entier) & (group == cat))
+                if mortality:
+                    index_dead_at_date = np.where((date_death_entier <= date_today_entier) & (date_death_entier + 90 > date_today_entier) & (group == cat)) #+90 > dead disappear after 90 days
+                    index_alive_at_date = np.where((date_death_entier > date_today_entier) & (group == cat))
 
-                display_tracks(ax, lat=newlat[step,index_dead_at_date], lon=newlon[step,index_dead_at_date], ms=5, col=colors[cat], marker = 'x', alpha=0.6)
-                display_tracks(ax, lat=newlat[step,index_alive_at_date], lon=newlon[step,index_alive_at_date], ms=5, col=colors[cat], marker = 'o', alpha=0.6)                  
+                    display_tracks(ax, lat=newlat[step,index_dead_at_date], lon=newlon[step,index_dead_at_date], ms=5, col=colors[cat], marker = 'x', alpha=0.6)
+                    display_tracks(ax, lat=newlat[step,index_alive_at_date], lon=newlon[step,index_alive_at_date], ms=5, col=colors[cat], marker = 'o', alpha=0.6)
+                else:
+                    idx = np.where(group == cat)
+                    display_tracks(ax, lat=newlat[step,idx], lon=newlon[step,idx], ms=5, col=colors[cat], marker = 'o', alpha=0.6)   
         # Plot starting point
         #show_start_point(ax, lat,lon)
 

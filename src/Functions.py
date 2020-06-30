@@ -50,7 +50,7 @@ def create_fieldset(param, ndays_simu, t_init):
     #Forcings
     last_date = IO.find_last_date(param)
     date_start, date_end, time_periodic = IO.define_start_end(ndays_simu, param, t_init, last_date)
-    ufiles = IO.forcing_list(param['U_dir'], param['U_suffix'], date_start, date_end, print_date=True)
+    ufiles = IO.forcing_list(param['U_dir'], param['U_suffix'], date_start, date_end)
     vfiles = IO.forcing_list(param['V_dir'], param['V_suffix'], date_start, date_end)
     #Filenames
     filenames = {'U': {'lon': mesh_phy, 'lat': mesh_phy, 'data': ufiles},
@@ -64,7 +64,7 @@ def create_fieldset(param, ndays_simu, t_init):
     if time_periodic:
         time_periodic *= 86400 #days to seconds
     #Fieldset creation
-    chs = 'auto' #Chunksize
+    chs = define_chunksize(ufiles[0], param['U_var'])
     if param['grid_phy'] == 'A':
         fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
     else:
@@ -85,7 +85,7 @@ def create_fieldset(param, ndays_simu, t_init):
         NPPdim = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
         #Field creation
         T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
-        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
+        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto')
         #Add to fieldset
         fieldset.add_field(T)
         fieldset.add_field(NPP)
@@ -101,7 +101,26 @@ def create_fieldset(param, ndays_simu, t_init):
     print('\n')
     return fieldset
 
-
+def define_chunksize(file, vname, dx=256):
+    """
+    Define chunksize based on a file and a variable name.
+    Chunksize = False if resolution is 1/4°, 'auto' if resolution is higher but it is a 2D file,
+    and it is set to dx if it is a 3D file.
+    """
+    nc = netCDF4.Dataset(file)
+    var = np.squeeze(nc.variables[vname])
+    if var.ndim == 2:
+        if len(var[0]) * len(var[1]) < 1100000: #1/4°
+            chs = False
+        else:
+            chs = 'auto'
+    else:
+        try:
+            chs = {'longitude':dx, 'latitude':dx}
+        except:
+            raise ValueError('Enter the name of x and y dimensions manually')
+    print('Chunksize set to ',chs)
+    return chs 
 
 
 def PSY_patch(fieldset,param):
@@ -418,6 +437,7 @@ def modify_output(OutputFile, t_init, param):
         nc_o.tactic_factor = param['tactic_factor']
         nc_o.P0 = param['P0']
         nc_o.growth = param['growth']
+        nc_o.SCL0 = param['SCL0']
         
     #
     nc_o.close()

@@ -117,11 +117,16 @@ def read_namelist(filename, display=True):
     if items['adv_scheme'] not in ['RK4','Euler']:
         sys.exit("ERROR : mode must be 'RK4' or 'Euler'")
     
+    #SCL
+    try:
+        items['SCL0'] = float(items['SCL0'])
+    except ValueError:
+        sys.exit("ERROR : %s must be float" %('SCL0'))
    
     
     #Active items
     if items['mode']=='active':
-        for key in ['alpha','P0','grad_dx', 'SCL0','tactic_factor']:        
+        for key in ['alpha','P0','grad_dx','tactic_factor']:        
             try:
                 items[key] = float(items[key])
             except ValueError:
@@ -320,7 +325,7 @@ def define_start_end(ndays_simu, param, t_init, last_date):
 
 
 
-def forcing_list(f_dir, f_suffix, date_start, date_end, print_date = False, vgpm = False):
+def forcing_list(f_dir, f_suffix, date_start, date_end, vgpm = False):
     """
     Return a list with data needed for simulation.
     It is important that the first file is the first day of release.
@@ -341,7 +346,8 @@ def forcing_list(f_dir, f_suffix, date_start, date_end, print_date = False, vgpm
         for yr in list_years:
             files += sorted(glob(f_dir + '/*' + str(yr) + '*' + f_suffix))
     #remove useless files
-    del(files[:tmin.days])
+    if tmin.days < len(files): #pas propre...
+        del(files[:tmin.days])
     del(files[(date_end-date_start).days+2:])
     #
     if vgpm:

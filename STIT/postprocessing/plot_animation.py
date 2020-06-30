@@ -25,7 +25,7 @@ import IOlib as IO
 #background
 hab_mode = 'current' # 'food', 'temp', 'tot', 'current', 'void'
 #option 'void' for no background,
-mortality = True #set to False not to calculate dead turtles
+mortality = False #set to False not to calculate dead turtles
 jeanette = True
 nb_cat = 10
 colors = ['red', 'darkgreen', 'blue', 'yellow', 'magenta', 'cyan', 'darkorange', 'black', 'lawngreen', 'darkviolet']
@@ -35,7 +35,7 @@ zone = 'test'
 # time delta between 2 frames (in days)
 h = 1
 
-#Plot first last_turtle. -1 to plot all turtles
+#Plot first n turtles
 last_turtle = 1000
 
 #Dates
@@ -154,9 +154,10 @@ elif zone == 'tmp2':
 
 elif zone == 'test':
     lonmin = -85
-    lonmax = -60
-    latmin = 25
-    latmax = 45
+    lonmax = -10
+    latmin = 20
+    latmax = 50
+
 
 
 # =============================================================================
@@ -175,7 +176,6 @@ dico = ncl.read_nc(file_path, variables)
 
 if jeanette:
     group = ncl.classify_lon_init(dico, nb_cat)
-    print(group)
     if len(colors) != nb_cat:
         print('nb_cat has to be equal to len(colors)')
 else:

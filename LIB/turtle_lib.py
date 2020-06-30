@@ -118,8 +118,14 @@ def compute_SCL_VGBF(SCL0, species, dt):
         SCLmax = 1.43
     elif species == 'loggerhead':
         k = 0.0981
-        SCLmax = 1.09 
-    SCL = SCL0 + k * (SCLmax - SCL0) * dt / 365 #dt has to be in years --> 86400*365
+        SCLmax = 1.09
+    if dt > 10: #dt has to be small to respect local slope of growth curve
+        h = 10
+        SCL = SCL0
+        for i in range(0, dt, h):
+            SCL += k * (SCLmax - SCL) * h / 365
+    else:
+        SCL = SCL0 + k * (SCLmax - SCL0) * dt / 365 #dt has to be in years --> 86400*365
     return SCL
 
 
@@ -127,7 +133,6 @@ def age_to_SCL(age,species) :
 
     """ Compute SCL for a given age using a model proposed in F. Perham et
     al., Age and growth of Loggerhead sea turtle of coastal Georgia, 1997"""
-    
     if species == 'loggerhead':
         #######Loggerhead
         ## VB Parham & Zug 1997
@@ -135,11 +140,10 @@ def age_to_SCL(age,species) :
         B = 0.9649
         k = 0.0739
         SCL = A*(1 - B*np.exp(-k*age/365.))
-    
     elif species == 'leatherback':
         #######Leatherback
         SCL = 1.43*(1-np.exp(-0.226*(age/365.+0.17)))
-    
+ 
     return SCL
 
 
