@@ -64,4 +64,11 @@ c = 0.0032#1/312
 #Ref : Gaspar, P., Benson, S., Dutton, P., Réveillère, A., Jacob, G., Meetoo, C., Dehecq, A., Fossette, S., 2012. Oceanic dispersal of juvenile leatherback turtles: going beyond passive drift modeling. Marine Ecology Progress Series.     
 vscale = 1.2
 d = 0.126
-        
+
+
+# =============================================================================
+# Frenzy swimming
+# =============================================================================
+frenzy_theta = 0 # angle in rad defined with respect to east
+frenzy_duration = 7 # duration of frenzy swimming in days
+frenzy_speed = 0.25 # speed in m/s

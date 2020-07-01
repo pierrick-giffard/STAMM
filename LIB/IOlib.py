@@ -64,7 +64,8 @@ def read_namelist(filename, display=True):
              'lon_T':'',
              'lat_T':'',
              'SCL0':'',
-             'tactic_factor':'1'
+             'tactic_factor':'1',
+             'frenzy':'False'
              }
 
     namelist = open(filename,'r')
@@ -95,7 +96,7 @@ def read_namelist(filename, display=True):
             sys.exit("ERROR : %s must be integer" %(key))
    
     #Convert booleans
-    for key in ['periodicBC','key_alltracers', 'cold_death','vgpm','halo']:
+    for key in ['periodicBC','key_alltracers', 'cold_death','vgpm','halo','frenzy']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:
@@ -179,6 +180,8 @@ def check_param(param,output_file):
     if param['grid_phy'] != 'A' and param['grid_phy'] != 'C':
         raise ValueError("Set grid_phy to A or to C")
     
+    if param['mode'] != 'active' and param['frenzy'] == True:
+        raise ValueError('Frenzy swimming is available only in active mode')
 
     
 

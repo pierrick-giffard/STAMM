@@ -235,7 +235,7 @@ def initialization(fieldset, ndays_simu, param):
         fieldset.b = file.b
         fieldset.d = file.d
         fieldset.vscale = file.vscale
-
+        
         if file.Tmin_Topt == 'constant':
             fieldset.Tmin = file.Tmin
             fieldset.Topt = file.Topt
@@ -248,6 +248,14 @@ def initialization(fieldset, ndays_simu, param):
         else:
             raise ValueError('Please set Tmin_Topt to constant or variable')
         param['Tmin_Topt'] = file.Tmin_Topt
+        
+        if param['frenzy']:
+            fieldset.frenzy = 1
+            fieldset.frenzy_speed = file.frenzy_speed
+            fieldset.frenzy_duration = file.frenzy_duration
+            fieldset.frenzy_theta = file.frenzy_theta
+        else:
+            fieldset.frenzy = 0
     if param['key_alltracers']:
         fieldset.key_alltracers = 1
     else:
@@ -348,6 +356,8 @@ def define_active_kernels(pset, param):
                         ak.compute_swimming_velocity]
         if param['Tmin_Topt'] == 'variable':
             kernels_list.insert(2, ak.compute_Tmin_Topt) #Needs to be after compute_Mass
+    if param['frenzy']:
+        kernels_list.append(ak.swimming_frenzy)
     if param['cold_death']:
         kernels_list.append(ak.cold_induced_mortality)
         

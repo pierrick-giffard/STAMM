@@ -99,6 +99,8 @@ Note: no space should appear between two sections.
 
 **tactic\_factor** = float [0, 1]. Proportion of current swimming angle taken into account in final swimming direction. 1 for no memory effect. Default: 1.
 
+**frenzy** = boolean. If True, turtles swim towards a fixed directions during a fixed duration (parameters in /Species). Default: False.
+
 **/**
 
 **&amp;GRIDPARAM**

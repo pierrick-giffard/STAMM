@@ -20,6 +20,7 @@
    cold_resistance = 30
    growth = 'VGBF'
    SCL0 = 0.063
+   frenzy = True
 /
 &GOMPERTZ
    K0 = 20.13

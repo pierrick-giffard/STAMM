@@ -205,6 +205,17 @@ def compute_swimming_velocity(particle, fieldset, time):
         particle.v_swim = particle.vmax * (1-particle.hab) * sin(particle.theta)
     
 
+def swimming_frenzy(particle, fieldset, time):
+    """
+    Swim towards frenzy_theta (angle in rad defined with respect to east)
+    during frenzy_duration days at a velocity of frenzy_speed m/s
+    (define parameters in Species).
+    This kernel overwrites previous u_swim and v_swim.
+    """
+    if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
+        particle.u_swim = fieldset.frenzy_speed * cos(fieldset.frenzy_theta)
+        particle.v_swim = fieldset.frenzy_speed * sin(fieldset.frenzy_theta)
+
 
 def cold_induced_mortality(particle, fieldset, time):
     """
