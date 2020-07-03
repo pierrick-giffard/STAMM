@@ -52,6 +52,7 @@ def create_fieldset(param, ndays_simu, t_init):
     date_start, date_end, time_periodic = IO.define_start_end(ndays_simu, param, t_init, last_date)
     ufiles = IO.forcing_list(param['U_dir'], param['U_suffix'], date_start, date_end)
     vfiles = IO.forcing_list(param['V_dir'], param['V_suffix'], date_start, date_end)
+    
     #Filenames
     filenames = {'U': {'lon': mesh_phy, 'lat': mesh_phy, 'data': ufiles},
                  'V': {'lon': mesh_phy, 'lat': mesh_phy, 'data': vfiles}}
@@ -73,28 +74,44 @@ def create_fieldset(param, ndays_simu, t_init):
     
     if key_alltracers:
         tfiles = IO.forcing_list(param['T_dir'], param['T_suffix'], date_start, date_end)
-        ffiles = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, vgpm=param['vgpm'])
-        #Filenames
+        ffiles = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, vgpm=param['vgpm'])        
+
+        # Filenames
         Tfiles = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
         NPPfiles = {'lon': mesh_food, 'lat': mesh_food, 'data': ffiles}
-        #Dimensions
+        
+        # Dimensions
         if param['grid_phy'] == 'A':
             Tdim = {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}
         else:
             Tdim = {'lon': param['lon_T'], 'lat': param['lat_T'], 'time': param['time_var_phy']}
         NPPdim = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
-        #Field creation
+        
+        # Field creation
         T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
         NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto')
-        #Add to fieldset
+
+        # Waves: physical grid, A-grid
+        if param['wave_swim']:
+            st_files = IO.forcing_list(param['wave_dir'], param['wave_suffix'], date_start, date_end)
+            Stokes_files = {'lon': mesh_phy, 'lat': mesh_phy, 'data': st_files}
+            Stokes_dim = {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}
+
+            Ustokes = Field.from_netcdf(Stokes_files, ('Ustokes', param['Ust_var']), Stokes_dim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
+            Vstokes = Field.from_netcdf(Stokes_files, ('Vstokes', param['Vst_var']), Stokes_dim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs) 
+        
+            fieldset.add_field(Ustokes)
+            fieldset.add_field(Vstokes)        
+
+        # Add to fieldset
         fieldset.add_field(T)
         fieldset.add_field(NPP)
-        
-    #East/West periodicity
+
+    # East/West periodicity
     if param['periodicBC'] and not param['halo']:
         add_halo(fieldset)
 
-    #Time
+    # Time
     tt=time.time()-t0
     print('\n')
     print(' => FieldSet created in: '+ str(timedelta(seconds=int(tt))))
@@ -249,10 +266,11 @@ def initialization(fieldset, ndays_simu, param):
             raise ValueError('Please set Tmin_Topt to constant or variable')
         param['Tmin_Topt'] = file.Tmin_Topt
         
-        if param['frenzy']:
-            fieldset.frenzy = 1
+        if param['frenzy'] or param['wave_swim']:
+            fieldset.frenzy_mode = file.frenzy_mode
             fieldset.frenzy_speed = file.frenzy_speed
             fieldset.frenzy_duration = file.frenzy_duration
+        if param['frenzy']:
             fieldset.frenzy_theta = file.frenzy_theta
         else:
             fieldset.frenzy = 0
@@ -357,7 +375,12 @@ def define_active_kernels(pset, param):
         if param['Tmin_Topt'] == 'variable':
             kernels_list.insert(2, ak.compute_Tmin_Topt) #Needs to be after compute_Mass
     if param['frenzy']:
+        kernels_list.append(ak.compute_frenzy_speed)
         kernels_list.append(ak.swimming_frenzy)
+    if param['wave_swim']:
+        kernels_list.append(ak.compute_frenzy_speed)
+        kernels_list.append(ak.compute_wave_direction)
+        kernels_list.append(ak.swim_against_waves)
     if param['cold_death']:
         kernels_list.append(ak.cold_induced_mortality)
         
@@ -448,6 +471,7 @@ def modify_output(OutputFile, t_init, param):
         nc_o.P0 = param['P0']
         nc_o.growth = param['growth']
         nc_o.SCL0 = param['SCL0']
+        nc_o.frenzy = str(param['frenzy'])
         
     #
     nc_o.close()

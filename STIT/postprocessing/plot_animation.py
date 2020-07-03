@@ -20,27 +20,39 @@ import IOlib as IO
 
 
 # =============================================================================
-# USERS PARAMETERS
+# AUTO PARAMETERS
 # =============================================================================
+file_path = sys.argv[1]
+namelist = sys.argv[2]
+param = IO.read_namelist(namelist, display=False)
+
+last_turtle = param['nturtles'] # Plot first n turtles
+start_day = 0
+end_day = param['ndays_simu']
+
+# =============================================================================
+# USER PARAMETERS
+# =============================================================================
+
 #background
 hab_mode = 'current' # 'food', 'temp', 'tot', 'current', 'void'
 #option 'void' for no background,
+
 mortality = False #set to False not to calculate dead turtles
+
+# Jeanette project: different colors depending on release lon
 jeanette = True
-nb_cat = 10
-colors = ['red', 'darkgreen', 'blue', 'yellow', 'magenta', 'cyan', 'darkorange', 'black', 'lawngreen', 'darkviolet']
-#zone: 'Atlantic, 'Caribbean', 'Pacific', 'Indian', 'Gulf_stream', 'Acores', 'Med', 'COR', 'tmp'
-zone = 'test'
+nb_cat = 5
+colors = ['darkviolet','blue','green','orange','red']
+zone = 'jeanette_1year'
 
 # time delta between 2 frames (in days)
 h = 1
 
-#Plot first n turtles
-last_turtle = 1000
-
-#Dates
-start_day = 0
-end_day = 365
+## Overwrite Auto parameters
+#last_turtle = 100
+#start_day = 50
+#end_day = 365
 
 #gridfile for NPP lon/lat
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
@@ -48,13 +60,11 @@ gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
 # Video
 fps = 8 #images/sec
 dpi = 350 #images resolution
-#
-tracer = "PP" #PP or mnk
+
 # =============================================================================
 # PATHS & FILES
 # =============================================================================
-file_path = sys.argv[1]
-namelist = sys.argv[2]
+
 #Defaults save paths
 directory = ncl.get_directory(file_path)
 filename = ncl.get_name(file_path)
@@ -64,7 +74,6 @@ if not Path(save_path).exists():
 #
 videofile = save_path + '/' + filename + '_animation.avi'
 #   
-param = IO.read_namelist(namelist, display=False)
 
 print('\n')
 print('********************************************************************************')
@@ -152,12 +161,17 @@ elif zone == 'tmp2':
     latmin = 32
     latmax = 42
 
-elif zone == 'test':
+elif zone == 'jeanette_1year':
     lonmin = -85
     lonmax = -10
     latmin = 20
     latmax = 50
 
+elif zone == 'jeanette_1month':
+    lonmin = -81
+    lonmax = -59
+    latmin = 24
+    latmax = 42
 
 
 # =============================================================================
@@ -183,5 +197,5 @@ else:
 
 data_lists = ncl.data_lists(param, end_day, dico['init_t'])
 pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
-                          [lonmin, lonmax], tracer, save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi)  
+                          [lonmin, lonmax], save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

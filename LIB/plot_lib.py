@@ -118,7 +118,7 @@ def complete_release_map(infile, path, gridfile, lonlat1D, nturtles, xmin, xmax,
 
 
 
-def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,tracer,param,data_lists,current_date,log=False) :
+def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,param,data_lists,current_date,log=False) :
     """ Plot habitat on map."""
     # Read Temp end Mnk data.
     lonmax = max(lonlim)
@@ -131,27 +131,18 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
    
     #Feeding habitat
     if hab_mode == 'food' or hab_mode == 'tot':
-        if tracer == "mnk":
-            numday = '0000'+str(numday)
-            numday = numday[-4:]
-            food_path = food_path + 'mnk_'+str(numday)+'.nc'
-            food_dict = ncl.read_nc(food_path,['latitude','longitude','mnk'])
-            mnk = np.asarray(food_dict['mnk'])[0,:,:]
-            Food_hab = tul.food_hab(mnk,food_max)
-    
-        elif tracer == "PP":
-            PP = ncl.interpolate_vgpm(current_date, param)
-            if hab_mode == 'tot':
-                PP = PP[::-1,:] #reverse lat
-                PP = PP[119:,:] #remove first 10 degrees !!!!!! il faut sélectionner les indices pour que les grilles correspondent mais il peut y avoir un décalage d'une demi maille. La résolution doit être la même
-            Food_hab = tul.food_hab(PP,food_max)
-            #
-            if hab_mode == 'food':
-                lat = param['lat_food']
-                lon = param['lon_food']
-                latlon = ncl.read_nc(gridfile,[lat,lon])
-                latmat = np.asarray(latlon[lat])
-                lonmat = np.asarray(latlon[lon])
+        PP = ncl.interpolate_vgpm(current_date, param)
+        if hab_mode == 'tot':
+            PP = PP[::-1,:] #reverse lat
+            PP = PP[119:,:] #remove first 10 degrees !!!!!! il faut sélectionner les indices pour que les grilles correspondent mais il peut y avoir un décalage d'une demi maille. La résolution doit être la même
+        Food_hab = tul.food_hab(PP,food_max)
+        #
+        if hab_mode == 'food':
+            lat = param['lat_food']
+            lon = param['lon_food']
+            latlon = ncl.read_nc(gridfile,[lat,lon])
+            latmat = np.asarray(latlon[lat])
+            lonmat = np.asarray(latlon[lon])
 
     
     #Temperature habitat
@@ -205,7 +196,7 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
         ticks = levels
     elif hab_mode == 'current':
         hab = norm
-        legend = u'Mean surface current [m/s]'
+        legend = u'Current velocity [m/s]'
         cmap = 'pink_r'
         levels = np.arange(0,2.1,0.1)
         ticks = np.arange(0,2.2,0.2)
@@ -286,7 +277,7 @@ def show_start_point(ax, lat,lon) :
    ax.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',
             markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)   
    
-def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi=100):
+def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim, save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi=100):
     """ Plot animation frames with turtles positions and approximate habitat. """  
     species = param['species']
     nturtles = param['nturtles'] - 1 if last_turtle == -1 else last_turtle
@@ -349,9 +340,9 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         if hab_mode != 'void':
             # Calcul des paramètre relatifs à la nage active et à l'habitat
             SCL = tul.compute_SCL_VGBF(SCL, species, h) #increment SCL of h days
-            food_max = tul.compute_Fmax(step+start_day,tracer,species,SCL,param['P0'])
+            food_max = tul.compute_Fmax(step+start_day,species,SCL,param['P0'])
             numday = days_since_ref - int(init_t.min())
-            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, param, data_lists,date)
+            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, param, data_lists,date)
 
 
         # Find alive and dead turtles
@@ -399,7 +390,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         plt.close()
  
        
-def plot_animation_frames_tuned(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,tracer, save_path, param, data_lists, last_turtle, mortality = True, dpi=100):
+def plot_animation_frames_tuned(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim,save_path, param, data_lists, last_turtle, mortality = True, dpi=100):
     """ 
     Plot animation frames for 1 turtle with a dt < 24h (for example 24 dt / day)
     Also plot 4 points at a distance grad_dx to see where gradients are computed
@@ -453,9 +444,9 @@ def plot_animation_frames_tuned(gridfile, dico,hab_mode,To,lethargy,coef_SMR,sta
         if hab_mode != 'void':
             # Calcul des paramètre relatifs à la nage active et à l'habitat
             SCL = tul.compute_SCL_VGBF(SCL, species, 1)
-            food_max = tul.compute_Fmax(step+start_day,tracer,species,SCL,param['P0'])
+            food_max = tul.compute_Fmax(step+start_day,species,SCL,param['P0'])
             numday = days_since_ref - int(init_t.min())
-            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, tracer, param, data_lists,date)
+            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, param, data_lists,date)
             print(numday)
 
         display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)

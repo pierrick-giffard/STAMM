@@ -170,26 +170,26 @@ def food_hab(F,F_max) :
     Food_hab[Food_hab>1] = 1
     return Food_hab
 
-def compute_Fmax(age,tracer,species,SCL,Fa):
+def compute_Fmax(age,species,SCL,Fa):
     """
     Compute food threshold
     Ref : Jones, T.T., Bostrom, B.L.,  Hastings, M.D., Van Houtan K.S., Pauly, D., 2012. Resource requirements of the Pacific Leatherback Turtle Population
     """
 
-    if tracer == "mnk" :
-        Fmax= (SCL/0.325)
+    #if tracer == "mnk" :
+     #   Fmax= (SCL/0.325)
 
-    elif tracer == "PP":
-        if species == 'loggerhead' : 
-            #########Loggerhead - 75
-            Fmax =0.195*(((1-np.exp(-0.0981*(age/365.+0.36)))**(1.5))*(np.exp(-0.0981*(age/365.+0.36))))/(1-(1-np.exp(-0.0981*(age/365.+0.36)))**(0.195))
-            Fmax = Fmax*float(Fa)
-            print(Fmax)
+    #elif tracer == "PP":
+    if species == 'loggerhead' : 
+        #########Loggerhead - 75
+        Fmax =0.195*(((1-np.exp(-0.0981*(age/365.+0.36)))**(1.5))*(np.exp(-0.0981*(age/365.+0.36))))/(1-(1-np.exp(-0.0981*(age/365.+0.36)))**(0.195))
+        Fmax = Fmax*float(Fa)
+        print(Fmax)
 
-        elif species == 'leatherback':
-            #########Leatherback
-            Fmax = 312*2.86*0.299*(((1-np.exp(-0.299*(age/365.+0.17)))**(2.86-1))*(np.exp(-0.299*(age/365.+0.17))))/(1-(1-np.exp(-0.299*(age/365.+0.17)))**(2.86*0.0328))
-            Fmax = Fmax/(2835.24/float(Fa))
+    elif species == 'leatherback':
+        #########Leatherback
+        Fmax = 312*2.86*0.299*(((1-np.exp(-0.299*(age/365.+0.17)))**(2.86-1))*(np.exp(-0.299*(age/365.+0.17))))/(1-(1-np.exp(-0.299*(age/365.+0.17)))**(2.86*0.0328))
+        Fmax = Fmax/(2835.24/float(Fa))
     return Fmax
 
 

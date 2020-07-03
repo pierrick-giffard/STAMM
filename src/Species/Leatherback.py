@@ -67,8 +67,9 @@ d = 0.126
 
 
 # =============================================================================
-# Frenzy swimming
+# Frenzy swimming / swim against wave
 # =============================================================================
-frenzy_theta = 0 # angle in rad defined with respect to east
-frenzy_duration = 7 # duration of frenzy swimming in days
-frenzy_speed = 0.25 # speed in m/s
+frenzy_mode = 0 #0 for constant speed; 1 for linear decrease over time.
+frenzy_theta = 0 # only for frenzy, angle in rad defined with respect to east
+frenzy_duration = 1 # duration of frenzy swimming in days
+frenzy_speed = 0.46 # speed in m/s

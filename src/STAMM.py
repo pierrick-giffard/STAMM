@@ -54,7 +54,6 @@ lon_init, lat_init, t_init = IO.read_positions(param)
 ndays_simu += max(t_init) - min(t_init)
 
 
-
 # =============================================================================
 # FIELDSET, CLASS AND PARTICLESET
 # ========================================================================
@@ -87,7 +86,7 @@ pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
 # OUTPUT
 # =============================================================================
 output_file.export()
-plotTrajectoriesFile(OutputFile)
+#plotTrajectoriesFile(OutputFile)
 fc.modify_output(OutputFile, t_init, param)
 
 

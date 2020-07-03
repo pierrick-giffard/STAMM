@@ -2,7 +2,7 @@
 """
 Give some quick statistics about STAMM Outputs: mean, min, max and std of all variables.
 
-USE:    python Quick_stats.py output1.nc output2.nc output3.nc
+USE:    python Quick_stats.py output1.nc output2.nc output3.nc namelist
         work with one or several output files
 
 """
@@ -17,19 +17,20 @@ import pandas as pd
 
 #Personal librairies
 sys.path.insert(1, os.path.join(sys.path[0], '../../LIB'))
-#sys.path.append('C:\\Users\\pgiffard\\Desktop\\CODES\\stamm\LIB') #tmp
 import turtle_lib as tul
 import netCDF_lib as ncl
-
+import IOlib as IO
 
 
 # =============================================================================
 # DATA
 # =============================================================================
-infiles = sys.argv[1:]
-mode = 'active'
-key_alltracers = True
-#infiles = 'C:/Users/pgiffard/Desktop/test_ref.nc'#sys.argv[1]#  #tmp
+infiles = sys.argv[1:-1]
+namelist = sys.argv[-1]
+
+param = IO.read_namelist(namelist, display=False)
+mode = param['mode']
+key_alltracers = param['key_alltracers']
    
 variables = ['traj_lat',
             'traj_lon',

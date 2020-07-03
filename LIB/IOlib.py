@@ -65,7 +65,12 @@ def read_namelist(filename, display=True):
              'lat_T':'',
              'SCL0':'',
              'tactic_factor':'1',
-             'frenzy':'False'
+             'frenzy':'False',
+             'wave_swim':'False',
+             'wave_dir':'',
+             'wave_suffix':'',
+             'Ust_var':'',
+             'Vst_var':''
              }
 
     namelist = open(filename,'r')
@@ -96,15 +101,15 @@ def read_namelist(filename, display=True):
             sys.exit("ERROR : %s must be integer" %(key))
    
     #Convert booleans
-    for key in ['periodicBC','key_alltracers', 'cold_death','vgpm','halo','frenzy']:
+    for key in ['periodicBC','key_alltracers', 'cold_death','vgpm','halo','frenzy','wave_swim']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:
             items[key] = items[key].__contains__('T')
         except ValueError:
             sys.exit("ERROR : %s must be boolean" %(key))
-
-    #Species name to lower caracters
+    
+    # Species name to lower caracters
     items['species'] = items['species'].lower()
 
     #Check mode
@@ -180,9 +185,10 @@ def check_param(param,output_file):
     if param['grid_phy'] != 'A' and param['grid_phy'] != 'C':
         raise ValueError("Set grid_phy to A or to C")
     
-    if param['mode'] != 'active' and param['frenzy'] == True:
-        raise ValueError('Frenzy swimming is available only in active mode')
-
+    if param['mode'] != 'active' and (param['frenzy'] or param['wave_swim']):
+        raise ValueError('Frenzy swimming and wave swimming are available only in active mode')
+    if param['frenzy'] and param['wave_swim']:
+        raise ValueError('Choose between swimming frenzy and swimming against waves')
     
 
 def read_positions(param):
