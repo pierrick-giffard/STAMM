@@ -44,7 +44,7 @@ mortality = False #set to False not to calculate dead turtles
 jeanette = True
 nb_cat = 5
 colors = ['darkviolet','blue','green','orange','red']
-zone = 'jeanette_1year'
+zone = 'jeanette_1month'
 
 # time delta between 2 frames (in days)
 h = 1
@@ -58,7 +58,7 @@ h = 1
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
 
 # Video
-fps = 8 #images/sec
+fps = 2 #images/sec
 dpi = 350 #images resolution
 
 # =============================================================================

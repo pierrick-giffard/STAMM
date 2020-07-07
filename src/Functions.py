@@ -409,7 +409,7 @@ def sum_kernels(k_adv, k_active, k_passive):
         print_kernels.append(k.funcname)
     #
     print('****************************************************')
-    print("These kernels will be used for computation: \n")
+    print("The following kernels will be used during computation: \n")
     for k in print_kernels:
         print(k, "\n")
     print('****************************************************')

@@ -237,7 +237,12 @@ def compute_wave_direction(particle, fieldset, time):
     if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
         Us = fieldset.Ustokes[time, particle.depth, particle.lat, particle.lon]
         Vs = fieldset.Vstokes[time, particle.depth, particle.lat, particle.lon]
-        particle.theta_wave = atan2(Vs, Us)
+        
+        if math.fabs(Us) < 1e-14 and math.fabs(Vs) < 1e-14: # On wave land mask
+            particle.theta_wave = math.pi # Manual choice so that turtles swim eastward
+        else:
+            particle.theta_wave = atan2(Vs, Us)
+            
 
 def swim_against_waves(particle, fieldset, time):
     """
@@ -248,7 +253,6 @@ def swim_against_waves(particle, fieldset, time):
     if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
         particle.u_swim = -fieldset.frenzy_speed * cos(particle.theta_wave)
         particle.v_swim = -fieldset.frenzy_speed * sin(particle.theta_wave)
-
 
 def cold_induced_mortality(particle, fieldset, time):
     """
