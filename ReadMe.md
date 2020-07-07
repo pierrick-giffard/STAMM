@@ -1,21 +1,21 @@
 # STAMM
 
-The Sea Turtle Active Movement Model (STAMM) is an Individual Based Model model that aims at calculating juvenile sea turtles trajectories. Originally based on the lagrangian software ARIANE, its last version is uses PARCELS (http://oceanparcels.org/), a set of Python classes and methods for lagrangian simulations. At each time step, a swimming velocity is calculated for each turtle based on its characteristics at that time and on its environment. The swimming velocity is added to the current velocity and advection of the turtle is computed based on the total velocity.
-
-# Download STAMM
+The Sea Turtle Active Movement Model (STAMM) is an Individual Based Model model that aims at calculating juvenile sea turtles trajectories. Turtles ground velocity is the result of current velocity and a swimming velocity directed towards favorable habitats(citer papier no 1)Originally based on the lagrangian software ARIANE, its last version uses PARCELS (http://oceanparcels.org/), a set of Python classes and methods for lagrangian simulations. At each time step, a swimming velocity is calculated for each turtle based on its characteristics at that time and on its environment. The swimming velocity is added to the current velocity and advection of the turtle is computed based on the total velocity.
+Please note that the model is still under development and that you might need to look deeper in the codevto make it work for special uses.
+# STAMM
 
 You will find:
 
 - A directory **src** including the source code of STAMM.
-- A directory **templates** with examples of namelist, run script, release file and .json to create the release file.
+- A directory **templates** with examples of namelist, script to run the model, release file,...
 - A directory **STIT** containing pre-processing and post-processing tools.
 - A directory **LIB** containing libraries used in STIT and in src.
 
 # Set up your python environment
 
-You can create a new environment including necessary modules with command:
+You can create a new environment named stamm and including necessary modules with the following command:
 
-_conda create -n stamm -c conda-forge python=3.6 spyder basemap basemap-data-hires parcels opencv_
+_conda create -n stamm -c conda-forge python=3.6 parcels spyder basemap basemap-data-hires opencv_
 
 Then, activate this environment with command _conda activate stamm_.
 
@@ -25,11 +25,11 @@ Note: STAMM was tested with Parcels 2.2.0
 
 ## General considerations
 
-STAMM needs 4 variables to run: U, the zonal velocity; V, the meridional velocity; T, the temperature; and a food proxy (NPP for example).
+STAMM needs 4 variables to run: U and V, respectively the zonal and meridional surface current velocities; T, the ocean surface temperature; and a food proxy (Net Primary Production - NPP for example).
 
-Variables can be on regular or non-regular grids (Orca for example), A-grid or C-grid, at the time resolution you want. Parcels will take care of spatial and temporal interpolations. The food proxy (NPP for example) can be on a different grid than physics variables (U, V and T). For the moment, STAMM was tested with 2D grids only (the surface layer was extracted). The food proxy needs to be vertically integrated.
+The model accepts regular and non-regular grids (Orca for example), A-grid or C-grid, at any time resolution. PARCELS will take care of spatial and temporal interpolations. The food proxy (NPP for example) can be on a different grid than physics variables (U, V and T). For the moment, STAMM was tested with A-grids only. The food proxy needs to be vertically integrated.
 
-## Download from CMEMS
+## Download data from CMEMS
 
 You can download data directly on the CMEMS website. We also created a script to help downloading a whole dataset: _STIT/preprocessing/Extract\_CMEMS\_data.py_.
 
@@ -39,15 +39,15 @@ Parcels needs data files to satisfy the following conditions:
 
 - They need to have a time variable giving the file date. Files have to be ordered in time. You can use the script _STIT/preprocessing/Change\_netcdf\_time.py_.
 - Variables need a FillValue attribute to represent land or cells without data. If Parcels doesn&#39;t find it, please rename it using the script _STIT/preprocessing/Rename\_FillValue.py_ (for example it doesn&#39;t find Hole\_Value).
-- Parcels also needs to read the coordinates of your cells in longitude/latitude: the cells centers for A-grids and f-nodes (upper right corner) for C-grids. It can read them directly in a forcing file or in another mesh file. You can create a mesh\_file following the VGPM example: _STIT/preprocessing/Create\_VGPM\_mesh.py_.
+- PARCELS also needs to read the coordinates of your cells in longitude/latitude: the cells centers for A-grids and f-nodes (upper right corner) for C-grids. It can read them directly in a forcing file or in another mesh file. You can create a mesh\_file following the VGPM example: _STIT/preprocessing/Create\_VGPM\_mesh.py_.
 
 # Release file
 
-Please create a release file as the one given in templates. You can use the script _STIT/create\_init\_pos.py ._ STAMM needs longitude and latitudes of your particules at t=0 and release time in days since 01/01 of ystart.
+Create a release file giving release longitude, latitude and time for each turtle. Follow the example in templates. You can use the script _STIT/create\_init\_pos.py ._ STAMM needs time in days since the 1st of january of the starting year.
 
 # Calibrate model
 
-Calibrate model for your species and for the zone your turtles will move in. To calibrate P0 as the 90th percentile of the npp distribution, you can use the script _STIT/preprocessing/P0\_calibration.py_.
+Calibrate model for your species and for the zone your turtles will move in. To calibrate P0 as the 90th percentile of the NPP distribution in a zone, you can use the script _STIT/preprocessing/P0\_calibration.py_.
 
 # Namelist
 
@@ -98,8 +98,6 @@ Note: no space should appear between two sections.
 **SCL0** = &#39;float&#39;. Turtles initial SCL.
 
 **tactic\_factor** = float [0, 1]. Proportion of current swimming angle taken into account in final swimming direction. 1 for no memory effect. Default: 1.
-
-**frenzy** = boolean. If True, turtles swim towards a fixed directions during a fixed duration (parameters in /Species). Default: False.
 
 **/**
 
@@ -173,17 +171,20 @@ time\_var\_food = name of time variable in your food proxy files
 
 # Execute STAMM
 
-Execute command _python src/STAMM.py namelist outfile.nc_. You can also execute command _./run\_stamm.sh_.
+Execute command _python src/STAMM.py namelist outfile.nc_. STAMM will create a netcdf file with turtles trajectories and with many other variables such as habitat, temperature, SCL,...
+You can also use script _src/run\_stamm.sh_ to run STAMM, and then to execute some post-processing diagnosis. 
+
 
 # Analyse and Visualize results with STIT
 
-STAMM will create a netcdf file with turtles trajectories and with many other variables such as habitat, temperature, SCL,... _STIT/postprocessing_ provides some diagnostics to visualize the outputs.
+You will find many scripts to visualize the outputs in _STIT/postprocessing_:
 
 # General remarks
 
 ## Forcings Selection
 
-STAMM is sensitive to forcings selection. In the namelist, you will provide a directory containing one or several variable. For each variable, a suffix is also given. Take care that one suffix matches only with the desired variable. Then, STAMM will look for files needed for simulation based on _ystart, ndays\_simu_ and _time\_periodic._ It deduces dates from files names, for this reason it is sensitive. It will work only if for files format:
+STAMM is sensitive to forcings selection. In the namelist, you will provide a directory containing one or several variables. For each variable, a suffix is also given. Take care that one suffix matches only with the desired variable. You can also create symbolic links pointing to your files.
+Then, STAMM will look for files needed for simulation based on _ystart, ndays\_simu_ and _time\_periodic._ It deduces dates from files names, for this reason it is sensitive. It will work only if for files format:
 
 - \*YYYY\*suffix
 - vgpm files with vgpm=True in namelist
@@ -195,9 +196,10 @@ If it doesn&#39;t work for your files, try to modify your file names or the func
 
 The swimming velocity is supposed constant over a whole timestep.
 
-## **Land mask**
+## Land mask
 
-Land corresponds to the physical land mask. On the other hand, most turtles won&#39;t enter into the food proxy land mask because habitat is set to 0. If they do so, they could be &#39;lost&#39; because there won&#39;t be any habitat gradient because habitat will be 0 everywhere.
+In STAMM, all variables are set to 0 on land so that habitat gradient is directed towards ocean and turtles avoid beaching.
+Physical land mask can be different from food land mask. Then, land corresponds to the physical land mask. Most turtles won&#39;t enter into the food land mask because habitat is set to 0. If they do so, they could be &#39;lost&#39; because there won&#39;t be any habitat gradient because habitat will be 0 everywhere.
 
 ## Disabled turtles
 
@@ -212,11 +214,11 @@ The variable active can help you to visualize disabled turtles.
 
 ## Time step
 
-The choice of the simulation time step depends on the advection scheme used, on velocities experimented by turtles and on grid resolution. For Euler advection scheme, the Courant–Friedrichs–Lewy condition has to be respected in the whole area: u \* dt / dx \&lt; 1. u is the maximum velocity turtles will experiment, dt is the simulation time step and dx is the spatial grid resolution.
+The choice of the simulation time step depends on the advection scheme used, on velocities experimented by turtles and on grid resolution. For Euler advection scheme, the Courant–Friedrichs–Lewy condition has to be respected in the whole area: u \* dt / dx has to be less than 1 in the whole domain. u is the maximum velocity turtles will experiment, dt is the simulation time step and dx is the spatial grid resolution.
 
 The Runge-Kutta scheme is more stable, but has no criteria as simple as for Euler scheme. Hence, and for security reasons, it is possible to use the Courant criteria also for Runge-Kutta 4.
 
-## **Computational** time and Memory
+## Computational time and Memory
 
 The computational time is not proportional to time step. Hence, a great part of computational time is dedicated to access data from disk (operation done each day for daily datasets). Also, it is quite fast to calculate turtles positions evolution since it is done in C (up to 10 000 turtles). Indeed, Parcels translates all python kernels to C language in order to speed up execution.
 
@@ -224,7 +226,7 @@ Field chunking is available for large datasets, to load data that would never fi
 
 Using 3D fields would be feasible through manual tuning of chunksize (see [http://oceanparcels.org/faq.html](http://oceanparcels.org/faq.html)). It would be interesting not to consider depth dimension (probably faster than depth=1).
 
-  1. **tstep and t\_output**
+## tstep and t\_output
 
 If the writing time step (t\_output) is smaller than the computational time step (tstep), the actual computational time step will be t\_output. On the contrary, if tstep is smaller than t\_output and if they aren&#39;t multiple, Parcels will define a smaller time step multiple of tstep and t\_output.
 
@@ -253,3 +255,13 @@ Then, in Functions.py you need to add your function to the kernel\_list so that 
 ## Use of 3D data files
 
 For now, it is needed to extract the surface layer. However, it should be possible to use 3D grids without extracting surface by changing dask parameters.
+
+
+
+grids:
+C grid : interpolation scheme ????
+3D mesh : slower
+
+update namelist
+update run.sh in templates
+print text as in python, print particle attribute print('%f'%particle.lon)
