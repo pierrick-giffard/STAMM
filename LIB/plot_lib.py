@@ -714,15 +714,6 @@ def display_trajectories_particular(lon, lat, traj_time, f, ax, lw=0.005, ms=0.0
     """
 
     nb_days,nb_traj = lon.shape
-
-    #########################
-    # DISPLAYS TRAJECTORIES #
-    #########################
-
-    x = np.array(lon)
-    y = np.array(lat)
-
-#    if np.mean(dataFile.lon[0,:]) < 36 :
 #        #Si point de départ dans l'Atlantique, on corrige l'affichage des longitudes > 180°E(cad toutes puisque 180°E est dans le Pacifique et que l'on se trouve dans l'Atlantique)
 #        x = np.array([l+(((1-np.sign(l))/2)*360) for l in x]) 
 #        # Lorsque les particules dépassent greenwich on ajoute 360 (elles passent de 359 à 361 plutot que de 359 à 1, par exemple en mediterranée)
@@ -763,3 +754,60 @@ def display_trajectories_particular(lon, lat, traj_time, f, ax, lw=0.005, ms=0.0
     ax.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)
     
     return p,time
+
+
+def swimming_rose(theta, speed,  bins_classes,  save, nb_directions=32, title=False, pmax='auto', mode='height'):
+    """
+    theta: velocity directions
+    speed: velocity norm
+    bins_classes: velocity categories. Ex: [0,0.05,0.1,0.2,0.3,0.5,2]
+    save: False or figure name
+    nb_directions: divide 360° in nb_directions parts
+    title: figure title
+    pmax: maximum percentage for yaxis
+    mode: area or height
+    """
+    rose, directions = ut.compute_directions(speed, theta, nb_directions, bins_classes)
+    
+    #useful variables for plot
+    delta = 2 * np.pi / nb_directions - 0.05 # Angle du segment de cercle
+    width = np.ones(nb_directions) * 2 * np.pi /nb_directions - 0.05
+    colors = ['blue', 'deepskyblue', 'greenyellow', 'yellow', 'orange', 'red', 'purple', 'k'] #max 8 classes
+    labels = ['%.2f - %.2f m/s'%(bins_classes[k], bins_classes[k+1]) for k in range(len(bins_classes)-1)]
+    labels[-1] = '> %.1f m/s'%bins_classes[-2]
+    
+    #decoration
+    fontsize = 20
+    plt.rc('ytick',labelsize=fontsize); plt.rc('xtick',labelsize=fontsize)
+    plt.figure(figsize=(10,12)) 
+    ax = plt.subplot(111, projection='polar')    
+    
+    #plot
+    bottom=0
+    nb_data = np.sum(~np.isnan(theta))
+    for k in range(len(bins_classes) - 1):
+        height = ut.height_trapezoid(rose[:, k], bottom, delta) if mode == 'area' else rose[:, k]
+        height *= 100 / nb_data 
+        ax.bar(directions, height, width=width, bottom=bottom, edgecolor='k', color = colors[k], label=labels[k])
+        bottom += height
+    
+    #maximum % for yticks
+    if pmax == 'auto':
+        pmax = np.max([np.sum(rose[k, :]) for k in range(nb_directions)])
+    
+    if mode == 'height':
+        #plot mean direction
+        mean_dir = ut.mean_direction(theta)
+        ax.plot([mean_dir, mean_dir],[0,pmax], '-.',color='k',linewidth =5)
+    
+    #legend, title and ticks
+    plt.legend(fontsize=fontsize, loc=(1,0))
+    if title:
+        plt.title(title, fontsize=fontsize+4, fontweight='bold')
+    ax.set_xticklabels(('E','NE','N','NW','W','SW','S','SE'),fontsize=fontsize)    
+    yticks = np.arange(2, pmax + 2, 2, dtype='int')
+    ax.set_yticks(yticks)
+    ax.set_yticklabels([str(i) + '%' for i in yticks], fontsize=fontsize, fontweight = 'bold')
+
+    if save:
+        save_fig(save)
