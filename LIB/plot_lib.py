@@ -306,7 +306,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         temp = dico['traj_temp'][start_day:end_day,:last_turtle]
         date_death = tul.find_date_death(nturtles,temp,To,coef_SMR,lethargy,init_t, end_day-start_day)
     
-    date_start_physfile = dt.datetime(param['ystart'],1,1) #à modifier éventuellement
+    date_start_physfile = dt.datetime(param['ystart'],1,1)
     date_start_physfile_entier= date_start_physfile.toordinal()
     
     if hab_mode != 'void' and mortality:
@@ -322,6 +322,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         date_title = date_start_physfile + dt.timedelta(days_since_ref)
         if param['time_periodic']:
             days_since_ref = int(days_since_ref%(param['time_periodic'] + init_t.min()))
+            print("verifier date")
         date = date_start_physfile + dt.timedelta(days_since_ref)
         # Frame title
         date_today_entier = date.toordinal()

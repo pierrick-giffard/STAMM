@@ -1,46 +1,44 @@
 &GENERAL PARAMETERS
    init_file = 'initial_positions.txt'
-   nturtles = 5000
+   nturtles = 1000
    tstep = 3600
-   ndays_simu = 6570
-   time_periodic = 6200
-   t_output = 86400
+   ndays_simu = 30
+   time_periodic = False
+   t_output = 3600
    mode = 'active'
    key_alltracers = True
    adv_scheme = 'RK4'
-   ystart = 2003
+   ystart = 2018
 /
 &ACTIVE MODE
    species = 'Leatherback'
-   alpha = 6e5
+   alpha = 3e6
    vscale = 1.2
-   P0 = 900
-   grad_dx = 25000
-   cold_death = True
-   cold_resistance = 30
+   P0 = 960
+   grad_dx = 5000
    growth = 'VGBF'
-   SCL0 = 0.063
-   frenzy = True
+   SCL0 = 0.1
+   tactic_factor = 0.5
+   frenzy = False
+   wave_swim = True
 /
-&GOMPERTZ
-   K0 = 20.13
-/
-&GRIDPARAM
+&GRIDPARAM  
+   grid_type = 'standard'
    periodicBC = True
-   halo = False
 /
 &FORCINGS FILES
-   U_dir = '/DATA/GLORYS12'
-   U_suffix = '_UVT.nc'
-   V_dir = '/DATA/GLORYS12'
-   V_suffix = '_UVT.nc'
-   T_dir = '/DATA/GLORYS12'
-   T_suffix = '_UVT.nc'
-   food_dir = '/DATA/VGPM_modis'
+   U_dir = '/data/rd_exchange3/pgiffard/DATA/PSY4_surface/'
+   U_suffix = '.nc'
+   V_dir = '/data/rd_exchange3/pgiffard/DATA/PSY4_surface/'
+   V_suffix = '.nc'
+   T_dir = '/data/rd_exchange3/pgiffard/DATA/PSY4_surface/'
+   T_suffix = '.nc'
+   food_dir = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/data'
    food_suffix = '.nc'
 /
 &PHYSICS
-   mesh_phy = '/DATA/mesh_phy.nc'
+   mesh_phy = '/sortref/reanalyse/glorys/phy/GLORYS12V1/RUN5/PGS/BEST/2018/11/mercatorglorys12v1_gl12_mean_20181113_R20181114.nc'
+   grid_phy = 'A'
    lon_phy = 'longitude'
    lat_phy = 'latitude'
    time_var_phy = 'time'
@@ -49,11 +47,15 @@
    T_var = 'thetao'
 /
 &FOOD PROXY
-   mesh_food = '/data/VGPM_083_mesh.nc'
+   mesh_food = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
    lon_food = 'longitude'
    lat_food = 'latitude'
    time_var_food = 'time'
    food_var ='npp'
-   vgpm = 'True'
 /
-
+&WAVES
+   wave_dir = '/sortref/opr/duglo-1/nrt/smoc/'
+   wave_suffix = '.nc'
+   Ust_var = 'vsdx'
+   Vst_var = 'vsdy'
+/

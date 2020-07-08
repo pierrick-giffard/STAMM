@@ -1,10 +1,12 @@
 # STAMM
 
-The Sea Turtle Active Movement Model (STAMM) is an Individual Based Model model that aims at calculating juvenile sea turtles trajectories. Turtles ground velocity is the result of current velocity and a swimming velocity directed towards favorable habitats(citer papier no 1)Originally based on the lagrangian software ARIANE, its last version uses PARCELS (http://oceanparcels.org/), a set of Python classes and methods for lagrangian simulations. At each time step, a swimming velocity is calculated for each turtle based on its characteristics at that time and on its environment. The swimming velocity is added to the current velocity and advection of the turtle is computed based on the total velocity.
-Please note that the model is still under development and that you might need to look deeper in the codevto make it work for special uses.
-# STAMM
+The Sea Turtle Active Movement Model (STAMM) is an Individual Based Model that aims at calculating juvenile sea turtles dispersal. A lagrangian approach is used in which turtles ground velocity is computed as the result of the ocean current velocity and a swimming velocity directed towards favorable habitats (Gaspar and Lalire 2017). Originally based on the lagrangian software ARIANE, its last version uses PARCELS (http://oceanparcels.org/), a set of Python classes and methods for lagrangian simulations. 
 
-You will find:
+Please note that the model is still under development and that you might need to look deeper in the code for specific uses.
+
+# Folder Contents
+
+There are four directories:
 
 - A directory **src** including the source code of STAMM.
 - A directory **templates** with examples of namelist, script to run the model, release file,...
@@ -13,7 +15,7 @@ You will find:
 
 # Set up your python environment
 
-You can create a new environment named stamm and including necessary modules with the following command:
+You can create a new environment named _stamm_ and including necessary modules with the following command:
 
 _conda create -n stamm -c conda-forge python=3.6 parcels spyder basemap basemap-data-hires opencv_
 
@@ -48,6 +50,7 @@ Create a release file giving release longitude, latitude and time for each turtl
 # Calibrate model
 
 Calibrate model for your species and for the zone your turtles will move in. To calibrate P0 as the 90th percentile of the NPP distribution in a zone, you can use the script _STIT/preprocessing/P0\_calibration.py_.
+You will need to set parameters in namalist as well as in the _src/Species_ folder.
 
 # Namelist
 
@@ -98,6 +101,10 @@ Note: no space should appear between two sections.
 **SCL0** = &#39;float&#39;. Turtles initial SCL.
 
 **tactic\_factor** = float [0, 1]. Proportion of current swimming angle taken into account in final swimming direction. 1 for no memory effect. Default: 1.
+
+**frenzy** = boolean. To simulate frenzy swimming. Turtles will swim during several days towards the same direction (define parameters in src/Species). Default: False
+
+**wave\_swim** = boolean. So that turtles swim against wave at the beginning of the simulation. Wave direction is calculated based on Stokes drift. Default: False
 
 **/**
 
@@ -161,9 +168,21 @@ Note: no space should appear between two sections.
 
 **lat\_food** = name of latitude variable in mesh\_food
 
-time\_var\_food = name of time variable in your food proxy files
+**time\_var\_food** = name of time variable in your food proxy files
 
 **food\_var** = name of food proxy variable
+
+/
+
+**&amp;WAVES**
+
+**wave\_dir** = data directory for waves (Stokes drift) if wave_swim is True.
+
+**wave\_suffix** = files suffix
+
+**Ust\_var** = name of zonal Stokes drift
+
+**Vst\_var** = name of meridional Stokes drift
 
 **/**
 
@@ -182,11 +201,6 @@ You will find many scripts to visualize the outputs in _STIT/postprocessing_:
 ## Forcings Selection
 
 STAMM is sensitive to forcings selection. In the namelist, you will provide a directory containing one or several variables. For each variable, a suffix is also given. Take care that one suffix matches only with the desired variable. You can also create symbolic links pointing to your files.
-Then, STAMM will look for files needed for simulation based on _ystart, ndays\_simu_ and _time\_periodic._ It deduces dates from files names, for this reason it is sensitive. It will work only if for files format:
-
-- \*YYYY\*suffix
-- vgpm files with vgpm=True in namelist
-- If none of this format is found, consider first file is 01/01/ystart.
 
 If it doesn&#39;t work for your files, try to modify your file names or the function forcing\_list in Funtions.py.
 
@@ -220,9 +234,9 @@ The Runge-Kutta scheme is more stable, but has no criteria as simple as for Eule
 
 The computational time is not proportional to time step. Hence, a great part of computational time is dedicated to access data from disk (operation done each day for daily datasets). Also, it is quite fast to calculate turtles positions evolution since it is done in C (up to 10 000 turtles). Indeed, Parcels translates all python kernels to C language in order to speed up execution.
 
-Field chunking is available for large datasets, to load data that would never fit into memory in one go. In STAMM chunksize is set to &#39;auto&#39; because for 2D fields it is the fastest mode without memory problems. Chunksize = False might be the fastest option if you work with 1/4°, but memory problems can appear with higher resolutions.
+Field chunking is available for large datasets, to load data that would never fit into memory in one go. In STAMM chunksize is set to False for 1/4° resolution 2D fields, to &#39;auto&#39; for 2D fields of higher resolution and to a fixed value (256) for 3D fields. This fixed value might to be optimal in all situations.
 
-Using 3D fields would be feasible through manual tuning of chunksize (see [http://oceanparcels.org/faq.html](http://oceanparcels.org/faq.html)). It would be interesting not to consider depth dimension (probably faster than depth=1).
+Note that using 3D data is a way slower than using surface data only.
 
 ## tstep and t\_output
 
@@ -236,13 +250,13 @@ Also, it&#39;s worth mention that outputs aren&#39;t means over multiple time st
 
 Currently, STAMM is only prepared for Leatherback and Loggerhead sea turtles. To add a new specie, you will need:
 
-1. Create a new parameter file in _stamm/src/Species_ based on the other ones.
-2. In _stamm/src/Functions.py,_ function _Initialisation_, add an _elif_ for your species to select your parameter file. You also need to import it at the beginning of the file.
+1. Create a new parameter file in _src/Species_ using the other ones as templates.
+2. In _src/Functions.py_, function _Initialisation_, add an _elif_ for your species to select your parameter file. You also need to import it at the beginning of the file.
 3. In namelist, choose your species.
 
 ## Adding a new argument to the namelist
 
-You can add argument in the namelist. You only need to add it to the dictionary in _stamm/LIB/IOlib.py_
+You can add argument in the namelist. You only need to add it to the dictionary in _LIB/IOlib.py_
 
 ## Adding behaviours to turtles
 
@@ -250,17 +264,11 @@ It is quite easy to add behaviours to turtles. To do so, you can add a function 
 
 Then, in Functions.py you need to add your function to the kernel\_list so that it become in kernel used during execution. At each time step, all kernels are applied to each particle one by one. That&#39;s why the order is very important.
 
-## Use of 3D data files
+In kernels, you can print text as in python, but to print particle attribute you need to use _print('%f'%particle.lon)_.
 
-For now, it is needed to extract the surface layer. However, it should be possible to use 3D grids without extracting surface by changing dask parameters.
+## C-grid
+For now, STAMM was tested with A-grids (centered grids). It should work with C-grids although it hasn't been tested yet.
 
 
 
-grids:
-C grid : interpolation scheme ????
-3D mesh : slower
 
-update namelist
-update run.sh in templates
-print text as in python, print particle attribute print('%f'%particle.lon)
-removed vgpm
