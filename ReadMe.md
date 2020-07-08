@@ -165,8 +165,6 @@ time\_var\_food = name of time variable in your food proxy files
 
 **food\_var** = name of food proxy variable
 
-**vgpm** = Boolean. If True, consider data is at 8-days resolution. Default: False.
-
 **/**
 
 # Execute STAMM
@@ -265,3 +263,4 @@ C grid : interpolation scheme ????
 update namelist
 update run.sh in templates
 print text as in python, print particle attribute print('%f'%particle.lon)
+removed vgpm
