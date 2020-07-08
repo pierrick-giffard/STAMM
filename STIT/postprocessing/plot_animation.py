@@ -11,6 +11,7 @@ python plot_animation.py output.nc namelist
 # =============================================================================
 import sys, os
 from pathlib import Path
+import numpy as np
 
 #Personal librairies
 sys.path.insert(1, os.path.join(sys.path[0], '../../LIB'))
@@ -195,7 +196,7 @@ if jeanette:
 else:
     group = []
 
-data_lists = ncl.data_lists(param, end_day, dico['init_t'])
+data_lists = ncl.data_lists(param, end_day, np.float64(dico['init_t']))
 pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
                           [lonmin, lonmax], save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

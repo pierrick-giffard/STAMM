@@ -181,7 +181,7 @@ def compute_swimming_direction(particle, fieldset, time):
         theta0 = atan2(particle.ygradh,particle.xgradh) #return 0 in case xgradh=ygradh=0 (east !)
                                                         #but ok because vonmises becomes uniform without gradient
         if theta0 < 0:
-            theta0 += 2 * math.pi #theta0 has to be between 0 and 2*pi
+            theta0 += 2 * math.pi # theta0 has to be between 0 and 2*pi for VonMises
         
         grad = sqrt(math.pow(particle.xgradh, 2) + math.pow(particle.ygradh, 2))
         
@@ -192,7 +192,7 @@ def compute_swimming_direction(particle, fieldset, time):
         particle.t = fieldset.tactic_factor #re-initialize tactic factor in case particle beached
         #
         if particle.theta < 0:
-            particle.theta += 2 * math.pi #theta0 has to be between 0 and 2*pi
+            particle.theta += 2 * math.pi #theta0 has to be between 0 and 2*pi for VonMises
 
 
 
@@ -204,6 +204,7 @@ def compute_swimming_velocity(particle, fieldset, time):
         particle.u_swim = particle.vmax * (1-particle.hab) * cos(particle.theta)
         particle.v_swim = particle.vmax * (1-particle.hab) * sin(particle.theta)
     
+
 def compute_frenzy_speed(particle, fieldset, time):
     """
     Compute linear decrease of frenzy speed over days or constant speed.
@@ -233,6 +234,7 @@ def swimming_frenzy(particle, fieldset, time):
 def compute_wave_direction(particle, fieldset, time):
     """
     Compute wave direction based on Stokes drift (angle in rad with respect to east).
+    In case Stokes Drift is 0 (i.e. on mask), return east (arbitrary direction !!!)
     """
     if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
         Us = fieldset.Ustokes[time, particle.depth, particle.lat, particle.lon]
@@ -253,6 +255,7 @@ def swim_against_waves(particle, fieldset, time):
     if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
         particle.u_swim = -fieldset.frenzy_speed * cos(particle.theta_wave)
         particle.v_swim = -fieldset.frenzy_speed * sin(particle.theta_wave)
+
 
 def cold_induced_mortality(particle, fieldset, time):
     """

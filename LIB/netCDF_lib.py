@@ -298,7 +298,7 @@ def data_lists(param, end_day, t_init):
         return data_list
     elif mode == 'active':
         T_list = IO.forcing_list(param['T_dir'], param['T_suffix'], date_start, date_end)
-        Food_list = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, vgpm=param['vgpm'])
+        Food_list = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end)
         data_list.append(T_list)
         data_list.append(Food_list)
     #

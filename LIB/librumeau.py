@@ -24,7 +24,59 @@ import biogeolib as bg
 # ||                                        ||
 # ==========================================||
 
+def height_trapezoid(A, h1, delta):
+    """
+    Compute height of trapezoid of area A, small side distance h1 
+    from circle center, and angle delta.
+    Solve a degree 2 polynomial : L=2htan(delta/2) ; h=2A/(l+L)
+    """ 
+    l = 2 * h1 * np.tan(delta/2)
+    d = l**2 + 4 * np.tan(delta/2) * (h1 * l + 4 * A + h1**2 * np.tan(delta/2))
+    h = (2 * h1 * np.tan(delta/2) - l + np.sqrt(d)) / (4 * np.tan(delta/2))
+    return h - h1
 
+def compute_directions(speed, theta, nb_directions, bins_classes):
+    nb_classes = len(bins_classes) - 1
+    #flatten data and remove nan
+    speed = speed[~np.isnan(speed)]
+    theta = theta[~np.isnan(theta)]
+    
+    #Compute histogram
+    hist = np.histogram(theta, bins=nb_directions, range=(-np.pi, np.pi))   
+
+    #Compute mean and std for each bin
+    rose = np.zeros((nb_directions, nb_classes))
+    for k in range(nb_directions):
+        idx = np.where((theta > hist[1][k]) & (theta < hist[1][k+1]))
+        sp = speed[idx]
+        h = np.histogram(sp, bins=bins_classes)
+        rose[k, :] = h[0]
+    
+    directions = (hist[1][:-1] + hist[1][1:]) / 2
+    return rose, directions
+
+
+def mean_direction(ltheta):
+    """
+    calculate mean direction of a list (or array) of angles expressed in radians
+    """
+    #remove nan
+    ltheta = ltheta[~np.isnan(ltheta)]
+    
+    #calculate sum of sin and cos of angles
+    S = np.sum(np.sin(ltheta))
+    C = np.sum(np.cos(ltheta))
+
+    return np.arctan2(S,C)
+
+
+def compute_speed(us, vs):
+    """
+    us and vs are 2 arrays from batch
+    """
+    vector = np.array([us, vs])
+    speed = np.linalg.norm(vector, axis = 0)
+    return speed
 
 def shift_coord(lat,lon) :
     """ Shift coordinates so that 36.125<lon<396.375 and -60<lat<66.5 """

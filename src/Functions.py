@@ -14,7 +14,7 @@ Functions needed to:
 # =============================================================================
 #Python libraries
 from parcels import FieldSet, ParticleSet, AdvectionRK4, AdvectionEE, Field
-from datetime import timedelta
+from datetime import datetime, timedelta
 import numpy as np
 import time
 import netCDF4
@@ -74,7 +74,7 @@ def create_fieldset(param, ndays_simu, t_init):
     
     if key_alltracers:
         tfiles = IO.forcing_list(param['T_dir'], param['T_suffix'], date_start, date_end)
-        ffiles = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, vgpm=param['vgpm'])        
+        ffiles = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end)
 
         # Filenames
         Tfiles = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
@@ -118,6 +118,7 @@ def create_fieldset(param, ndays_simu, t_init):
     print('\n')
     return fieldset
 
+
 def define_chunksize(file, vname, dx=256):
     """
     Define chunksize based on a file and a variable name.
@@ -132,33 +133,12 @@ def define_chunksize(file, vname, dx=256):
         else:
             chs = 'auto'
     else:
-        try:
-            chs = {'longitude':dx, 'latitude':dx}
-        except:
-            raise ValueError('Enter the name of x and y dimensions manually')
+        chs = {'longitude':dx, 'latitude':dx}
+        
     print('Chunksize set to ',chs)
     return chs 
 
 
-def PSY_patch(fieldset,param):
-    """
-    Our files PSY4 interpolated on A-grid coarsened to 1/4° have a 
-    problem at the equator and at Greenwich meridian: lon and lat are NaN.
-    This function passes them to 0.
-    """
-    try:
-        fieldset.U.grid.lon[:,720] = 0
-        fieldset.U.grid.lat[320,:] = 0
-        fieldset.V.grid.lon[:,720] = 0
-        fieldset.V.grid.lat[320,:] = 0
-        print('Using PSY patch')
-        if param['key_alltracers']:
-            fieldset.T.grid.lon[:,720] = 0
-            fieldset.T.grid.lat[320,:] = 0
-            fieldset.NPP.grid.lon[:,720] = 0
-            fieldset.NPP.grid.lat[320,:] = 0
-    except:
-        print('Not Using PSY patch')
 
 
 def add_halo(fieldset):
@@ -171,20 +151,6 @@ def add_halo(fieldset):
     #          
     fieldset.add_periodic_halo(zonal=True)
 
-""" not working for the moment
-def add_LandMask(file, var, param, fieldset):
-    nc = netCDF4.Dataset(file)
-    values = nc.variables[var][:]
-    print(values)
-    data = np.where(values == np.nan, 0, 1) 
-    if param['grid_phy'] == 'A':
-        mask = Field('LandMask', data, grid = fieldset.U.grid)
-    elif param['grid_phy'] == 'C' and key_alltracers==True:
-        mask = Field('LandMask', data, grid = fieldset.T.grid)
-    else:
-        raise ValueError("LandMask à implementer..., (recuperer les lon/lat centres).")
-    fieldset.add_field(mask)
-"""
 
 # =============================================================================
 # PARTICLESET
@@ -197,7 +163,11 @@ def create_particleset(fieldset, pclass, lon, lat, t_init, param):
     #
     t0 = time.time()
     #
-    t_release = (t_init - np.min(t_init)) * 86400
+    t0_data_str = str(fieldset.U.grid.__dict__['time_origin'])[:-3] # U time origin
+    t0_data = datetime.strptime(t0_data_str, '%Y-%m-%dT%H:%M:%S.%f')
+    t0_release = (datetime(t0_data.year,1,1) + timedelta(days=np.min(t_init)) - t0_data)
+    t_release = (t_init - np.min(t_init)) * 86400 + t0_release.total_seconds()
+    #
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
     #
     pset.execute(pk.CheckOnLand, dt=0)

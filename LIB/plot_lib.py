@@ -318,7 +318,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
     for step in range(start_day,end_day,h):
         print('\n')
         print(step, 'of', end_day-h)
-        days_since_ref = int(step+init_t.min()) + 1
+        days_since_ref = int(step+init_t.min())
         date_title = date_start_physfile + dt.timedelta(days_since_ref)
         if param['time_periodic']:
             days_since_ref = int(days_since_ref%(param['time_periodic'] + init_t.min()))
@@ -330,8 +330,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         day = str(("%02d") %date_title.day)
         year = str(date_title.year)
         title ='| '+day+' '+month+' '+year+' |'
-        print('  ',title)
-        print('File date : ',date.strftime("%d-%m-%Y"))
+        print(title)
         #
         newlat,newlon,date_mat = ncl.age_to_date(traj_time,init_t,lat,lon)
         #
@@ -620,6 +619,8 @@ def plot_presence_map(heatmap,extent,cmap,xmin,ymin,xmax,ymax,lat_space,lon_spac
     
     plt.savefig(imageName,bbox_inches='tight', dpi = 800)  
 
+
+
 def display_trajectories(dataFile,f,ax,xmin,lw=0.005, ms=0.04, col='b', alpha=0.5,show_start=True):
 
     """
@@ -687,6 +688,7 @@ def display_trajectories(dataFile,f,ax,xmin,lw=0.005, ms=0.04, col='b', alpha=0.
     ax.plot((np.mean(dataFile.lon[0,:]),),(np.mean(dataFile.lat[0,:]),),markerfacecolor='w',markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)
     
     return p,time
+
 
 def display_trajectories_particular(lon, lat, traj_time, f, ax, lw=0.005, ms=0.04, col='b', alpha=0.5, show_start=True):
 
@@ -758,7 +760,7 @@ def swimming_rose(theta, speed,  bins_classes,  save, nb_directions=32, title=Fa
     pmax: maximum percentage for yaxis
     mode: area or height
     """
-    rose, directions = ut.compute_directions(speed, theta, nb_directions, bins_classes)
+    rose, directions = brum.compute_directions(speed, theta, nb_directions, bins_classes)
     
     #useful variables for plot
     delta = 2 * np.pi / nb_directions - 0.05 # Angle du segment de cercle
@@ -777,7 +779,7 @@ def swimming_rose(theta, speed,  bins_classes,  save, nb_directions=32, title=Fa
     bottom=0
     nb_data = np.sum(~np.isnan(theta))
     for k in range(len(bins_classes) - 1):
-        height = ut.height_trapezoid(rose[:, k], bottom, delta) if mode == 'area' else rose[:, k]
+        height = brum.height_trapezoid(rose[:, k], bottom, delta) if mode == 'area' else rose[:, k]
         height *= 100 / nb_data 
         ax.bar(directions, height, width=width, bottom=bottom, edgecolor='k', color = colors[k], label=labels[k])
         bottom += height
@@ -788,7 +790,7 @@ def swimming_rose(theta, speed,  bins_classes,  save, nb_directions=32, title=Fa
     
     if mode == 'height':
         #plot mean direction
-        mean_dir = ut.mean_direction(theta)
+        mean_dir = brum.mean_direction(theta)
         ax.plot([mean_dir, mean_dir],[0,pmax], '-.',color='k',linewidth =5)
     
     #legend, title and ticks
@@ -802,3 +804,10 @@ def swimming_rose(theta, speed,  bins_classes,  save, nb_directions=32, title=Fa
 
     if save:
         save_fig(save)
+
+
+def save_fig(fname, dpi=200):
+    plt.savefig(fname, bbox_inches='tight', dpi=dpi)
+    print ('Saved ', fname)
+    plt.show()
+    plt.close()

@@ -11,6 +11,8 @@ import sys
 from glob import glob
 from datetime import datetime, timedelta
 import netCDF4
+import xarray as xr
+import pandas as pd
 
 def read_namelist(filename, display=True):
     """
@@ -58,7 +60,6 @@ def read_namelist(filename, display=True):
              'ystart':'',
              'cold_death':'False',
              'cold_resistance':'30',
-             'vgpm':'False',
              'growth':'VGBF',
              'grid_phy':'',
              'lon_T':'',
@@ -101,7 +102,7 @@ def read_namelist(filename, display=True):
             sys.exit("ERROR : %s must be integer" %(key))
    
     #Convert booleans
-    for key in ['periodicBC','key_alltracers', 'cold_death','vgpm','halo','frenzy','wave_swim']:
+    for key in ['periodicBC','key_alltracers', 'cold_death','halo','frenzy','wave_swim']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:
@@ -222,14 +223,12 @@ def read_positions(param):
     y_init = np.zeros(nturtles,dtype='float32')
     t_init = np.zeros(nturtles,dtype='float32')
 
-    
 
     init = open(param['init_file'],'r')
     x_init, y_init, t_init = np.loadtxt(init,usecols=(0,1,3),unpack=True)
     x_init, y_init, t_init = x_init[:nturtles], y_init[:nturtles], t_init[:nturtles] 
     init.close()
         
-
 
     return x_init, y_init, t_init
 
@@ -295,8 +294,7 @@ def define_start_end(ndays_simu, param, t_init, last_date):
     ystart = param['ystart']
     time_periodic = param['time_periodic']
     #
-    tmin = timedelta(days=int(np.min(t_init)))
-    date_start = datetime(ystart, 1, 1) + tmin
+    date_start = datetime(ystart, 1, 1) + timedelta(days=np.min(t_init))
     #
     if isinstance(time_periodic, int) and time_periodic > ndays_simu:
         time_periodic = False
@@ -334,44 +332,22 @@ def define_start_end(ndays_simu, param, t_init, last_date):
 
 
 
-def forcing_list(f_dir, f_suffix, date_start, date_end, vgpm = False):
+def forcing_list(f_dir, f_suffix, date_start, date_end):
     """
     Return a list with data needed for simulation.
     It is important that the first file is the first day of release.
-    This function highly depends on files names, it might not work for particular names.
-    It works for names format:
-        -   *_YYYY*suffix
-        -   *YYYY*suffix
-        -   vgpm files with vgpm=True in namelist
-    If none of this format is found, consider first file is 01/01/ystart.
+    Need file to have a time variable.
     """
-    tmin = date_start - datetime(date_start.year, 1, 1)
-    #
-    list_years = np.arange(date_start.year, date_end.year + 1)
-    files = []
-    for yr in list_years:
-        files += sorted(glob(f_dir + '/*' + '_' + str(yr) + '*' + f_suffix))
-    if files == []:
-        for yr in list_years:
-            files += sorted(glob(f_dir + '/*' + str(yr) + '*' + f_suffix))
-    #remove useless files
-    if tmin.days < len(files): #pas propre...
-        del(files[:tmin.days])
-    del(files[(date_end-date_start).days+2:])
-    #
-    if vgpm:
-        files = []
-        for yr in list_years:
-            files += sorted(glob(f_dir + '/*' + '.' + str(yr) + '*' + f_suffix))
-        #remove useless files
-        del(files[:tmin.days//8])
-        del(files[((date_end-date_start).days)//8+4:])
-        if (date_end - datetime(date_end.year, 1, 1)).days >= 360: #add first file of following year
-            files.append(glob(f_dir + '/*' + '.' + str(date_end.year + 1) + '001' + f_suffix)[0])
-    #
-    if files == []:
-        print('   Years do not appear in file names of '+f_dir+', considering first file is 01/01/%d. \n'%date_start.year)
-        files = sorted(glob(f_dir + '/*' + f_suffix))
-        del(files[:tmin.days])
-        del(files[(date_end-date_start).days+2:])
+    
+    files = sorted(glob(f_dir + '/*' + f_suffix))
+    t0 = pd.to_datetime(xr.open_dataset(files[0]).time.data[0])
+    t1 = pd.to_datetime(xr.open_dataset(files[1]).time.data[0])
+    dt = (t1 - t0).days
+
+    i0 = (date_start - t0).days // dt
+    i1 = (date_end - t0).days // dt + dt
+
+    files = files[i0:i1+1]
+
     return files
+

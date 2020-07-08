@@ -58,9 +58,9 @@ ndays_simu += max(t_init) - min(t_init)
 # FIELDSET, CLASS AND PARTICLESET
 # ========================================================================
 fieldset = fc.create_fieldset(param, ndays_simu, t_init)
-fc.PSY_patch(fieldset,param)
 fc.initialization(fieldset, ndays_simu, param)
 turtle = tc.define_Turtle_Class(fieldset,param)
+
 pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_init, param) 
 
 # =============================================================================
@@ -79,7 +79,7 @@ kernels = fc.sum_kernels(k_adv, k_active, k_passive)
 output_file = pset.ParticleFile(name=OutputFile, outputdt=delta(seconds=t_output))
 pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
               output_file=output_file,\
-              recovery={ErrorCode.ErrorOutOfBounds: pk.DisableParticle})#, ErrorCode.ErrorInterpolation: pk.InterpError})
+              recovery={ErrorCode.ErrorOutOfBounds: pk.DisableParticle})
 
 
 # =============================================================================
