@@ -348,6 +348,5 @@ def forcing_list(f_dir, f_suffix, date_start, date_end):
     i1 = (date_end - t0).days // dt + dt
 
     files = files[i0:i1+1]
-
     return files
 

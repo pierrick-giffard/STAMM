@@ -23,6 +23,8 @@ Then, activate this environment with command _conda activate stamm_.
 
 Note: STAMM was tested with Parcels 2.2.0
 
+In your _~/.bashrc_ file, you can add command _export stamm=/data/rd_exchange3/pgiffard/stamm/_ to have stamm directory as shortcut.
+
 # Forcings
 
 ## General considerations
@@ -270,5 +272,6 @@ In kernels, you can print text as in python, but to print particle attribute you
 For now, STAMM was tested with A-grids (centered grids). It should work with C-grids although it hasn't been tested yet.
 
 
-
+## Initial tracers sampling
+At t=0, all tracers are set to 0. Indeed, defining temperature as _T = Variable('T', initial=fieldset.T)_ is too long to initialize because it is executed in Scipy mode. An other possibility is to execute a sampling kernel for one timestep: _pset.execute(SampleTracers, dt=0)_ but it works only if all particles are released at the same time because of deferred_load (only 3 time steps are loaded at the same time).
 

@@ -761,6 +761,12 @@ def swimming_rose(theta, speed,  bins_classes,  save, nb_directions=32, title=Fa
     pmax: maximum percentage for yaxis
     mode: area or height
     """
+
+    # remove points where speed = 0
+    idx = (speed != 0)
+    speed = speed[idx]
+    theta = theta[idx]
+    
     rose, directions = brum.compute_directions(speed, theta, nb_directions, bins_classes)
     
     #useful variables for plot
@@ -798,8 +804,10 @@ def swimming_rose(theta, speed,  bins_classes,  save, nb_directions=32, title=Fa
     plt.legend(fontsize=fontsize, loc=(1,0))
     if title:
         plt.title(title, fontsize=fontsize+4, fontweight='bold')
-    ax.set_xticklabels(('E','NE','N','NW','W','SW','S','SE'),fontsize=fontsize)    
-    yticks = np.arange(2, pmax + 2, 2, dtype='int')
+    ax.set_xticklabels(('E','NE','N','NW','W','SW','S','SE'),fontsize=fontsize)
+    nt = 5
+    yticks = np.linspace(int(pmax/nt), pmax + int(pmax/nt), nt, dtype='int')
+    print(pmax,yticks)
     ax.set_yticks(yticks)
     ax.set_yticklabels([str(i) + '%' for i in yticks], fontsize=fontsize, fontweight = 'bold')
 

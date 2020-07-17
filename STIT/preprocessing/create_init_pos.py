@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-width = 1.852 #km
 # -*- coding: utf-8 -*-
 """
 Create initial position file from a .json file and a grid.
@@ -50,11 +49,10 @@ To annotate country names and change map scale, go to part named "PLOT"
 # USERS PARAMETERS
 # =============================================================================
 mode = 'lonlat' #lonlat or xy
-disk_radius = 0.5 #degrees
+disk_radius = 0.5 #for disk mode, in degrees
 width = 1.852 #km, for rectangle mode
 beach_orientation = 'E' #'W' or 'E'
-#release zone side size (square) in degrees
-release_zone_size = 0.25
+release_zone_size = 0.25 #for square mode, release zone side size in degrees
 
 #total of released turtles
 nturtles = 10000
@@ -171,7 +169,7 @@ ydot = 26.8                #
 #                            #
 #lat_space = 1.5             # CABO
 #lon_space = 3.0             # CAMARON
-#                            #
+#                            for square mode, #
 ##dot on the minimap         #
 #xdot = -85.0                #
 #ydot = 16.0                 #

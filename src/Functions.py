@@ -155,22 +155,33 @@ def add_halo(fieldset):
 # =============================================================================
 # PARTICLESET
 # =============================================================================
-def create_particleset(fieldset, pclass, lon, lat, t_init, param):
-    print('\n')
-    print('****************************************************')
-    print("Building ParticleSet...")
-    print('****************************************************')
-    #
-    t0 = time.time()
-    #
+def compute_t_release(t_init, fieldset):
+    """
+    Calculate release time which is the time of released in seconds with respect to first fieldset U file.
+    """
+
     t0_data_str = str(fieldset.U.grid.__dict__['time_origin'])[:-3] # U time origin
     t0_data = datetime.strptime(t0_data_str, '%Y-%m-%dT%H:%M:%S.%f')
     t0_release = (datetime(t0_data.year,1,1) + timedelta(days=np.min(t_init)) - t0_data)
     t_release = (t_init - np.min(t_init)) * 86400 + t0_release.total_seconds()
-    #
+    
+    return t_release
+
+
+def create_particleset(fieldset, pclass, lon, lat, t_release, param):
+    print('\n')
+    print('****************************************************')
+    print("Building ParticleSet...")
+    print('****************************************************')
+    
+    t0 = time.time()
+
+    # Create ParticleSet
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
-    #
+    
+    # Execute 1 dt kernels
     pset.execute(pk.CheckOnLand, dt=0)
+
     #Time
     tt=time.time()-t0
     print('\n')
@@ -248,6 +259,7 @@ def initialization(fieldset, ndays_simu, param):
         fieldset.key_alltracers = 1
     else:
         fieldset.key_alltracers = 0
+
 
 
 

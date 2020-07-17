@@ -145,17 +145,16 @@ def CheckOnLand(particle,fieldset,time):
     """ 
     Check if particles are released on land. 
     Executed once with dt=0 just after ParticleSet is created.
+    Time is taken at 41400 sec from origin (11.5 h) because of an issue with hourly forcings (time = 0 is OK with daily forcings).
+    This value should be the minimum time of all particles.
     """
-    (u, v) = fieldset.UV[0, particle.depth, particle.lat, particle.lon]
+    (u, v) = fieldset.UV[41400, particle.depth, particle.lat, particle.lon]
     if math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14:
         print("Particle [%d] is released on land at lon,lat = %f,%f. Execution stops."%(particle.id,particle.lon,particle.lat))
         exit(0)
         
     
     
-    
-    
-#def InterpError(particle,fieldset,time):
 
     
     
