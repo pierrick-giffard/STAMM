@@ -196,7 +196,7 @@ You can also use script _src/run\_stamm.sh_ to run STAMM, and then to execute so
 
 # Analyse and Visualize results with STIT
 
-You will find many scripts to visualize the outputs in _STIT/postprocessing_:
+You will find e few scripts to visualize the outputs in _STIT/postprocessing_:
 
 # General remarks
 
