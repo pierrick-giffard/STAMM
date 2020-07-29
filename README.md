@@ -17,7 +17,7 @@ There are four directories:
 
 You can create a new environment named _stamm_ and including necessary modules with the following command:
 
-_conda create -n stamm -c conda-forge python=3.6 parcels spyder basemap basemap-data-hires opencv_
+_conda create -n stamm -c conda-forge python=3.6 parcels=2.2.0 spyder basemap basemap-data-hires opencv_
 
 Then, activate this environment with command _conda activate stamm_.
 
