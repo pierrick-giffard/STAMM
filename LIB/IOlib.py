@@ -186,8 +186,6 @@ def check_param(param,output_file):
     if param['grid_phy'] != 'A' and param['grid_phy'] != 'C':
         raise ValueError("Set grid_phy to A or to C")
     
-    if param['mode'] != 'active' and (param['frenzy'] or param['wave_swim']):
-        raise ValueError('Frenzy swimming and wave swimming are available only in active mode')
     if param['frenzy'] and param['wave_swim']:
         raise ValueError('Choose between swimming frenzy and swimming against waves')
     
@@ -257,6 +255,7 @@ def find_last_date(param):
     t_value = int(file_U.variables[time_var_phy][-1].data)
     time_U = netCDF4.num2date(t_value, t_unit)
     file_U.close()
+    print(last_U)
     #
     last_V = sorted(glob(V_dir + '/*' + V_suffix))[-1]
     file_V = netCDF4.Dataset(last_V)
@@ -323,7 +322,8 @@ def define_start_end(ndays_simu, param, t_init, last_date):
         time_periodic += 1
     #
     if date_end > last_date:
-        raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto")
+        raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto. \n \
+                         last_date: ", last_date, "date_end: ", date_end)
     #
     print('   Date of first file: ', date_start)
     print('   Date of last file:  ', date_end)    

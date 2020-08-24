@@ -154,13 +154,7 @@ def CheckOnLand(particle,fieldset,time):
         exit(0)
         
     
-    
 
-    
-    
-    
-    
-    
     
     
     

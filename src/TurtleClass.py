@@ -53,6 +53,6 @@ def define_Turtle_Class(fieldset, param):
                 K = Variable('K', to_write=False, dtype=np.float32, initial=fieldset.K0)
         if param['frenzy'] or param['wave_swim']:
             frenzy_speed = Variable('frenzy_speed', to_write=False, dtype=np.float32)
-        if param['wave_swim']:
-            theta_wave = Variable('theta_wave', to_write=False, dtype=np.float32)
+            frenzy_theta = Variable('frenzy_theta', to_write=False, dtype=np.float32)
+
     return turtle

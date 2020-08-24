@@ -442,6 +442,50 @@ class echantillon :
             else:
                 x_grid,y_grid=brum.geo_to_grid(X,Y,lon_mat,lat_mat)
        
+        # Beach release
+        if self.beach.release_mode == 'beach':
+            # suppose que lon_mat et lat_mat sont 1D
+            # attention il peut y avoir des pb des points sur la terre car on ne regarde pas le masque ici...
+            xA=self.beach.north_pt[1]
+            yA=self.beach.north_pt[0]
+            xB=self.beach.south_pt[1]
+            yB=self.beach.south_pt[0]
+            
+            
+            # angle entre (AB) et l'est (positif de 0 à pi)
+            theta = np.arctan((yA-yB)/(xB-xA)) if xB > xA else np.pi - np.arctan((yA-yB)/(xA-xB))
+
+            # find horizontal edge towards east or west (beach otientation)
+            if theta < np.pi/4 or theta > 3 * np.pi / 4:
+                if beach_orientation == 'E':
+                    a=2 # A implémenter...
+             
+            # find vertical edge towards east or west (beach orientation)
+            else:
+                #point de grille extérieur à A
+                XA = list(lon_mat > xA).index(True)
+                XB = list(lon_mat > xB).index(True)
+                
+                # point de grille extérieur à B
+                YA = list(lat_mat > yA).index(True)
+                YB = list(lat_mat > yB).index(True) - 1
+                
+                if beach_orientation == 'W':
+                    # on prend l'indice précédent
+                    XA -= 1
+                    XB -= 1
+                
+                Y = rd.uniform(yB, yA) 
+                if XA == XB:
+                    X = lon_mat[XA]
+                else:
+                    a=2# à impléménter...
+
+            if grid_type == 'orca':
+                x_grid,y_grid=brum.fx_inv(X,Y,lon_mat,lat_mat)
+            else:
+                x_grid,y_grid=brum.geo_to_grid(X,Y,lon_mat,lat_mat)
+
 
         if self.beach.release_mode == 'rectangle':
             xB=self.beach.north_pt[1]#*np.pi/180
@@ -578,8 +622,8 @@ def beach_json(release_zone_size, lon_name, lat_name, beach_carac, nesting_year,
         release_mode = beach_carac["release_mode"]
     except:
         release_mode = 'square'
-    if release_mode not in ['square', 'disk', 'rectangle']:
-        raise ValueError('Please set release_mode to square, rectangle or disk')
+    if release_mode not in ['square', 'disk', 'rectangle', 'beach']:
+        raise ValueError('Please set release_mode to square, rectangle, beach or disk')
     
     lon_bc = (north_pt[1]+south_pt[1])/2 #longitude of beach center
     lat_bc = (north_pt[0]+south_pt[0])/2 #latitude of beach center

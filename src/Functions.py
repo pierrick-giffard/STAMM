@@ -247,14 +247,15 @@ def initialization(fieldset, ndays_simu, param):
             raise ValueError('Please set Tmin_Topt to constant or variable')
         param['Tmin_Topt'] = file.Tmin_Topt
         
-        if param['frenzy'] or param['wave_swim']:
-            fieldset.frenzy_mode = file.frenzy_mode
-            fieldset.frenzy_speed = file.frenzy_speed
-            fieldset.frenzy_duration = file.frenzy_duration
-        if param['frenzy']:
-            fieldset.frenzy_theta = file.frenzy_theta
-        else:
-            fieldset.frenzy = 0
+    if param['frenzy'] or param['wave_swim']:
+        fieldset.frenzy_mode = file.frenzy_mode
+        fieldset.frenzy_speed = file.frenzy_speed
+        fieldset.frenzy_duration = file.frenzy_duration
+    if param['frenzy']:
+        fieldset.frenzy_theta = file.frenzy_theta
+    else:
+        fieldset.frenzy = 0
+        
     if param['key_alltracers']:
         fieldset.key_alltracers = 1
     else:
@@ -276,18 +277,21 @@ def define_advection_kernel(pset, param):
     """
     mode = param['mode']
     adv_scheme = param['adv_scheme']
-    #passive
-    if mode == 'passive':
-        if adv_scheme == 'RK4':
-            adv_kernel = AdvectionRK4
-        elif adv_scheme == 'Euler':
-            adv_kernel = AdvectionEE
+    
     #active
-    elif mode == 'active':
+    if mode == 'active' or param['frenzy'] or param['wave_swim']:
         if adv_scheme == 'RK4':
             adv_kernel = adv.RK4_swim 
         elif adv_scheme == 'Euler':
             adv_kernel = adv.Euler_swim
+    
+    #passive        
+    else:
+        if adv_scheme == 'RK4':
+            adv_kernel = AdvectionRK4
+        elif adv_scheme == 'Euler':
+            adv_kernel = AdvectionEE
+    
     
     return pset.Kernel(adv_kernel)
 
@@ -356,13 +360,17 @@ def define_active_kernels(pset, param):
                         ak.compute_swimming_velocity]
         if param['Tmin_Topt'] == 'variable':
             kernels_list.insert(2, ak.compute_Tmin_Topt) #Needs to be after compute_Mass
-    if param['frenzy']:
+    
+    # Frenzy
+    if param['frenzy'] or param['wave_swim']:
         kernels_list.append(ak.compute_frenzy_speed)
-        kernels_list.append(ak.swimming_frenzy)
+    if param['frenzy']:        
+        kernels_list.append(ak.compute_frenzy_theta)       
     if param['wave_swim']:
-        kernels_list.append(ak.compute_frenzy_speed)
-        kernels_list.append(ak.compute_wave_direction)
-        kernels_list.append(ak.swim_against_waves)
+        kernels_list.append(ak.compute_wave_direction)       
+    if param['frenzy'] or param['wave_swim']:      
+        kernels_list.append(ak.swimming_frenzy)
+        
     if param['cold_death']:
         kernels_list.append(ak.cold_induced_mortality)
         
