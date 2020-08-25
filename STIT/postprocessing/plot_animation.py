@@ -42,13 +42,15 @@ hab_mode = 'current' # 'food', 'temp', 'tot', 'current', 'void'
 mortality = False #set to False not to calculate dead turtles
 
 # Jeanette project: different colors depending on release lon
-jeanette = True
+jeanette = False
 nb_cat = 5
 colors = ['darkviolet','blue','green','orange','red']
-zone = 'jeanette_1month'
+
+# plot zone
+zone = 'jeanette_1year'
 
 # time delta between 2 frames (in days)
-h = 1
+h = 2
 
 ## Overwrite Auto parameters
 #last_turtle = 100

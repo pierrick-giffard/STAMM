@@ -1,6 +1,6 @@
 {
     "_comment"		: "Leatherbacks release",
-    "_usage"		: "nesting/hatchling for season time depending on the observations available: emergence is considered to occur 60 days after nesting. Choose release mode square, disk or rectangle. If square, lon_0/lat_0 is the beach northern point and lon_1/lat_1 the southern point of the beach. If disk, lon_0/lat_0 is the center of the circle, and lon_1/lat1 also (repetition needed). If rectangle, a rectangle will be drawn based on a line between 2 points. lon_0/lat_0 is the northern point of the line and lon_1/lat1 the southern point.",
+    "_usage"		: "nesting/hatchling for season time depending on the observations available: emergence is considered to occur 60 days after nesting. Choose release mode square, disk or rectangle. If square, lon_0/lat_0 is the beach northern point and lon_1/lat_1 the southern point of the beach. If disk, lon_0/lat_0 is the center of the circle, and lon_1/lat1 also (repetition needed). If rectangle, a rectangle will be drawn based on a line between 2 points. lon_0/lat_0 is the northern point of the line and lon_1/lat1 the southern point. If beach (=beach start), find closest cell from beach.",
     "_source"		: "",
     "ref"               : "",
     "beach_name"	: "Florida-Bahamas track",

@@ -193,8 +193,8 @@ d_min = 40 - (111*release_zone_size)/2
 d_max = 40 + (111*release_zone_size)/2
 
 nb_year=1
-nesting_year = 1998
-date_ref = datetime.datetime(1998,1,1) #
+nesting_year = 2020
+date_ref = datetime.datetime(nesting_year,1,1) #
 
 coord_mode = 'grid' #Anna:?
 outfile = path + outfile

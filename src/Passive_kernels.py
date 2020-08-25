@@ -11,7 +11,7 @@ def store_variables(particle, fieldset, time):
     Store passive variables before the are re-written.
     Has to be the first kernel.
     """
-    if particle.active == 1:
+    if particle.active:
         particle.prev_lon = particle.lon
         particle.prev_lat = particle.lat
  
@@ -31,7 +31,7 @@ def compute_SCL_Gompertz(particle, fieldset, time):
     Uses a modified Gompertz equation in which growth depends on habitat.
     This model needs SCL in cm.
     """
-    if particle.active == 1:
+    if particle.active:
         prev_SCL = particle.SCL * 100 #this model needs centimeters
         prev_K = particle.K
         #
@@ -46,10 +46,11 @@ def IncrementAge(particle, fieldset, time):
    Increment turtles age (in days).
    Deactivate turtles that have already lived 'ndays_simu' days.
    """
-   particle.age += particle.dt/86400.
-   #
-   if particle.age > fieldset.ndays_simu + 1:
-       particle.active = 0
+   if particle.active:
+       particle.age += particle.dt / 86400.
+       #
+       if particle.age > fieldset.ndays_simu + 1:
+           particle.active = 0
 
 
 
@@ -58,7 +59,7 @@ def SampleTracers(particle, fieldset, time):
     Sample tracers at particle location in passive mode.
     In active mode sampling is integrated to function compute_habitat.
     """
-    if particle.active == 1:
+    if particle.active:
         particle.T = fieldset.T[time, particle.depth, particle.lat, particle.lon]
         particle.NPP = fieldset.NPP[time, particle.depth, particle.lat, particle.lon]
         
@@ -68,7 +69,7 @@ def SampleCurrent(particle, fieldset, time):
     Sample u_current and v_current in passive mode.
     In active mode, sampling is integrated to advection kernel.
     """
-    if particle.active == 1:
+    if particle.active:
         uc, vc = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
         particle.u_current = uc * fieldset.deg * math.cos(particle.lat * math.pi / 180) 
         particle.v_current = vc * fieldset.deg
@@ -78,7 +79,7 @@ def Periodic(particle, fieldset, time):
     """
     So that particles move from east boundary to west boundary.
     """
-    if particle.active == 1:
+    if particle.active:
         if particle.lon < fieldset.halo_west:
             particle.lon += fieldset.halo_east - fieldset.halo_west
         elif particle.lon > fieldset.halo_east:
@@ -110,7 +111,7 @@ def BeachTesting(particle, fieldset, time):
     """
     If particle is on land, particle.beached is set to 1.
     """
-    if particle.active == 1:
+    if particle.active:
         (u, v) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
         if math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14:
             particle.beached = 1

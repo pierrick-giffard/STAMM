@@ -23,7 +23,7 @@ bname=${bname/namelist_/}
 outfile=${outdir}/${bname}.nc
 
 
-python /data/rd_exchange3/pgiffard/stamm/src/STAMM.py $namelist $outfile
+python $stamm/src/STAMM.py $namelist $outfile
 res=$? 
 
 

@@ -13,12 +13,12 @@ from parcels import random
 
 def compute_Mass(particle, fieldset, time):
     "Compute mass (kg). SCL is in meters."
-    if particle.active == 1:
+    if particle.active:
         particle.M = fieldset.a*(particle.SCL)**fieldset.b
 
 
 def compute_Tmin_Topt(particle, fieldset, time): 
-    if particle.active == 1:
+    if particle.active:
         particle.Topt = fieldset.T0 - fieldset.to * sqrt(particle.M)
         particle.Tmin = fieldset.T0 - fieldset.tm * sqrt(particle.M)
 
@@ -28,7 +28,7 @@ def compute_PPmax_VGBF(particle, fieldset, time):
     """
     Compute food threshold.
     """
-    if particle.active == 1:
+    if particle.active:
         x = particle.SCL / fieldset.SCLmax
         PPnorm = fieldset.b * fieldset.beta_jones * (1 - x) * x**(fieldset.b-1) / (1 - x**(fieldset.b * fieldset.beta_jones))
         particle.PPmax = PPnorm * fieldset.P0
@@ -38,7 +38,7 @@ def compute_PPmax_Gompertz(particle, fieldset, time):
     """
     Assume F = c*M
     """
-    if particle.active == 1:
+    if particle.active:
         PPnorm = fieldset.c * particle.M
         particle.PPmax = PPnorm * fieldset.P0
 
@@ -47,7 +47,7 @@ def compute_vmax(particle, fieldset, time):
     """
     Compute maximum speed at current age.
     """
-    if particle.active == 1:
+    if particle.active:
         particle.vmax = fieldset.vscale*(particle.SCL**fieldset.d)
 
 
@@ -60,7 +60,7 @@ def compute_habitat(particle, fieldset, time):
     Save xgradh and ygradh.
     Save T and NPP at particle location.
     """
-    if particle.active == 1:
+    if particle.active:
         #Convert dx to lon and lat
         dx_lon =  fieldset.grad_dx / (fieldset.deg * cos(particle.lat * math.pi / 180)) 
         dx_lat =  fieldset.grad_dx / fieldset.deg
@@ -176,7 +176,7 @@ def compute_swimming_direction(particle, fieldset, time):
     Theta has to be between 0 and 2*pi for random.vommises, 0 corresponding to east.
     A tactic factor is used (t = [0,1]) as a memory effect (Benhamou 1991, Elementary orientation mechanisms).
     """
-    if particle.active == 1:
+    if particle.active:
         #Compute theta0
         theta0 = atan2(particle.ygradh,particle.xgradh) #return 0 in case xgradh=ygradh=0 (east !)
                                                         #but ok because vonmises becomes uniform without gradient
@@ -200,7 +200,7 @@ def compute_swimming_velocity(particle, fieldset, time):
     """
     Compute particule.u_swim and particle.v_swim
     """
-    if particle.active == 1:
+    if particle.active:
         particle.u_swim = particle.vmax * (1-particle.hab) * cos(particle.theta)
         particle.v_swim = particle.vmax * (1-particle.hab) * sin(particle.theta)
 
@@ -209,13 +209,13 @@ def compute_frenzy_speed(particle, fieldset, time):
     """
     Compute linear decrease of frenzy speed over days or constant speed.
     """
-    if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
+    if particle.active and particle.age < fieldset.frenzy_duration:
         if fieldset.frenzy_mode == 0:
             particle.frenzy_speed = fieldset.frenzy_speed
         elif fieldset.frenzy_mode == 1:
-            particle.frenzy_speed = fieldset.frenzy_speed * (1 - particle.time / (fieldset.frenzy_duration * 86400))
+            particle.frenzy_speed = fieldset.frenzy_speed * (1 - particle.age / fieldset.frenzy_duration )
         elif fieldset.frenzy_mode == 2:
-            particle.frenzy_speed = fieldset.frenzy_speed * (1 - particle.time / (2 * fieldset.frenzy_duration * 86400))
+            particle.frenzy_speed = fieldset.frenzy_speed * (1 - 0.5 * particle.age / fieldset.frenzy_duration)
         else:
             print("frenzy_mode not valid. Execution stops.")
             exit(0)
@@ -225,15 +225,17 @@ def compute_frenzy_theta(particle, fieldset, time):
     """
     Compute frenzy_theta with a von mises distribution of
     mean angle fieldset.frenzy_theta and deviation kappa.
+    Only 1 draw per simulation.
     """
-    kappa = 8
+    kappa = 8 # 8 for maximum pi/2 deviation
     
-    if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
-        theta0 = fieldset.frenzy_theta
-        if theta0 < 0:
-            theta0 += 2 * math.pi # theta0 has to be between 0 and 2*pi for VonMises
+    if particle.active and particle.age * 86400 < particle.dt:
+        theta_f = fieldset.frenzy_theta
+        if theta_f < 0:
+            theta_f += 2 * math.pi # theta_f has to be between 0 and 2*pi for VonMises
             
-        particle.frenzy_theta = random.vonmisesvariate(theta0, kappa)
+        particle.frenzy_theta = random.vonmisesvariate(theta_f, kappa)
+
     
     
 
@@ -244,7 +246,7 @@ def compute_wave_direction(particle, fieldset, time):
     Compute opposite of wave direction based on Stokes drift (angle in rad with respect to east).
     In case Stokes Drift is 0 (i.e. on mask), return east (arbitrary direction !!!)
     """
-    if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
+    if particle.active and particle.age < fieldset.frenzy_duration:
         Us = fieldset.Ustokes[time, particle.depth, particle.lat, particle.lon]
         Vs = fieldset.Vstokes[time, particle.depth, particle.lat, particle.lon]
         
@@ -262,7 +264,7 @@ def swimming_frenzy(particle, fieldset, time):
     (define parameters in Species).
     This kernel overwrites previous u_swim and v_swim.
     """
-    if particle.active == 1 and particle.time < fieldset.frenzy_duration * 86400:
+    if particle.active and particle.age < fieldset.frenzy_duration:
         particle.u_swim = particle.frenzy_speed * cos(particle.frenzy_theta)
         particle.v_swim = particle.frenzy_speed * sin(particle.frenzy_theta)
         
@@ -274,7 +276,7 @@ def cold_induced_mortality(particle, fieldset, time):
     If particle.lethargy_time > cold_resistance, then delete particle.
     PB: how to keep in memory dead turtles ?
     """
-    if particle.active == 1:
+    if particle.active:
         if fieldset.T[time, particle.depth, particle.lat, particle.lon] < particle.Tmin:
             particle.lethargy_time += particle.dt
             if particle.lethargy_time > fieldset.cold_resistance:

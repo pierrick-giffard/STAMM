@@ -609,13 +609,14 @@ def beach_json(release_zone_size, lon_name, lat_name, beach_carac, nesting_year,
     #to do add d_min/d_max not default
 
     start = datetime.datetime.strptime(str(nesting_year)+' '+beach_carac['start_month']+' '+beach_carac['start_day'], '%Y %B %d') 
+    print(start, nesting_year)
     start_jday = (start-date_ref).days
     end = datetime.datetime.strptime(str(nesting_year)+'/'+beach_carac['end_month']+'/'+beach_carac['end_day'], '%Y/%B/%d')
     end_jday = (end-date_ref).days
     if end_jday < start_jday:
         end_jday += 365
         
-    peak_jday = (start_jday+end_jday)/2. #gaussian
+    peak_jday = (start_jday + end_jday)/2. #gaussian
     north_pt=(beach_carac["lat_0"], beach_carac["lon_0"])
     south_pt=(beach_carac["lat_1"], beach_carac["lon_1"])
     try:

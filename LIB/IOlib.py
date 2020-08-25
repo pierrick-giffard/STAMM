@@ -294,6 +294,7 @@ def define_start_end(ndays_simu, param, t_init, last_date):
     time_periodic = param['time_periodic']
     #
     date_start = datetime(ystart, 1, 1) + timedelta(days=np.min(t_init))
+    
     #
     if isinstance(time_periodic, int) and time_periodic > ndays_simu:
         time_periodic = False
@@ -343,10 +344,12 @@ def forcing_list(f_dir, f_suffix, date_start, date_end):
     t0 = pd.to_datetime(xr.open_dataset(files[0]).time.data[0])
     t1 = pd.to_datetime(xr.open_dataset(files[1]).time.data[0])
     dt = (t1 - t0).days
-
+    
     i0 = (date_start - t0).days // dt
     i1 = (date_end - t0).days // dt + dt
-
+    i1 += date_end.year - date_start.year # add 1 file each year change (useful for vgpm data)
+    
     files = files[i0:i1+1]
+    
     return files
 
