@@ -321,8 +321,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         days_since_ref = int(step+init_t.min())
         date_title = date_start_physfile + dt.timedelta(days_since_ref)
         if param['time_periodic']:
-            days_since_ref = int(days_since_ref%(param['time_periodic'] + init_t.min()))
-            print("verifier date")
+            days_since_ref = int(init_t.min()) + int((days_since_ref - int(init_t.min())) % int(param['time_periodic']))
         date = date_start_physfile + dt.timedelta(days_since_ref)
         # Frame title
         date_today_entier = date.toordinal()

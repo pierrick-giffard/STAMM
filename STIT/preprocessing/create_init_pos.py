@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Create initial position file from a .json file and a grid.
-USE:   python  create_init_pos.py  myfile.json
+USE:   python  create_init_pos.py  myfile1.json  myfile2.json
 """
 # =============================================================================
 # IMPORTS
@@ -35,6 +35,7 @@ grid_type = 'regular' #orca or regular
 
 #infile & outfile
 infile = sys.argv[1]
+list_files = sys.argv[1:]
 path = ncl.get_directory(infile)
 outfile = infile.replace(".json","_initial_positions.txt")
 append = True 
@@ -49,13 +50,13 @@ To annotate country names and change map scale, go to part named "PLOT"
 # USERS PARAMETERS
 # =============================================================================
 mode = 'lonlat' #lonlat or xy
-disk_radius = 0.5 #for disk mode, in degrees
+disk_radius = 0.05 #for disk mode, in degrees
 width = 1.852 #km, for rectangle mode
 beach_orientation = 'E' #'W' or 'E'
 release_zone_size = 0.25 #for square mode, release zone side size in degrees
 
 #total of released turtles
-nturtles = 1000
+nturtles = 400
 
 ##zone to plot               #
 xmin = -84              #
@@ -229,7 +230,7 @@ if len(np.squeeze(grid[mask_name]).shape) == 3:
 else:
     griddata =  np.squeeze(grid[mask_name])
 
-list_files = glob.glob(path + infile)
+
             
 for f in list_files :
     i=0
@@ -258,9 +259,11 @@ ymax_sl =  85
 #yticks parameters
 ymax_pos = ymax
 dy = 0.1
-        
+import time
+time.sleep(1)        
 #Loading initial positions
 initfile = open(outfile,'r')
+print(outfile)
 x_init, y_init, t_init = np.loadtxt(initfile,usecols=(0,1,3),unpack=True)
 x_init, y_init, t_init = x_init[:nturtles], y_init[:nturtles], t_init[:nturtles]
 print('\nInitial positions loaded')

@@ -72,6 +72,8 @@ Note: no space should appear between two sections.
 
 **time\_periodic** = To loop periodically data. It is set to either False, the length of the period in days (since first particle release) or &#39;auto&#39;. In mode &#39;auto&#39;, it will loop automatically after last complete available year. Default: &#39;auto&#39;.
 
+**time\_extrapolation** = To repeat the last datafiles available until the simulation end. Default: False
+
 **t\_output** = Writing time of output file.
 
 **mode** = Simulation mode: &#39;passive&#39; (ocean currents only) or &#39;active&#39; (ocean currents plus swimming velocity). Default: active.

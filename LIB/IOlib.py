@@ -71,7 +71,8 @@ def read_namelist(filename, display=True):
              'wave_dir':'',
              'wave_suffix':'',
              'Ust_var':'',
-             'Vst_var':''
+             'Vst_var':'',
+             'time_extrapolation':'False'
              }
 
     namelist = open(filename,'r')
@@ -102,7 +103,7 @@ def read_namelist(filename, display=True):
             sys.exit("ERROR : %s must be integer" %(key))
    
     #Convert booleans
-    for key in ['periodicBC','key_alltracers', 'cold_death','halo','frenzy','wave_swim']:
+    for key in ['periodicBC','key_alltracers', 'cold_death','halo','frenzy','wave_swim','time_extrapolation']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
         try:
@@ -188,6 +189,9 @@ def check_param(param,output_file):
     
     if param['frenzy'] and param['wave_swim']:
         raise ValueError('Choose between swimming frenzy and swimming against waves')
+        
+    if type(param['time_periodic']) == int and param['time_extrapolation']:
+        raise ValueError('Choose between time_extrapolation and time_periodic')
     
 
 def read_positions(param):
@@ -292,18 +296,22 @@ def define_start_end(ndays_simu, param, t_init, last_date):
     #
     ystart = param['ystart']
     time_periodic = param['time_periodic']
+    time_extra = param['time_extrapolation']
     #
     date_start = datetime(ystart, 1, 1) + timedelta(days=np.min(t_init))
     
     #
-    if isinstance(time_periodic, int) and time_periodic > ndays_simu:
+    if type(time_periodic) ==  int and time_periodic > ndays_simu:
         time_periodic = False
     #
     if time_periodic == False:
         date_end = date_start + timedelta(days=ndays_simu)
     #
     elif time_periodic == 'auto':
-        if date_start + timedelta(days=ndays_simu) > last_date:
+        if time_extra:
+            date_end = date_start + timedelta(days=ndays_simu)
+            time_periodic = False
+        elif date_start + timedelta(days=ndays_simu) > last_date:
             if last_date.month == 12 and last_date.day == 31:
                 last_year = last_date.year
             else:
@@ -321,11 +329,11 @@ def define_start_end(ndays_simu, param, t_init, last_date):
     else:
         date_end = date_start + timedelta(days=time_periodic)
         time_periodic += 1
-    #
-    if date_end > last_date:
+    
+    if date_end > last_date and not time_extra:
         raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto. \n \
-                         last_date: ", last_date, "date_end: ", date_end)
-    #
+                          last_date: ", last_date, "date_end: ", date_end)
+    
     print('   Date of first file: ', date_start)
     print('   Date of last file:  ', date_end)    
     print('\n')

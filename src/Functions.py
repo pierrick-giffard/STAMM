@@ -47,6 +47,8 @@ def create_fieldset(param, ndays_simu, t_init):
     key_alltracers = param['key_alltracers']
     mesh_phy = param['mesh_phy']
     mesh_food = param['mesh_food']
+    time_extra = param['time_extrapolation']
+    
     #Forcings
     last_date = IO.find_last_date(param)
     date_start, date_end, time_periodic = IO.define_start_end(ndays_simu, param, t_init, last_date)
@@ -67,9 +69,9 @@ def create_fieldset(param, ndays_simu, t_init):
     #Fieldset creation
     chs = define_chunksize(ufiles[0], param['U_var'])
     if param['grid_phy'] == 'A':
-        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
+        fieldset = FieldSet.from_netcdf(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs, allow_time_extrapolation=time_extra)
     else:
-        fieldset = FieldSet.from_c_grid_dataset(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs)
+        fieldset = FieldSet.from_c_grid_dataset(filenames, variables, dimensions, time_periodic=time_periodic, field_chunksize=chs, allow_time_extrapolation=time_extra)
     
     
     if key_alltracers:
@@ -88,8 +90,8 @@ def create_fieldset(param, ndays_simu, t_init):
         NPPdim = {'lon': param['lon_food'], 'lat': param['lat_food'], 'time': param['time_var_food']}
         
         # Field creation
-        T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
-        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto')
+        T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs, allow_time_extrapolation=time_extra)
+        NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto', allow_time_extrapolation=time_extra)
 
         # Waves: physical grid, A-grid
         if param['wave_swim']:
@@ -97,8 +99,8 @@ def create_fieldset(param, ndays_simu, t_init):
             Stokes_files = {'lon': mesh_phy, 'lat': mesh_phy, 'data': st_files}
             Stokes_dim = {'lon': param['lon_phy'], 'lat': param['lat_phy'], 'time': param['time_var_phy']}
 
-            Ustokes = Field.from_netcdf(Stokes_files, ('Ustokes', param['Ust_var']), Stokes_dim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs)
-            Vstokes = Field.from_netcdf(Stokes_files, ('Vstokes', param['Vst_var']), Stokes_dim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs) 
+            Ustokes = Field.from_netcdf(Stokes_files, ('Ustokes', param['Ust_var']), Stokes_dim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs, allow_time_extrapolation=time_extra)
+            Vstokes = Field.from_netcdf(Stokes_files, ('Vstokes', param['Vst_var']), Stokes_dim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs, allow_time_extrapolation=time_extra) 
         
             fieldset.add_field(Ustokes)
             fieldset.add_field(Vstokes)        

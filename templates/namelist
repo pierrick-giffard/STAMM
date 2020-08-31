@@ -4,6 +4,7 @@
    tstep = 3600
    ndays_simu = 365
    time_periodic = False
+   time_extrapolation = False
    t_output = 86400
    mode = 'active'
    key_alltracers = True
