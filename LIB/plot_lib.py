@@ -277,16 +277,22 @@ def show_start_point(ax, lat,lon) :
    ax.plot((np.mean(lon[0,:]),),(np.mean(lat[0,:]),),markerfacecolor='w',
             markeredgecolor='k',marker='o',ms=6,mew=0.3,zorder=999)   
    
-def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim, save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi=100):
+def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day,end_day,h,latlim,lonlim, save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, hourly=False, dpi=100):
     """ Plot animation frames with turtles positions and approximate habitat. """  
     species = param['species']
     nturtles = param['nturtles'] - 1 if last_turtle == -1 else last_turtle
+    time_extra = param['time_extrapolation']
     #
     latmin = min(latlim)
     latmax = max(latlim)
     lonmin = min(lonlim)
     lonmax = max(lonlim)
-
+    
+    if hourly:
+        delta = 24 # nb of positions per datafile
+    else:
+        delta = 1 # daily
+        
     dmin = 80.
     dmax = 200. 
     lat = dico['traj_lat'][:,:last_turtle]          
@@ -318,19 +324,20 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
     for step in range(start_day,end_day,h):
         print('\n')
         print(step, 'of', end_day-h)
-        days_since_ref = int(step+init_t.min())
-        date_title = date_start_physfile + dt.timedelta(days_since_ref)
+        
+        days_since_ref = init_t.min() + step/delta # nb of days since ref (1st January ystart)
+        current_date = date_start_physfile + dt.timedelta(days_since_ref)     
+
         if param['time_periodic']:
-            days_since_ref = int(init_t.min()) + int((days_since_ref - int(init_t.min())) % int(param['time_periodic']))
-        date = date_start_physfile + dt.timedelta(days_since_ref)
+            days_since_ref = init_t.min() + (days_since_ref - init_t.min()) % param['time_periodic']
+        file_date = date_start_physfile + dt.timedelta(days_since_ref) # datafile date
+        date_today_entier = file_date.toordinal() # datafile date used for comparision
+        numday = int(days_since_ref - init_t.min() + 0.5) # nb of days since first turtle release, +0.5 because datafiles are at 12:00
+        
         # Frame title
-        date_today_entier = date.toordinal()
-        m = '00'
-        month = month_names[date_title.month - 1]
-        day = str(("%02d") %date_title.day)
-        year = str(date_title.year)
-        title ='| '+day+' '+month+' '+year+' |'
+        title = current_date.strftime("%d %B %Y, %H:%M")
         print(title)
+        print('numday',numday)
         #
         newlat,newlon,date_mat = ncl.age_to_date(traj_time,init_t,lat,lon)
         #
@@ -340,10 +347,9 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
             # Calcul des paramètre relatifs à la nage active et à l'habitat
             SCL = tul.compute_SCL_VGBF(SCL, species, h) #increment SCL of h days
             food_max = tul.compute_Fmax(step+start_day,species,SCL,param['P0'])
-            numday = days_since_ref - int(init_t.min())
-            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, param, data_lists,date)
+            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, param, data_lists,file_date)
 
-
+        
         # Find alive and dead turtles
         # Blue dots : alive turtles
         # Black dots: dead turtles
@@ -356,13 +362,13 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
             index_alive_at_date=np.arange(lat.shape[1])
             
         # Display position (scatter)
-        if mortality and len(group)==0:
+        if mortality and len(group) == 0:
             display_tracks(ax, lat=newlat[step,index_dead_at_date],lon=newlon[step,index_dead_at_date],ms=11,col='k', marker = 'o',alpha=0.6)
             display_tracks(ax, lat=newlat[step,index_alive_at_date],lon=newlon[step,index_alive_at_date],ms=11,col='#1f78b4', marker = 'o',alpha=0.6)        
         elif len(group)==0:
             display_tracks(ax, lat=newlat[step,:],lon=newlon[step,:],ms=11,col='#1f78b4',alpha=0.6)
         
-        if hab_mode != 'void' and len(group)>0:
+        if hab_mode != 'void' and len(group) > 0:
             for cat in np.arange(nb_cat):
                 if mortality:
                     index_dead_at_date = np.where((date_death_entier <= date_today_entier) & (date_death_entier + 90 > date_today_entier) & (group == cat)) #+90 > dead disappear after 90 days

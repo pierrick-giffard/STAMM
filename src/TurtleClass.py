@@ -49,6 +49,7 @@ def define_Turtle_Class(fieldset, param):
             xgradh = Variable('xgradh', to_write=True, dtype=np.float32)
             ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
             Topt = Variable('Topt', to_write=False, dtype=np.float32, initial=fieldset.Topt)
+            compute_swim = Variable('compute_swim', to_write=False, dtype=np.float32, initial=1)
             if param['growth'] == 'Gompertz':
                 K = Variable('K', to_write=False, dtype=np.float32, initial=fieldset.K0)
         if param['frenzy'] or param['wave_swim']:

@@ -19,6 +19,7 @@ import netCDF_lib as ncl
 import plot_lib as pl
 import IOlib as IO
 
+from tools import read_json_domain
 
 # =============================================================================
 # AUTO PARAMETERS
@@ -47,15 +48,18 @@ nb_cat = 4
 colors = ['darkviolet','blue','green','orange','red']
 
 # plot zone
-zone = 'jeanette_1month'
+zone = 'JEANETTE2'
 
 # time delta between 2 frames (in days)
 h = 1
 
+# hourly outputs
+hourly = True
+
 ## Overwrite Auto parameters
 #last_turtle = 100
-#start_day = 50
-#end_day = 365
+start_day = 0
+end_day = 100
 
 #gridfile for NPP lon/lat
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
@@ -77,6 +81,7 @@ if not Path(save_path).exists():
 #
 videofile = save_path + '/' + filename + '_animation.avi'
 #   
+zone_file = '/homelocal-px/px-171/pgiffard/SRC/lib_pyt/statics/def_zone.json'
 
 print('\n')
 print('********************************************************************************')
@@ -102,79 +107,15 @@ coef_SMR=5.
 
 
 # =============================================================================
-#ZONES
+# ZONE
 # =============================================================================
-if zone == 'Atlantic':
-    lonmin = -110
-    lonmax = 36
-    latmin = 0
-    latmax = 62
+lonmin, lonmax, latmin, latmax = read_json_domain(zone_file, zone)
 
-elif zone == 'Caribbean':
-    lonmin = 260.
-    lonmax = 305.
-    latmin = 7
-    latmax = 31
-
-elif zone == 'Pacific':
-    lonmin = 175
-    lonmax = 285
-    latmin = -0
-    latmax = 40
-
-elif zone == 'Indian':
-    lonmin = 0
-    lonmax = 120
-    latmin = -60
-    latmax = 20
-    
-elif zone == 'Gulf_stream':
-    lonmin = -85
-    lonmax = -35
-    latmin = 25
-    latmax = 50
-    
-elif zone == 'Acores':
-    lonmin = -30
-    lonmax = -24
-    latmin = 37
-    latmax = 40
-    
-elif zone == 'Med':
-    lonmin = -10
-    lonmax = 20
-    latmin = 30
-    latmax = 45
-
-elif zone == 'COR': #coral sea
-    lonmin = 140
-    lonmax = 180
-    latmin = -40
-    latmax = -10
-    
-elif zone == 'tmp':
-    lonmin = -35
-    lonmax = -32
-    latmin = 38.4
-    latmax = 41
-
-elif zone == 'tmp2':
-    lonmin = -42
-    lonmax = -25
-    latmin = 32
-    latmax = 42
-
-elif zone == 'jeanette_1year':
-    lonmin = -85
-    lonmax = -10
-    latmin = 20
-    latmax = 50
-
-elif zone == 'jeanette_1month':
-    lonmin = -81
-    lonmax = -78#-59
-    latmin = 26#24
-    latmax = 27#42
+## to overwrite zone:
+# lonmin = -110
+# lonmax = 36
+# latmin = 0
+# latmax = 62
 
 
 # =============================================================================
@@ -200,5 +141,5 @@ else:
 
 data_lists = ncl.data_lists(param, end_day, np.float64(dico['init_t']))
 pl.plot_animation_frames(gridfile, dico, hab_mode, To, lethargy, coef_SMR, start_day, end_day, h, [latmin, latmax],
-                          [lonmin, lonmax], save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, dpi)  
+                          [lonmin, lonmax], save_path, param, data_lists, last_turtle, mortality, group, nb_cat, colors, hourly, dpi)  
 pl.convert_frames_to_video(save_path, videofile, fps)

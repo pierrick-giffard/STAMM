@@ -72,7 +72,8 @@ def read_namelist(filename, display=True):
              'wave_suffix':'',
              'Ust_var':'',
              'Vst_var':'',
-             'time_extrapolation':'False'
+             'time_extrapolation':'False',
+             'dt_swim':''
              }
 
     namelist = open(filename,'r')
@@ -134,7 +135,7 @@ def read_namelist(filename, display=True):
     
     #Active items
     if items['mode']=='active':
-        for key in ['alpha','P0','grad_dx','tactic_factor']:        
+        for key in ['alpha','P0','grad_dx','tactic_factor','dt_swim']:        
             try:
                 items[key] = float(items[key])
             except ValueError:
@@ -168,7 +169,7 @@ def check_param(param,output_file):
         param_check = set(list({'T_dir','food_dir', 'T_var', 'food_var','T_suffix', 'food_suffix',\
                                 'mesh_food', 'lon_food', 'lat_food', 'time_var_food'}) + list(param_check))
     if param['mode'] == 'active':
-        param_check = set(list({'species','P0', 'alpha', 'grad_dx', 'SCL0'}) + list(param_check))
+        param_check = set(list({'species','P0', 'alpha', 'grad_dx', 'SCL0','dt_swim'}) + list(param_check))
 
     if param['grid_phy'] == 'C':
         param_check = set(list({'lat_T', 'lon_T'}) + list(param_check))

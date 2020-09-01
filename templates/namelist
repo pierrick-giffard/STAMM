@@ -22,6 +22,7 @@
    tactic_factor = 0.5
    frenzy = False
    wave_swim = True
+   dt_swim = 86400
 /
 &GRIDPARAM  
    grid_type = 'standard'

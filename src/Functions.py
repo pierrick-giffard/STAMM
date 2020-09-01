@@ -228,7 +228,8 @@ def initialization(fieldset, ndays_simu, param):
         ### NAMELIST PARAMETERS ###
         fieldset.P0 = param['P0']
         fieldset.grad_dx = param['grad_dx']
-        fieldset.alpha = param['alpha']      
+        fieldset.alpha = param['alpha']
+        fieldset.dt_swim = param['dt_swim']
 	
         ### SPECIES PARAMETERS ###
         fieldset.a = file.a
@@ -354,7 +355,8 @@ def define_active_kernels(pset, param):
             compute_PPmax = ak.compute_PPmax_VGBF   
         elif growth == 'Gompertz':
             compute_PPmax = ak.compute_PPmax_Gompertz
-        kernels_list = [ak.compute_Mass,
+        kernels_list = [ak.check_swim,
+                        ak.compute_Mass,
                         compute_PPmax,
                         ak.compute_vmax,
                         ak.compute_habitat,
