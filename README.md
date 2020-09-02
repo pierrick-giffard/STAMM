@@ -110,7 +110,7 @@ Note: no space should appear between two sections.
 
 **wave\_swim** = boolean. So that turtles swim against wave at the beginning of the simulation. Wave direction is calculated based on Stokes drift. Default: False
 
-**dt\_swim** = float (seconds). Swimming velocity and direction are computed each dt\_swim. 
+**dt\_swim** = float. Swimming velocity is considered constant over dt\_swim seconds. 
 
 **/**
 

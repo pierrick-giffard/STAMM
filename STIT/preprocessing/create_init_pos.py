@@ -52,17 +52,17 @@ To annotate country names and change map scale, go to part named "PLOT"
 mode = 'lonlat' #lonlat or xy
 disk_radius = 0.05 #for disk mode, in degrees
 width = 1.852 #km, for rectangle mode
-beach_orientation = 'E' #'W' or 'E'
+beach_orientation = 'E' #'W' or 'E', for beach mode and square mode.
 release_zone_size = 0.25 #for square mode, release zone side size in degrees
 
 #total of released turtles
-nturtles = 400
+nturtles = 1500
 
 ##zone to plot               #
-xmin = -84              #
-xmax = -74              #  
-ymin = 23               #
-ymax = 29.5               #
+xmin = -81              #
+xmax = -78              #  
+ymin = 26               #
+ymax = 27.5              #
 #                            #
 lat_space = 1.5             #
 lon_space = 3.0             # PACUARE

@@ -261,34 +261,9 @@ class echantillon :
     def random_time_uniform(self,year):
         m=self.beach.time.begin
         M=self.beach.time.end
-        h=[]
-        Ntot=self.nb_part/self.nb_year
-        tur_per_day = np.round(Ntot/((M+0.5) - (m + 1.5)))
-        for day in np.arange(m+0.5,M+1.5):
-            h.append(tur_per_day)
-        h = np.array(h)
-        S = sum(h)
-        a = Ntot/S
-        n_days = np.round(a*h)
-        Ntot_bis= np.sum(np.round(a*h))
-        err_round = Ntot-Ntot_bis
-        add = err_round/len(n_days)
-        if add < 1:
-            add = 1
-        else :
-            add = int(add)
-        for i in np.arange(len(n_days)):
-            if np.sum(n_days) != Ntot:
-                n_days[i] += add
-        time=np.ones([int(Ntot)])*(m+0.5)
-        part_hatched=0
-        for i in range(np.shape(n_days)[0]):
-            time[int(part_hatched):int(part_hatched+n_days[i])]=(np.float(m+i+0.5))+365.25*year
-            part_hatched = part_hatched+n_days[i]
 
-        #plt.hist(time,bins=np.arange(m,M,1))
-        #plt.show()
-
+        time = np.random.uniform(m,M,self.nb_part)
+        time = np.sort(time)
 
         return list(time) 
     
@@ -608,11 +583,14 @@ def beach_json(release_zone_size, lon_name, lat_name, beach_carac, nesting_year,
     #function generalized by anna (with beach input read on a .json file stored in config/beaches/
     #to do add d_min/d_max not default
 
-    start = datetime.datetime.strptime(str(nesting_year)+' '+beach_carac['start_month']+' '+beach_carac['start_day'], '%Y %B %d') 
-    print(start, nesting_year)
-    start_jday = (start-date_ref).days
-    end = datetime.datetime.strptime(str(nesting_year)+'/'+beach_carac['end_month']+'/'+beach_carac['end_day'], '%Y/%B/%d')
-    end_jday = (end-date_ref).days
+    start = datetime.datetime.strptime(str(nesting_year)+beach_carac['start_month']+beach_carac['start_day'], '%Y%B%d') + datetime.timedelta(hours=float(beach_carac['start_time']))  
+    start_jday = (start-date_ref).days + (start-date_ref).seconds / 86400
+    
+    end = datetime.datetime.strptime(str(nesting_year)+beach_carac['end_month']+beach_carac['end_day'], '%Y%B%d') + datetime.timedelta(hours=float(beach_carac['end_time']))
+    end_jday = (end-date_ref).days + (end-date_ref).seconds / 86400
+    print('Start: ',start, nesting_year)
+    print('End: ',end, nesting_year)
+
     if end_jday < start_jday:
         end_jday += 365
         
@@ -669,6 +647,17 @@ def read_beach_json(file, grid, lon_name, lat_name):
             beach_carac[k] += 360
         if beach_carac[k] > np.max(grid[lon_name]) :
             beach_carac[k] -= 360
+    # Time       
+    try: 
+        a = beach_carac['start_time']
+    except:
+        print('Consider release time is 12:00')
+        beach_carac['start_time'] = '12'
+    try: 
+        a = beach_carac['end_time']
+    except:
+        print('Consider end time is 12:00')
+        beach_carac['end_time'] = '12'
 
     beach_carac["nb_turtles"] = np.int(beach_carac["nb_turtles"])
     

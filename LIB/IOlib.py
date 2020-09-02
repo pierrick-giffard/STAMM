@@ -355,10 +355,19 @@ def forcing_list(f_dir, f_suffix, date_start, date_end):
     dt = (t1 - t0).days
     
     i0 = (date_start - t0).days // dt
-    i1 = (date_end - t0).days // dt + dt
-    i1 += date_end.year - date_start.year # add 1 file each year change (useful for vgpm data)
+    i1 = (date_end - t0).days // dt + 1
+    
+    if dt == 8: #consider it is vgpm data, last file beeing 361 day of the year = pb each year
+        nyear0 = date_start.year - t0.year
+        nyear1 = date_end.year - t0.year
+        i0 += nyear0 - (5 * nyear0) // dt # 5 days from 361 to 001
+        i1 += nyear1 - (5 * nyear1) // dt-3 # 5 days from 361 to 001
+
+        
+    
     
     files = files[i0:i1+1]
+    print(i0, i1, files[0], files[-1])
     
     return files
 
