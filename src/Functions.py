@@ -157,9 +157,10 @@ def add_halo(fieldset):
 # =============================================================================
 # PARTICLESET
 # =============================================================================
-def compute_t_release(t_init, fieldset):
+def compute_t_release(t_init, fieldset, param):
     """
-    Calculate release time which is the time of released in seconds with respect to first fieldset U file.
+    Calculate release time which is the time of release in seconds with respect to first fieldset U file.
+    Round to greatest common divisor (gcd) of tstep and t_output.
     """
 
     t0_data_str = str(fieldset.U.grid.__dict__['time_origin'])[:-3] # U time origin
@@ -167,6 +168,10 @@ def compute_t_release(t_init, fieldset):
     t0_release = (datetime(t0_data.year,1,1) + timedelta(days=np.min(t_init)) - t0_data)
     t_release = (t_init - np.min(t_init)) * 86400 + t0_release.total_seconds()
     
+    # round
+    gcd = math.gcd(param['tstep'], param['t_output']) # in seconds   
+    t_release = gcd * np.round(t_release / gcd )
+
     return t_release
 
 
@@ -180,7 +185,9 @@ def create_particleset(fieldset, pclass, lon, lat, t_release, param):
 
     # Create ParticleSet
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
-    
+    print(t_release)
+
+
     # Execute 1 dt kernels
     pset.execute(pk.CheckOnLand, dt=0)
 
@@ -420,6 +427,9 @@ def modify_output(OutputFile, t_init, param):
     turtles live exactly ndays_simu days.
     """
     dt = math.ceil(max(t_init) - min(t_init))
+    print(t_init)
+    print(dt)
+    
     #
     nc_i = netCDF4.Dataset(OutputFile, 'r')
     name_out = OutputFile.replace('.nc', '0.nc')

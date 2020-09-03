@@ -59,7 +59,7 @@ ndays_simu += max(t_init) - min(t_init)
 # ========================================================================
 fieldset = fc.create_fieldset(param, ndays_simu, t_init)
 fc.initialization(fieldset, ndays_simu, param)
-t_release = fc.compute_t_release(t_init, fieldset)
+t_release = fc.compute_t_release(t_init, fieldset, param)
 
 turtle = tc.define_Turtle_Class(fieldset, param)
 pset = fc.create_particleset(fieldset, turtle, lon_init, lat_init, t_release, param) 

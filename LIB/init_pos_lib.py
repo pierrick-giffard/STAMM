@@ -87,13 +87,14 @@ class beach :
 class position_4D:
     """ 
     class position_4D contains one particle initial position
-    x, y, z, t
+    x, y, z, t, hr
     """
     def __init__(self,x=0.,y=0.,t=0.,z=-1.0):
         self.x=np.float32(x)
         self.y=np.float32(y)
         self.z=np.float32(z)
         self.t=np.float32(t)
+
         
     def write_line(self,f):
         """
@@ -102,11 +103,12 @@ class position_4D:
         line=' '+"%.3f" % self.x+' '+\
              "%.3f" % self.y+'    '+\
              "%.1f" % self.z+'  '+\
-             "%.2f" % self.t+'     '+\
+             "%.3f" % self.t+'     '+\
              '1.0\n'
 
         line=line.replace(',','.')
         f.write(line)
+
 
 
         
@@ -264,7 +266,7 @@ class echantillon :
 
         time = np.random.uniform(m,M,self.nb_part)
         time = np.sort(time)
-
+        
         return list(time) 
     
     def echantillon_normal_asym(self,year):
