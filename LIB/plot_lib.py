@@ -301,12 +301,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
     traj_time = dico['traj_time'][:,:last_turtle]
     group = group[:last_turtle]
     #
-    #Correction de certaines longitudes
-    #lon[np.where(lon<200)]=lon[np.where(lon<200)]+360
-    #if np.mean(lon[0,:]) < 36 :
-        #Si point de départ dans l'Atlantique, on corrige l'affichage des longitudes > 180°E(cad toutes puisque 180°E est dans le Pacifique et que l'on se trouve dans l'Atlantique)
-        # Lorsque les particules dépassent greenwich on ajoute 360 (elles passent de 359 à 361 plutot que de 359 à 1, par exemple en mediterranée)
-    lon[lon>=lonmax]-=360
+    lon[lon>=180] -= 360 #needed ?
     
     if hab_mode != 'void' and mortality:
         temp = dico['traj_temp'][start_day:end_day,:last_turtle]

@@ -73,7 +73,7 @@ def read_namelist(filename, display=True):
              'Ust_var':'',
              'Vst_var':'',
              'time_extrapolation':'False',
-             'dt_swim':''
+             'dt_swim':'86400'
              }
 
     namelist = open(filename,'r')
@@ -260,7 +260,6 @@ def find_last_date(param):
     t_value = int(file_U.variables[time_var_phy][-1].data)
     time_U = netCDF4.num2date(t_value, t_unit)
     file_U.close()
-    print(last_U)
     #
     last_V = sorted(glob(V_dir + '/*' + V_suffix))[-1]
     file_V = netCDF4.Dataset(last_V)
@@ -332,11 +331,11 @@ def define_start_end(ndays_simu, param, t_init, last_date):
         time_periodic += 1
     
     if date_end > last_date and not time_extra:
-        raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto. \n \
-                          last_date: ", last_date, "date_end: ", date_end)
+        raise ValueError("Simulation ends after the date of last data file available. Please check parameter time_periodic or set it to auto. \
+                          Last file: ", last_date, "Date end simulation: ", date_end)
     
-    print('   Date of first file: ', date_start)
-    print('   Date of last file:  ', date_end)    
+    print('   Date of first release:     ', date_start)
+    print('   Date of last calculation:  ', date_end)    
     print('\n')
     return date_start, date_end, time_periodic
 
@@ -360,14 +359,13 @@ def forcing_list(f_dir, f_suffix, date_start, date_end):
     if dt == 8: #consider it is vgpm data, last file beeing 361 day of the year = pb each year
         nyear0 = date_start.year - t0.year
         nyear1 = date_end.year - t0.year
-        i0 += nyear0 - (5 * nyear0) // dt # 5 days from 361 to 001
-        i1 += nyear1 - (5 * nyear1) // dt-3 # 5 days from 361 to 001
-
-        
-    
+        i0 += nyear0 - (5 * nyear0) // dt - 1 +1# 5 days from 361 to 001 #+1 tmp for time_periodic
+        i1 += nyear1 - (5 * nyear1) // dt - 1 -2# 5 days from 361 to 001 #-2 tmp for time_periodic
     
     files = files[i0:i1+1]
-    print(i0, i1, files[0], files[-1])
+    print('\n',files[0], files[-1])
+    print('ATTENTION, indices temporaires pour l expérience de tony')
+ 
     
     return files
 

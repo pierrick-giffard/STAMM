@@ -290,10 +290,14 @@ def check_swim(particle, fieldset, time):
     Determines whether if compute_swim is True or False.
     """
     if particle.active:
-        if particle.age * 86400 >= fieldset.dt_swim - particle.dt / 2 and particle.age * 86400 < fieldset.dt_swim + particle.dt / 2:
+        mod = fmod(particle.age * 86400, fieldset.dt_swim)
+        
+        if mod > fieldset.dt_swim - particle.dt / 2 or mod <= particle.dt / 2:
             particle.compute_swim = 1
+        
         else:
             particle.compute_swim = 0
+
 
 
 

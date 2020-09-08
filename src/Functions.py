@@ -160,7 +160,7 @@ def add_halo(fieldset):
 def compute_t_release(t_init, fieldset, param):
     """
     Calculate release time which is the time of release in seconds with respect to first fieldset U file.
-    Round to greatest common divisor (gcd) of tstep and t_output.
+    
     """
 
     t0_data_str = str(fieldset.U.grid.__dict__['time_origin'])[:-3] # U time origin
@@ -168,11 +168,10 @@ def compute_t_release(t_init, fieldset, param):
     t0_release = (datetime(t0_data.year,1,1) + timedelta(days=np.min(t_init)) - t0_data)
     t_release = (t_init - np.min(t_init)) * 86400 + t0_release.total_seconds()
     
-    # round
-    gcd = math.gcd(param['tstep'], param['t_output']) # in seconds   
-    t_release = gcd * np.round(t_release / gcd )
+    return round_t_release(t_release, param)
 
-    return t_release
+
+     
 
 
 def create_particleset(fieldset, pclass, lon, lat, t_release, param):
@@ -185,8 +184,6 @@ def create_particleset(fieldset, pclass, lon, lat, t_release, param):
 
     # Create ParticleSet
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
-    print(t_release)
-
 
     # Execute 1 dt kernels
     pset.execute(pk.CheckOnLand, dt=0)
@@ -426,10 +423,8 @@ def modify_output(OutputFile, t_init, param):
     Modify output file so that variables names are the same as in STAMM 2.0 and
     turtles live exactly ndays_simu days.
     """
-    dt = math.ceil(max(t_init) - min(t_init))
-    print(t_init)
-    print(dt)
-    
+    # nb of tstep between 1st and last release
+    dt = math.ceil((max(t_init) - min(t_init)) / (param['t_output'] / 86400))  
     #
     nc_i = netCDF4.Dataset(OutputFile, 'r')
     name_out = OutputFile.replace('.nc', '0.nc')
@@ -488,5 +483,17 @@ def modify_output(OutputFile, t_init, param):
     print('********************************************************************************')
     print('\n')
     
-        
-       
+
+# =============================================================================
+# UTILS
+# =============================================================================      
+def round_t_release(t_release, param):
+    """
+    Round to 1h
+    #bug : Round to greatest common divisor (gcd) of tstep and t_output.
+    """
+    # round
+    #gcd = math.gcd(param['tstep'], param['t_output']) # in seconds   
+    gcd = 3600
+    return gcd * np.round(t_release / gcd )
+          

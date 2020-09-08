@@ -411,8 +411,8 @@ class echantillon :
             r = disk_radius * math.sqrt(rd.random())
             theta = rd.random() * 2 * math.pi
             #
-            X = x0 + r * math.cos(theta) #/ (111195 * math.cos(y0*math.pi/180)) uncomment if disk_radius in meters
-            Y = y0 + r * math.sin(theta) #/ 111195
+            X = x0 + r * math.cos(theta) / math.cos(y0*math.pi/180)#* math.cos(y0*math.pi/180)) uncomment if disk_radius in meters
+            Y = y0 + r * math.sin(theta)
             #
             if grid_type == 'orca':
                 x_grid,y_grid=brum.fx_inv(X,Y,lon_mat,lat_mat)
