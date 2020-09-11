@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 import netCDF4
 import xarray as xr
 import pandas as pd
+from dateutil.relativedelta import relativedelta
+
 
 def read_namelist(filename, display=True):
     """
@@ -341,11 +343,13 @@ def define_start_end(ndays_simu, param, t_init, last_date):
 
 
 
-def forcing_list(f_dir, f_suffix, date_start, date_end):
+def forcing_list(f_dir, f_suffix, date_start, date_end, tperiodic_add=False):
     """
     Return a list with data needed for simulation.
     It is important that the first file is the first day of release.
-    Need file to have a time variable.
+    Need files to have a time variable.
+    tperiodic_add: used for vgpm if time_periodic, delta between date_start and first file
+    Work only if dt = 1 day between 2 files or if dt = 8 and file name format is *YYYYDDD* (like vgpm data)
     """
     
     files = sorted(glob(f_dir + '/*' + f_suffix))
@@ -353,19 +357,54 @@ def forcing_list(f_dir, f_suffix, date_start, date_end):
     t1 = pd.to_datetime(xr.open_dataset(files[1]).time.data[0])
     dt = (t1 - t0).days
     
-    i0 = (date_start - t0).days // dt
-    i1 = (date_end - t0).days // dt + 1
+    if dt == 1:
+        i0 = (date_start - t0).days // dt
+        i1 = (date_end - t0).days // dt + 1
     
-    if dt == 8: #consider it is vgpm data, last file beeing 361 day of the year = pb each year
-        nyear0 = date_start.year - t0.year
-        nyear1 = date_end.year - t0.year
-        i0 += nyear0 - (5 * nyear0) // dt - 1 +1# 5 days from 361 to 001 #+1 tmp for time_periodic
-        i1 += nyear1 - (5 * nyear1) // dt - 1 -2# 5 days from 361 to 001 #-2 tmp for time_periodic
+    elif dt == 8: #consider it is vgpm format *YYYYDDD*
+        vgpm_dates = np.arange(1,365,8)
+        d0 = date_start.timetuple().tm_yday # starting day simulation
+        try:
+            df0 = vgpm_dates[d0 > vgpm_dates + 4].max() # starting day file
+        except:
+            df0 = vgpm_dates[-1]
+            date_start -= relativedelta(years=1)
+
+        d1 = date_end.timetuple().tm_yday # end day simulation
+        try:
+            df1 = vgpm_dates[d1 < vgpm_dates + 4].min() # end day file
+        except:
+            df1 = vgpm_dates[0]
+            date_end += relativedelta(years=1)
+
+        t0 = str(date_start.year) + str(("%03d")%df0)
+        t1 = str(date_end.year) + str(("%03d")%df1)
+        
+        i0 = -1; i1 = -1
+        for k, f in enumerate(files):
+            if t0 in f:
+                i0 = k
+            if t1 in f:
+                i1 = k
+                break
+        if i0 == -1:
+            raise ValueError('VGPM file with date', t0, 'not found')
+        if i1 == -1:
+            raise ValueError('VGPM file with date', t1, 'not found')
+        if tperiodic_add:
+            i1 -= 1
+            tperiodic_add = (date_start - pd.to_datetime(xr.open_dataset(files[i0]).time.data[0])).days
+    
+    else:
+        raise ValueError('Time resolution of %d days is not implemented yet'%dt)
+    
     
     files = files[i0:i1+1]
-    print('\n',files[0], files[-1])
-    print('ATTENTION, indices temporaires pour l expérience de tony')
- 
+    print('\n First/last files: ',files[0], files[-1])
     
-    return files
+    
+    if tperiodic_add:
+        return files, tperiodic_add
+    else:
+        return files
 

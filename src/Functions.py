@@ -76,7 +76,11 @@ def create_fieldset(param, ndays_simu, t_init):
     
     if key_alltracers:
         tfiles = IO.forcing_list(param['T_dir'], param['T_suffix'], date_start, date_end)
-        ffiles = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end)
+        if time_periodic:
+            ffiles, tperiodic_add = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end, tperiodic_add=True)
+        else:
+            tperiodic_add = False
+            ffiles = IO.forcing_list(param['food_dir'], param['food_suffix'], date_start, date_end)
 
         # Filenames
         Tfiles = {'lon': mesh_phy, 'lat': mesh_phy, 'data': tfiles}
@@ -91,6 +95,7 @@ def create_fieldset(param, ndays_simu, t_init):
         
         # Field creation
         T = Field.from_netcdf(Tfiles, ('T', param['T_var']), Tdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize=chs, allow_time_extrapolation=time_extra)
+        time_periodic = time_periodic + tperiodic_add * 86400 if tperiodic_add else time_periodic
         NPP = Field.from_netcdf(NPPfiles, ('NPP', param['food_var']), NPPdim, interp_method='linear_invdist_land_tracer', time_periodic=time_periodic, field_chunksize='auto', allow_time_extrapolation=time_extra)
 
         # Waves: physical grid, A-grid

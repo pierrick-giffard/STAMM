@@ -16,7 +16,6 @@ def compute_Mass(particle, fieldset, time):
     if particle.active and particle.compute_swim:
         particle.M = fieldset.a*(particle.SCL)**fieldset.b
 
-
 def compute_Tmin_Topt(particle, fieldset, time): 
     if particle.active and particle.compute_swim:
         particle.Topt = fieldset.T0 - fieldset.to * sqrt(particle.M)
