@@ -110,6 +110,9 @@ def interpolate_vgpm(current_date, param):
     """
     Returns NPP at date 'current_date' based on files in food_dir.
     Work for 8 days NPP.
+    #
+    current_date: datetime object
+    param: namelist parameters
     """
     year0 = current_date.year
     year1 = year0

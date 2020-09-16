@@ -36,14 +36,21 @@ end_day = param['ndays_simu']
 # USER PARAMETERS
 # =============================================================================
 
+"""
+article [36] was disabled after beaching 50 times in a row at lon,lat = -60.376083,45.744644 t=32317200.0
+rticle [265] was disabled after beaching 50 times in a row at lon,lat = -70.390106,43.564846 t=32662800.0
+rticle [564] was disabled after beaching 50 times in a row at lon,lat = -65.753242,43.823776 t=33498000.0
+"""
+
+
 #background
-hab_mode = 'current' # 'food', 'temp', 'tot', 'current', 'void'
+hab_mode = 'food' # 'food', 'temp', 'tot', 'current', 'void'
 #option 'void' for no background,
 
 mortality = False #set to False not to calculate dead turtles
 
 # Jeanette project: different colors depending on release lon
-jeanette = True
+jeanette = False
 nb_cat = 4
 colors = ['darkviolet','blue','green','orange','red']
 
@@ -58,15 +65,15 @@ hourly = True
 
 ## Overwrite Auto parameters
 #last_turtle = 100
-start_day = 0
-end_day = 100
+start_day = 0#8990#8900
+end_day = 100#9050#8950
 
 #gridfile for NPP lon/lat
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
 
 # Video
 fps = 2 #images/sec
-dpi = 350 #images resolution
+dpi = 150 #images resolution
 
 # =============================================================================
 # PATHS & FILES
@@ -111,11 +118,11 @@ coef_SMR=5.
 # =============================================================================
 lonmin, lonmax, latmin, latmax = read_json_domain(zone_file, zone)
 
-## to overwrite zone:
-# lonmin = -110
-# lonmax = 36
-# latmin = 0
-# latmax = 62
+# to overwrite zone:
+lonmin = -59
+lonmax = -71
+latmin = 40
+latmax = 50
 
 
 # =============================================================================

@@ -126,18 +126,20 @@ def UndoMove(particle, fieldset, time):
     The tactic factor is set to 1 during 1 time step when a particle is on land.
     """
     onland_max = 50
-    if particle.beached == 1:
-        particle.beached = 0
-        particle.lon = particle.prev_lon
-        particle.lat = particle.prev_lat
-        particle.onland += 1
-        particle.t = 1 #set tactic factor to 1 (no memory)
-        #
-        if particle.onland > onland_max:
-            print("Particle [%d] was disabled after beaching 50 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
-            particle.active = 0
-    else:
-        particle.onland = 0
+    if particle.active:        
+        if particle.beached == 1:
+            print('beached')            
+            particle.lon = particle.prev_lon
+            particle.lat = particle.prev_lat
+            particle.onland += 1
+            particle.t = 1 #set tactic factor to 1 (no memory)
+            particle.beached = 0
+            #
+            if particle.onland > onland_max:
+                print("Particle [%d] was disabled after beaching 50 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
+                particle.active = 0
+        else:
+            particle.onland = 0
 
 
 

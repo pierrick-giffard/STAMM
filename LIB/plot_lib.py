@@ -208,11 +208,14 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
     lonmat2 = np.hstack((lonmat[max(np.where(lonmat[lonmat<lonmax])[0]):-2]-360,lonmat[:max(np.where(lonmat[lonmat<lonmax])[0])]))
     #
     im = ax.contourf(lonmat2,latmat,hab2,levels,cmap=cmap, alpha = 0.9,zorder=0)
+    #im = ax.pcolormesh(lonmat2,latmat,hab2,cmap=cmap, alpha = 0.9,zorder=0)
     cbar = plt.colorbar(im, orientation='horizontal',pad = 0.1, shrink=0.87, ticks = ticks)#, shrink=0.9)#, shrink=0.45, pad=0.03, fraction=0.25)
     cbar.ax.tick_params(labelsize=12)
     cbar.set_label(legend, labelpad=5, size=16)
     #cbar.outline.set_linewidth(0.5)
     #cbar.ax.xaxis.set_tick_params(width=0.5)
+    
+    #
     
 
 
@@ -250,7 +253,7 @@ def display_colorbar(f,im, ax_cb, label):
 
 def display_tracks(ax, lat='NA',lon='NA',dates='NA',ms=0.00,col='b', marker= 'o',alpha=0.5) :
     """ """
-    ax.scatter(lon, lat, marker=marker,s=ms, edgecolor='none',c=col, alpha=alpha)
+    ax.scatter(lon, lat, marker=marker,s=ms, edgecolor='none',c=col, alpha=alpha, zorder=100)
 
 def plot_map(ax, latmin, latmax, lonmin, lonmax,value=0.6,res=0.25,alpha=1, lon_space=20,lat_space=10) :
     """ Plot continents. """

@@ -168,10 +168,14 @@ def compute_t_release(t_init, fieldset, param):
     
     """
 
-    t0_data_str = str(fieldset.U.grid.__dict__['time_origin'])[:-3] # U time origin
-    t0_data = datetime.strptime(t0_data_str, '%Y-%m-%dT%H:%M:%S.%f')
-    t0_release = (datetime(t0_data.year,1,1) + timedelta(days=np.min(t_init)) - t0_data)
-    t_release = (t_init - np.min(t_init)) * 86400 + t0_release.total_seconds()
+    t0_data_str = str(fieldset.U.grid.__dict__['time_origin'])[:-3] # U time origin (str)
+    t0_data = datetime.strptime(t0_data_str, '%Y-%m-%dT%H:%M:%S.%f') # U time origin (datetime)
+    t0_release = (datetime(param['ystart'],1,1) + timedelta(days=np.min(t_init)) - t0_data) # dt between first release and first data file (datetime)
+    t_release = (t_init - np.min(t_init)) * 86400 + t0_release.total_seconds() # release time for each turtle in seconds
+
+
+    print(t_release)
+    
     
     return round_t_release(t_release, param)
 
