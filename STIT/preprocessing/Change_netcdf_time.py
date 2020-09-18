@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Change time value in netcdf and create it if it doesn't exist.
+Change time value in netcdf files and create variable it if it doesn't exist.
 For VGPM, date is the middle of the period of 8 days.
 
 USE: python $stit/preprocessing/Change_netcdf_time.py path_data prefix year0 year1 start end
+
+Parameters:
 path_data: folder containing data
 prefix:  File name = path_data + prefix + date + suffix
 year0 / year1 : first / last year
