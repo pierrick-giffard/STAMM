@@ -36,6 +36,10 @@ variable = 'npp'
 current_FillValue = 'Hole_Value'
 rename_FillValue = '_FillValue'
 
+# if FillValue does not exist yet
+current_value = 9.969209968386869e+36
+new_value = -9999
+
 
 # Dates
 t0 = datetime(year0,1,1) + timedelta(start-1) # date of first file
@@ -58,7 +62,14 @@ while (current_date <= date_end):
     print(file)
     nc = netCDF4.Dataset(file,'r+')
     npp = nc.variables[variable]
-    npp.renameAttribute(current_FillValue,rename_FillValue)
+    try:
+        npp.renameAttribute(current_FillValue,rename_FillValue)
+    except:
+        print('%s not found, create FillValue'%current_FillValue)
+        if current_value != new_value:
+            npp_new = np.where(npp == current_value, new_value, npp)
+            print(npp == current_value)
+        
     
     if (current_date + timedelta(days=dt)).year != current_date.year:
         current_date = datetime(current_date.year + 1, 1, 1)
