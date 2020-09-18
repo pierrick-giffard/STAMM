@@ -5,6 +5,12 @@ Rename FillValue of a variable.
 Here used for VGPM data.
 
 USE: python $stit/preprocessing/Rename_FillValue.py path_data prefix year0 year1 start end
+
+Parameters:
+path_data: folder containing data
+prefix:  File name = path_data + prefix + date + suffix
+year0 / year1 : first / last year
+start / end : day of first / last file
 """
 
 
