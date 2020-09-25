@@ -76,7 +76,7 @@ else:
                 nc.close()
             except:
                 date = current_date.strftime("%Y%m%d")   
-        file = data_dir + prefix + date + suffix
+        file = data_dir + '/' + prefix + date + suffix
         print(file)
         nc = netCDF4.Dataset(file,'r+')
         try:

@@ -280,9 +280,12 @@ def find_last_date(param):
         #
         last_food = sorted(glob(food_dir + '/*' + food_suffix))[-1]
         file_food = netCDF4.Dataset(last_food)
-        t_unit = file_food.variables[time_var_food].units
-        t_value = int(file_food.variables[time_var_food][-1].data)
-        time_food = netCDF4.num2date(t_value, t_unit)
+        
+        print('WARNING: temporary VGPM date until all data is interpolated')
+        #t_unit = file_food.variables[time_var_food].units   #tmp
+        #t_value = int(file_food.variables[time_var_food][-1].data)   #tmp
+        #time_food = netCDF4.num2date(t_value, t_unit)   #tmp
+        time_food = datetime(2009,1,1)
         file_food.close()
         #
         last_file = min(time_U, time_V, time_T, time_food)

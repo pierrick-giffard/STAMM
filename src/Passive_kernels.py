@@ -8,7 +8,7 @@ import math
 
 def store_variables(particle, fieldset, time):
     """
-    Store passive variables before the are re-written.
+    Store lon/lat before the are re-written.
     Has to be the first kernel.
     """
     if particle.active:
@@ -115,6 +115,8 @@ def BeachTesting(particle, fieldset, time):
         (u, v) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
         if math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14:
             particle.beached = 1
+        else:
+            particle.beached = 0
 
 
 
@@ -128,12 +130,12 @@ def UndoMove(particle, fieldset, time):
     onland_max = 50
     if particle.active:        
         if particle.beached == 1:
-            print('beached')            
+            #print('Particle [%d] beached at lon,lat = %f,%f and time = %f'%(particle.id,particle.lon,particle.lat,particle.time))                       
             particle.lon = particle.prev_lon
+            #print('new lon: %f'%particle.lon) 
             particle.lat = particle.prev_lat
             particle.onland += 1
             particle.t = 1 #set tactic factor to 1 (no memory)
-            particle.beached = 0
             #
             if particle.onland > onland_max:
                 print("Particle [%d] was disabled after beaching 50 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))

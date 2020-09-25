@@ -118,7 +118,7 @@ def complete_release_map(infile, path, gridfile, lonlat1D, nturtles, xmin, xmax,
 
 
 
-def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,param,data_lists,current_date,log=False) :
+def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,dmin,dmax,param,data_lists,current_date, lonmin, lonmax, log=False) :
     """ Plot habitat on map."""
     # Read Temp end Mnk data.
     lonmax = max(lonlim)
@@ -130,14 +130,14 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
     food_path = param['food_dir'] + '/'
    
     #Feeding habitat
-    if hab_mode == 'food' or hab_mode == 'tot':
+    if hab_mode == 'npp' or hab_mode == 'tot':
         PP = ncl.interpolate_vgpm(current_date, param)
         if hab_mode == 'tot':
             PP = PP[::-1,:] #reverse lat
             PP = PP[119:,:] #remove first 10 degrees !!!!!! il faut sélectionner les indices pour que les grilles correspondent mais il peut y avoir un décalage d'une demi maille. La résolution doit être la même
         Food_hab = tul.food_hab(PP,food_max)
         #
-        if hab_mode == 'food':
+        if hab_mode == 'npp':
             lat = param['lat_food']
             lon = param['lon_food']
             latlon = ncl.read_nc(gridfile,[lat,lon])
@@ -176,7 +176,7 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
         
 
     
-    if hab_mode == 'food':
+    if hab_mode == 'npp':
         hab = Food_hab
         legend = u"Foraging Habitat suitability index"
         cmap = 'pink_r'
@@ -203,21 +203,27 @@ def plot_habitat(ax,hab_mode, gridfile, numday,latlim,lonlim, SCL, To, food_max,
         hab = np.where(hab>levels[-1], levels[-1], hab)
    
     
-    hab[hab<0.001] = float('nan')
-    hab2 = np.column_stack((hab[:,max(np.where(lonmat[lonmat<lonmax])[0]):-2],hab[:,:max(np.where(lonmat[lonmat<lonmax])[0])]))
-    lonmat2 = np.hstack((lonmat[max(np.where(lonmat[lonmat<lonmax])[0]):-2]-360,lonmat[:max(np.where(lonmat[lonmat<lonmax])[0])]))
-    #
-    im = ax.contourf(lonmat2,latmat,hab2,levels,cmap=cmap, alpha = 0.9,zorder=0)
-    #im = ax.pcolormesh(lonmat2,latmat,hab2,cmap=cmap, alpha = 0.9,zorder=0)
+    if lonmax > 180 and lonmin < 180: # manage date line change
+        idx1 = np.where(lonmat < 0)[0]
+        idx2 = np.where(lonmat >= 0)[0]    
+        
+        hab0 = hab.copy()
+        hab[:, idx1] = hab0[:, idx2]
+        hab[:, idx2] = hab0[:, idx1]
+    
+        lonmat[idx1] += 360
+        lonmat0 = lonmat.copy()
+        lonmat[idx1] = lonmat0[idx2]
+        lonmat[idx2] = lonmat0[idx1]   
+        
+    # Plot
+    #im = ax.contourf(lonmat,latmat,hab,levels,cmap=cmap, alpha = 0.9,zorder=0)
+    im = ax.pcolormesh(lonmat,latmat,hab,cmap=cmap, alpha = 0.9,zorder=0,vmin=0,vmax=2)#vmin=levels[0],vmax=levels[-1]
     cbar = plt.colorbar(im, orientation='horizontal',pad = 0.1, shrink=0.87, ticks = ticks)#, shrink=0.9)#, shrink=0.45, pad=0.03, fraction=0.25)
     cbar.ax.tick_params(labelsize=12)
     cbar.set_label(legend, labelpad=5, size=16)
     #cbar.outline.set_linewidth(0.5)
     #cbar.ax.xaxis.set_tick_params(width=0.5)
-    
-    #
-    
-
 
 
 
@@ -345,7 +351,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
             # Calcul des paramètre relatifs à la nage active et à l'habitat
             SCL = tul.compute_SCL_VGBF(SCL, species, h) #increment SCL of h days
             food_max = tul.compute_Fmax(step+start_day,species,SCL,param['P0'])
-            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, param, data_lists,file_date)
+            plot_habitat(ax, hab_mode, gridfile, numday, [latmin, latmax], [lonmin,lonmax], SCL, To, food_max, dmin, dmax, param, data_lists,file_date, lonmin, lonmax)
 
         
         # Find alive and dead turtles
@@ -383,7 +389,7 @@ def plot_animation_frames(gridfile, dico,hab_mode,To,lethargy,coef_SMR,start_day
         lon_space = (lonmax - lonmin)/7
         lat_space = (latmax - latmin)/7
         # Display map.
-        plot_map(ax, latmin, latmax, lonmin, lonmax, lon_space,lat_space)
+        #plot_map(ax, latmin, latmax, lonmin, lonmax, lon_space,lat_space)
         plt.xlim([lonmin,lonmax])
         plt.ylim([latmin,latmax])
         

@@ -164,19 +164,14 @@ def add_halo(fieldset):
 # =============================================================================
 def compute_t_release(t_init, fieldset, param):
     """
-    Calculate release time which is the time of release in seconds with respect to first fieldset U file.
-    
+    Calculate release time which is the time of release in seconds with respect to first fieldset U file.    
     """
 
     t0_data_str = str(fieldset.U.grid.__dict__['time_origin'])[:-3] # U time origin (str)
     t0_data = datetime.strptime(t0_data_str, '%Y-%m-%dT%H:%M:%S.%f') # U time origin (datetime)
     t0_release = (datetime(param['ystart'],1,1) + timedelta(days=np.min(t_init)) - t0_data) # dt between first release and first data file (datetime)
     t_release = (t_init - np.min(t_init)) * 86400 + t0_release.total_seconds() # release time for each turtle in seconds
-
-
-    print(t_release)
-    
-    
+      
     return round_t_release(t_release, param)
 
 
@@ -466,7 +461,8 @@ def modify_output(OutputFile, t_init, param):
         nc_o.renameVariable('ygradh','ygrad')
     init_t = nc_o.createVariable('init_t', 'f', ('nturtles'))
     init_t[:] = t_init
-    #Global variables
+    
+    # Global variables
     nc_o.title = 'Output variables from Sea Turtle Active Movement Model'
     nc_o.tstep = float(param['tstep'])
     nc_o.adv_scheme = param['adv_scheme']
@@ -499,7 +495,7 @@ def modify_output(OutputFile, t_init, param):
 def round_t_release(t_release, param):
     """
     Round to 1h
-    #bug : Round to greatest common divisor (gcd) of tstep and t_output.
+    #bug if not 1h : Round to greatest common divisor (gcd) of tstep and t_output.
     """
     # round
     #gcd = math.gcd(param['tstep'], param['t_output']) # in seconds   

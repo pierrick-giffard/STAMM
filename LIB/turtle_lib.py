@@ -120,14 +120,105 @@ def compute_SCL_VGBF(SCL0, species, dt):
         k = 0.0981
         SCLmax = 1.09
     if dt > 10: #dt has to be small to respect local slope of growth curve
-        h = 10
+        h = 1
         SCL = SCL0
         for i in range(0, dt, h):
             SCL += k * (SCLmax - SCL) * h / 365
     else:
-        SCL = SCL0 + k * (SCLmax - SCL0) * dt / 365 #dt has to be in years --> 86400*365
+        SCL = SCL0 + k * (SCLmax - SCL0) * dt / 365 #dt has to be in years
     return SCL
 
+
+def scl2ccl_bjorndal(scl):
+    # scl in cm
+    return 1.053 * scl + 1.388
+
+def ccl2scl_bjorndal(ccl):
+    # scl in cm
+    return (ccl - 1.388) / 1.053
+
+def increment_SCL_bjorndal(scl0, dt=1):
+    """
+    Bjorndal Azores 2010, 
+    dt: in days
+    scl0 : in cm
+    """
+    k = 0.072
+    A = 105.5
+    CCL = True
+    #
+    scl = increment_SCL(scl0, dt, k, A, CCL)
+    return scl
+
+def increment_SCL_Piovano_Atl(scl0, dt=1):
+    """
+    Piovano Atlantic (slow growth)
+    """
+    k = 0.023
+    A = 124
+    CCL = True
+    #
+    scl = increment_SCL(scl0, dt, k, A, CCL)
+    return scl
+
+def increment_SCL_Frazer(scl0, dt=1):
+    """
+    Frazer Florida (fast growth)
+    """
+    k = 0.12
+    A = 94.6
+    CCL = False
+    #
+    scl = increment_SCL(scl0, dt, k, A, CCL)
+    return scl
+
+def increment_SCL(scl0, dt, k, A, CCL):
+    """
+    dt: in days
+    scl0 : in cm
+    A : SCL_inf in cm
+    """
+    if CCL:
+        scl0 = scl2ccl_bjorndal(np.array(scl0))
+    #
+    dldt = k * (A - scl0)
+    #
+    scl = scl0 + dldt * dt / 365
+    if CCL:
+        scl = ccl2scl_bjorndal(scl)
+    return scl
+    
+
+def SCL_from_SCL0(SCL0, SCL_inf, k, t, CCL = False):
+    """
+    Compute Von Bertalanffy growth from an initial SCL0 different from hatchling SCL0.
+    t in years, SCL in meters
+    CCL: set to true if ALL parameters refer to CCL instead of SCL.
+    """
+    # Piovano Atlantic (slow growth): k = 0.023, SCL_inf = 1.24 m, CCL = True
+    # Bjorndal Azores (mean growth): k = 0.072, SCL_inf = 1.055 m, CCL = True
+    # Frazer Florida (fast growth): k = 0.12, SCL_inf = 0.946 m, CCL = False
+    if CCL:
+        SCL0 = scl2ccl_peckham(SCL0) 
+    
+    SCL = SCL_inf + (SCL0 - SCL_inf) * np.exp(-k * t)
+    
+    if CCL:
+        SCL = ccl2scl_peckham(SCL)
+    return SCL
+
+
+
+
+def ccl2scl_peckham(ccl):
+    "scl in meters"
+    scl = 0.932 * ccl * 100  + 0.369
+    return(scl / 100)
+
+def scl2ccl_peckham(scl):
+    "ccl in meters"
+    ccl = (scl * 100 - 0.369) / 0.932
+    return(ccl / 100)
 
 def age_to_SCL(age,species) :
 

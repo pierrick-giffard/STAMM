@@ -17,6 +17,8 @@ start / end : day of first / last file
 from  datetime import datetime, timedelta
 import netCDF4
 import sys
+import numpy as np
+import math
 
 # =============================================================================
 # INPUTS
@@ -33,11 +35,10 @@ time_var = 'time'
 
 # var names
 variable = 'npp'
-current_FillValue = 'Hole_Value'
+current_FillValue = 'fill_value'
 rename_FillValue = '_FillValue'
 
 # if FillValue does not exist yet
-current_value = 9.969209968386869e+36
 new_value = -9999
 
 
@@ -58,7 +59,7 @@ date_end = t1
 while (current_date <= date_end):
     day = (current_date - datetime(current_date.year,1,1)).days + 1
     day_str = str(("%03d") %day)
-    file = data_dir + prefix + str(current_date.year) + day_str + suffix
+    file = data_dir + '/' + prefix + str(current_date.year) + day_str + suffix
     print(file)
     nc = netCDF4.Dataset(file,'r+')
     npp = nc.variables[variable]
@@ -66,11 +67,11 @@ while (current_date <= date_end):
         npp.renameAttribute(current_FillValue,rename_FillValue)
     except:
         print('%s not found, create FillValue'%current_FillValue)
-        if current_value != new_value:
-            npp_new = np.where(npp == current_value, new_value, npp)
-            print(npp == current_value)
-        
-    
+        npp_new = np.where(np.isnan(npp), new_value, npp)
+        npp.fill_value = new_value
+        npp[:] = npp_new
+        npp.renameAttribute(current_FillValue,rename_FillValue)
+
     if (current_date + timedelta(days=dt)).year != current_date.year:
         current_date = datetime(current_date.year + 1, 1, 1)
         
