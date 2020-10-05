@@ -169,10 +169,13 @@ def compute_t_release(t_init, fieldset, param):
 
     t0_data_str = str(fieldset.U.grid.__dict__['time_origin'])[:-3] # U time origin (str)
     t0_data = datetime.strptime(t0_data_str, '%Y-%m-%dT%H:%M:%S.%f') # U time origin (datetime)
-    t0_release = (datetime(param['ystart'],1,1) + timedelta(days=np.min(t_init)) - t0_data) # dt between first release and first data file (datetime)
+    t0_release = datetime(param['ystart'],1,1) + timedelta(days=np.min(t_init)) - t0_data # dt between first release and first data file (datetime)
     t_release = (t_init - np.min(t_init)) * 86400 + t0_release.total_seconds() # release time for each turtle in seconds
-      
-    return round_t_release(t_release, param)
+
+    # Round release time to hour
+    t_release = round_t_release(t_release + t0_data.minute * 60, param) - t0_data.minute * 60 
+    
+    return t_release
 
 
      
@@ -188,7 +191,7 @@ def create_particleset(fieldset, pclass, lon, lat, t_release, param):
 
     # Create ParticleSet
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
-
+    print(t_release)
     # Execute 1 dt kernels
     pset.execute(pk.CheckOnLand, dt=0)
 
@@ -415,7 +418,6 @@ def sum_kernels(k_adv, k_active, k_passive):
     for k in print_kernels:
         print(k, "\n")
     print('****************************************************')
-    
     return kernels
 
 
@@ -495,10 +497,7 @@ def modify_output(OutputFile, t_init, param):
 def round_t_release(t_release, param):
     """
     Round to 1h
-    #bug if not 1h : Round to greatest common divisor (gcd) of tstep and t_output.
     """
-    # round
-    #gcd = math.gcd(param['tstep'], param['t_output']) # in seconds   
     gcd = 3600
     return gcd * np.round(t_release / gcd )
           

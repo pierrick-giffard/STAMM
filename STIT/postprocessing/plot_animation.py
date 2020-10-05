@@ -37,7 +37,7 @@ end_day = param['ndays_simu']
 # =============================================================================
 
 #background
-hab_mode = 'npp' # 'npp', 'temp', 'tot', 'current', 'void'
+hab_mode = 'current' # 'npp', 'temp', 'tot', 'current', 'void'
 #option 'void' for no background,
 
 mortality = False #set to False not to calculate dead turtles
@@ -58,8 +58,8 @@ hourly = True
 
 ## Overwrite Auto parameters
 #last_turtle = 100
-start_day = 1600#8990#8900
-end_day = 1800#9050#8950
+start_day = 70490#8990#8900
+end_day = 70550#9050#8950
 
 #gridfile for NPP lon/lat
 gridfile = '/data/rd_exchange2/tcandela/STAMM/ressources/VGPM/VGPM_083_mesh.nc'
@@ -112,10 +112,10 @@ coef_SMR=5.
 lonmin, lonmax, latmin, latmax = read_json_domain(zone_file, zone)
 
 # to overwrite zone:
-lonmin = -61.5
-lonmax = -60.5
-latmin = 14
-latmax = 15
+lonmin = 5
+lonmax = 11
+latmin = 5
+latmax = 7
 
 
 # =============================================================================
