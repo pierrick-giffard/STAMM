@@ -216,8 +216,8 @@ The swimming velocity is supposed constant over a whole timestep.
 
 ## Land mask
 
-In STAMM, all variables are set to 0 on land so that habitat gradient is directed towards ocean and turtles avoid beaching.
-Physical land mask can be different from food land mask. Then, land corresponds to the physical land mask. Most turtles won&#39;t enter into the food land mask because habitat is set to 0. If they do so, they could be &#39;lost&#39; because there won&#39;t be any habitat gradient because habitat will be 0 everywhere.
+In STAMM, all variables are set to 0 on land so that habitat gradient is directed towards ocean and turtles avoid beaching. Land corresponds to the physical land mask, and more precisely a turtle is on land when the 4 surrounding points are masked points.
+Physical land mask can be different from food land mask, but it can generate problems. Most turtles won&#39;t enter into the food land mask because habitat is set to 0. If they do so, they could be &#39;lost&#39; because there won&#39;t be any habitat gradient because habitat will be 0 everywhere.
 
 ## Disabled turtles
 
