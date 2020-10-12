@@ -257,9 +257,10 @@ def display_colorbar(f,im, ax_cb, label):
     cb.outline.set_linewidth(0.5)
     cb.ax.xaxis.set_tick_params(width=0.5)
 
-def display_tracks(ax, lat='NA',lon='NA',dates='NA',ms=0.00,col='b', marker= 'o',alpha=0.5) :
+def display_tracks(ax, lat='NA',lon='NA',dates='NA',ms=0.00,col='b', marker= 'o',alpha=0.5,label=None) :
     """ """
-    ax.scatter(lon, lat, marker=marker,s=ms, edgecolor='none',c=col, alpha=alpha, zorder=100)
+    ax.scatter(lon, lat, marker=marker,s=ms, edgecolor='none',c=col, alpha=alpha, zorder=100,label=label)
+    return ax
 
 def plot_map(ax, latmin, latmax, lonmin, lonmax,value=0.6,res=0.25,alpha=1, lon_space=20,lat_space=10) :
     """ Plot continents. """
@@ -276,6 +277,8 @@ def plot_map(ax, latmin, latmax, lonmin, lonmax,value=0.6,res=0.25,alpha=1, lon_
     map.drawcountries(color='k',linewidth=0.01,zorder=0.3)
     map.drawcoastlines(color='grey',linewidth=0.2,zorder=0.3)
     map.fillcontinents(color='0.35')
+    
+    return ax
 
 def getTicks(lmin, lmax, step):
     lmaxabs = (int(max(abs(lmax), abs(lmin)))/step+1)*step
