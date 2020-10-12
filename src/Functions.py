@@ -191,7 +191,7 @@ def create_particleset(fieldset, pclass, lon, lat, t_release, param):
 
     # Create ParticleSet
     pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
-    print(t_release)
+
     # Execute 1 dt kernels
     pset.execute(pk.CheckOnLand, dt=0)
 
@@ -334,6 +334,8 @@ def define_passive_kernels(fieldset, pset, param):
                     pk.BeachTesting, 
                     pk.UndoMove]
     #
+    if mode == 'active':
+        kernels_list.append(ak.BeachEscape)
     if mode == 'passive':
         kernels_list.append(pk.SampleCurrent)
         if key_alltracers:
@@ -350,7 +352,7 @@ def define_passive_kernels(fieldset, pset, param):
 
 def define_active_kernels(pset, param):
     """
-    Function that defines additional kernel that will be used for computation.
+    Function that define additional kernel that will be used for computation.
     Parameters:
         -pset: ParticleSet
         -param: needs mode (active or passive) and species (leatherback, loggerhead or green)

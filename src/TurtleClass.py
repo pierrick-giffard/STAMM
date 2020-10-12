@@ -11,11 +11,12 @@ from operator import attrgetter
 
 def define_Turtle_Class(fieldset, param):
     class turtle(JITParticle):
-        #Sampling
+        # Sampling
         if param['key_alltracers']:
             T = Variable('T', to_write=True, dtype=np.float32)
             NPP = Variable('NPP', to_write=True, dtype=np.float32)
-        #All particles
+            
+        # All particles            
         active = Variable('active', to_write=True, initial=1, dtype=np.float32)
         prev_lon = Variable('prev_lon', to_write=False, dtype=np.float64, initial=attrgetter('lon'))
         prev_lat = Variable('prev_lat', to_write=False, dtype=np.float64, initial=attrgetter('lat'))
@@ -24,18 +25,19 @@ def define_Turtle_Class(fieldset, param):
         age = Variable('age', to_write=True, dtype=np.float64, initial=0.)
         onland = Variable('onland', to_write=False, dtype=np.float32, initial=0.) #number of beachings in a row
         beached = Variable('beached', to_write=False, dtype=np.float32, initial=0.) #0=ocean, 1=onland
-        t = Variable('t', to_write=False, dtype=np.float32, initial=fieldset.tactic_factor)
         SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=fieldset.SCL0)
         if param['mode'] == 'passive':
             u_swim = Variable('u_swim', to_write=False, dtype=np.float32)
             v_swim = Variable('v_swim', to_write=False, dtype=np.float32)
-        #Mortality
+            
+        # Mortality
         if param['cold_death']:
             lethargy_time = Variable('lethargy_time', to_write=False, dtype=np.float32, initial=0.) #time spent under Tmin
             cold_death = Variable('cold_death', to_write=True, dtype=np.float32, initial=0)
         if param['cold_death'] or param['mode'] == 'active':
             Tmin = Variable('Tmin', to_write=False, dtype=np.float32, initial=fieldset.Tmin)
-        #Active
+        
+        # Active
         if param['mode'] == 'active':
             u_swim = Variable('u_swim', to_write=True, dtype=np.float32)
             v_swim = Variable('v_swim', to_write=True, dtype=np.float32)
@@ -46,12 +48,17 @@ def define_Turtle_Class(fieldset, param):
             habPP = Variable('habPP', to_write=True, dtype=np.float32)
             hab = Variable('hab', to_write=True, dtype=np.float32)
             theta = Variable('theta', to_write=False, dtype=np.float32)
+            alpha = Variable('alpha', to_write=False, dtype=np.float32, initial=fieldset.alpha)
+            grad_dx = Variable('grad_dx', to_write=False, dtype=np.float32, initial=fieldset.grad_dx)
+            t = Variable('t', to_write=False, dtype=np.float32, initial=fieldset.tactic_factor)        
             xgradh = Variable('xgradh', to_write=True, dtype=np.float32)
             ygradh = Variable('ygradh', to_write=True, dtype=np.float32)
             Topt = Variable('Topt', to_write=False, dtype=np.float32, initial=fieldset.Topt)
             compute_swim = Variable('compute_swim', to_write=False, dtype=np.float32, initial=1)
             if param['growth'] == 'Gompertz':
                 K = Variable('K', to_write=False, dtype=np.float32, initial=fieldset.K0)
+        
+        # Frenzy
         if param['frenzy'] or param['wave_swim']:
             frenzy_speed = Variable('frenzy_speed', to_write=False, dtype=np.float32)
             frenzy_theta = Variable('frenzy_theta', to_write=False, dtype=np.float32)

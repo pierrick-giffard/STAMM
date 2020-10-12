@@ -61,8 +61,8 @@ def compute_habitat(particle, fieldset, time):
     """
     if particle.active and particle.compute_swim:
         #Convert dx to lon and lat
-        dx_lon =  fieldset.grad_dx / (fieldset.deg * cos(particle.lat * math.pi / 180)) 
-        dx_lat =  fieldset.grad_dx / fieldset.deg
+        dx_lon =  particle.grad_dx / (fieldset.deg * cos(particle.lat * math.pi / 180)) 
+        dx_lat =  particle.grad_dx / fieldset.deg
         #
         #Get 5 T and 5 NPP
         #
@@ -186,9 +186,8 @@ def compute_swimming_direction(particle, fieldset, time):
         
         #Compute theta
         prev_theta = particle.theta
-        current_theta = random.vonmisesvariate(theta0,fieldset.alpha*grad)
+        current_theta = random.vonmisesvariate(theta0,particle.alpha*grad)
         particle.theta = atan2((particle.t * sin(current_theta) + (1 - particle.t) * sin(prev_theta)) , (particle.t * cos(current_theta) + (1 - particle.t) * cos(prev_theta)))
-        particle.t = fieldset.tactic_factor #re-initialize tactic factor in case particle beached
         #
         if particle.theta < 0:
             particle.theta += 2 * math.pi #theta0 has to be between 0 and 2*pi for VonMises
@@ -272,7 +271,7 @@ def swimming_frenzy(particle, fieldset, time):
 def cold_induced_mortality(particle, fieldset, time):
     """
     Increment particle.lethargy_time if T < Tmin.
-    If particle.lethargy_time > cold_resistance, then delete particle.
+    If particle.lethargy_time > cold_resistance, then delete d = fmod(particle.age * 86400, fieldset.dt_swim)particle.
     """
     if particle.active:
         if fieldset.T[time, particle.depth, particle.lat, particle.lon] < particle.Tmin:
@@ -293,16 +292,32 @@ def check_swim(particle, fieldset, time):
         if particle.beached:
             particle.compute_swim = 1
         else:
-            mod = fmod(particle.age * 86400, fieldset.dt_swim)            
+            mod = fmod(particle.age * 86400, fieldset.dt_swim)           
             if mod > fieldset.dt_swim - particle.dt / 2 or mod <= particle.dt / 2:
                 particle.compute_swim = 1
             
             else:
                 particle.compute_swim = 0
 
+            
+def BeachEscape(particle, fieldset, time):
+    """
+    To escape beaching an other time. When beached, the following
+        -reduce grad_dx to grid resolution.
+        -set tactic_factor to 1 (no memory)
+        -set alpha to 10000 (very directed swimming)
+    """
+    if particle.active:
+        if particle.beached:
+            particle.grad_dx = 1/12 * fieldset.deg * math.cos(particle.lat * math.pi / 180) # change grad_dx to grid resolution
+            particle.t = 1. # set tactic factor to 1 (no memory)
+            particle.alpha = 10000. # very directed swimming
+        else:
+            particle.grad_dx = fieldset.grad_dx # re-initialize grad_dx
+            particle.t = fieldset.tactic_factor # re-initialize tactic factor 
+            particle.alpha = fieldset.alpha  # re-initialize alpha
 
-
-
+       
 
 
 

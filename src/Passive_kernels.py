@@ -85,8 +85,6 @@ def Periodic(particle, fieldset, time):
         elif particle.lon > fieldset.halo_east:
             particle.lon -= fieldset.halo_east - fieldset.halo_west
 
-
-
     
     
 def DeleteParticle(particle, fieldset, time):
@@ -132,17 +130,14 @@ def UndoMove(particle, fieldset, time):
         if particle.beached == 1:
             #print('Particle [%d] beached at lon,lat = %f,%f and time = %f'%(particle.id,particle.lon,particle.lat,particle.time))                       
             particle.lon = particle.prev_lon
-            #print('new lon: %f'%particle.lon) 
             particle.lat = particle.prev_lat
             particle.onland += 1
-            particle.t = 1 #set tactic factor to 1 (no memory)
             #
             if particle.onland > onland_max:
                 print("Particle [%d] was disabled after beaching 50 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
                 particle.active = 0
         else:
             particle.onland = 0
-
 
 
 
