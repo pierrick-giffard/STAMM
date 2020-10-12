@@ -58,6 +58,7 @@ ndays_simu += max(t_init) - min(t_init)
 # FIELDSET, CLASS AND PARTICLESET
 # ========================================================================
 fieldset = fc.create_fieldset(param, ndays_simu, t_init)
+print((fieldset.U.__dict__['lat'][-1] - fieldset.U.__dict__['lat'][0])/len(fieldset.U.__dict__['lat']))
 fc.initialization(fieldset, ndays_simu, param)
 t_release = fc.compute_t_release(t_init, fieldset, param)
 

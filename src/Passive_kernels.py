@@ -66,8 +66,7 @@ def SampleTracers(particle, fieldset, time):
         
 def SampleCurrent(particle, fieldset, time):
     """
-    Sample u_current and v_current in passive mode.
-    In active mode, sampling is integrated to advection kernel.
+    Sample u_current and v_current.
     """
     if particle.active:
         uc, vc = fieldset.UV[time, particle.depth, particle.lat, particle.lon]

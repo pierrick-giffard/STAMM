@@ -330,20 +330,20 @@ def define_passive_kernels(fieldset, pset, param):
         compute_SCL = pk.compute_SCL_Gompertz
     kernels_list = [pk.store_variables,
                     compute_SCL,
-                    pk.IncrementAge, 
+                    pk.IncrementAge,
+                    pk.SampleCurrent,
                     pk.BeachTesting, 
                     pk.UndoMove]
-    #
+    
     if mode == 'active':
         kernels_list.append(ak.BeachEscape)
-    if mode == 'passive':
-        kernels_list.append(pk.SampleCurrent)
-        if key_alltracers:
-            kernels_list.append(pk.SampleTracers)
-    #
+    
+    if mode == 'passive' and key_alltracers:
+        kernels_list.append(pk.SampleTracers)
+    
     if periodicBC:
         kernels_list.append(pk.Periodic)
-    #
+    
     for k in range(len(kernels_list)):
         kernels_list[k]=pset.Kernel(kernels_list[k])  
     return kernels_list
