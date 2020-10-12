@@ -6,7 +6,7 @@ Definition of kernels used for all particles (both in active and passive modes).
 
 import math
 
-def store_variables(particle, fieldset, time):
+def StoreVariables(particle, fieldset, time):
     """
     Store lon/lat before the are re-written.
     Has to be the first kernel.

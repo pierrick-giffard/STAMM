@@ -11,19 +11,19 @@ from parcels import random
 
 
 
-def compute_Mass(particle, fieldset, time):
+def ComputeMass(particle, fieldset, time):
     "Compute mass (kg). SCL is in meters."
     if particle.active and particle.compute_swim:
         particle.M = fieldset.a*(particle.SCL)**fieldset.b
 
-def compute_Tmin_Topt(particle, fieldset, time): 
+def Compute_Tmin_Topt(particle, fieldset, time): 
     if particle.active and particle.compute_swim:
         particle.Topt = fieldset.T0 - fieldset.to * sqrt(particle.M)
         particle.Tmin = fieldset.T0 - fieldset.tm * sqrt(particle.M)
 
 
 
-def compute_PPmax_VGBF(particle, fieldset, time):
+def ComputePPmax_VGBF(particle, fieldset, time):
     """
     Compute food threshold.
     """
@@ -33,7 +33,7 @@ def compute_PPmax_VGBF(particle, fieldset, time):
         particle.PPmax = PPnorm * fieldset.P0
     
 
-def compute_PPmax_Gompertz(particle, fieldset, time):
+def ComputePPmax_Gompertz(particle, fieldset, time):
     """
     Assume F = c*M
     """
@@ -42,7 +42,7 @@ def compute_PPmax_Gompertz(particle, fieldset, time):
         particle.PPmax = PPnorm * fieldset.P0
 
 
-def compute_vmax(particle, fieldset, time):
+def ComputeVmax(particle, fieldset, time):
     """
     Compute maximum speed at current age.
     """
@@ -51,7 +51,7 @@ def compute_vmax(particle, fieldset, time):
 
 
 
-def compute_habitat(particle, fieldset, time):
+def ComputeHabitat(particle, fieldset, time):
     """
     Computes habitat at position, left, right, bottom and top.
     Computes habitat gradients.
@@ -169,7 +169,7 @@ def compute_habitat(particle, fieldset, time):
 
 
 
-def compute_swimming_direction(particle, fieldset, time):
+def ComputeSwimmingDirection(particle, fieldset, time):
     """
     Compute particule.theta
     Theta has to be between 0 and 2*pi for random.vommises, 0 corresponding to east.
@@ -194,7 +194,7 @@ def compute_swimming_direction(particle, fieldset, time):
 
 
 
-def compute_swimming_velocity(particle, fieldset, time):
+def ComputeSwimmingVelocity(particle, fieldset, time):
     """
     Compute particule.u_swim and particle.v_swim
     """
@@ -203,7 +203,7 @@ def compute_swimming_velocity(particle, fieldset, time):
         particle.v_swim = particle.vmax * (1-particle.hab) * sin(particle.theta)
 
 
-def compute_frenzy_speed(particle, fieldset, time):
+def ComputeFrenzySpeed(particle, fieldset, time):
     """
     Compute linear decrease of frenzy speed over days or constant speed.
     """
@@ -303,13 +303,13 @@ def check_swim(particle, fieldset, time):
 def BeachEscape(particle, fieldset, time):
     """
     To escape beaching an other time. When beached, the following
-        -reduce grad_dx to grid resolution.
+        -reduce grad_dx to grid resolution (fieldset.res).
         -set tactic_factor to 1 (no memory)
         -set alpha to 10000 (very directed swimming)
     """
     if particle.active:
         if particle.beached:
-            particle.grad_dx = 1/12 * fieldset.deg * math.cos(particle.lat * math.pi / 180) # change grad_dx to grid resolution
+            particle.grad_dx = fieldset.res * fieldset.deg * math.cos(particle.lat * math.pi / 180) # change grad_dx to grid resolution
             particle.t = 1. # set tactic factor to 1 (no memory)
             particle.alpha = 10000. # very directed swimming
         else:

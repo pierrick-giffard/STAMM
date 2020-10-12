@@ -207,15 +207,38 @@ def create_particleset(fieldset, pclass, lon, lat, t_release, param):
 # =============================================================================
 # CONSTANT PARAMETERS
 # =============================================================================
+def grid_resolution(fieldset):
+    """
+    Find grid resolution (in degrees).
+    It is the smallest cell width or height.
+    """
+    lat = fieldset.U.__dict__['lat']
+    lon = fieldset.U.__dict__['lon']
+    
+    try: # 1D lon/lat
+        dx = lon[1:] - lon[:-1]
+        dy = lat[1:] - lat[:-1]
+
+    except: # 2D lon/lat
+        print('WARNING: 2D grid. Resolution might be poorly estimated')
+        dx = lon[:,1:] - lon[:,:-1]
+        dy = lat[1:,:] - lat[:-1,:]
+        
+    grid_res = min(np.min(dx), np.min(dy))
+    print('Grid resolution: ',grid_res, 'degrees')
+    
+    return grid_res
+
 def initialization(fieldset, ndays_simu, param):
     """
     Links constant parameters to fieldset in order to use them within kernels.
     """
-    fieldset.deg = 111120. #1degree = 111,120 km approx (same as in parcels)
-    fieldset.cold_resistance = param['cold_resistance'] * 86400 #from days to seconds
+    fieldset.deg = 111120. # 1 degree = 111,120 km approx (same as in parcels)
+    fieldset.cold_resistance = param['cold_resistance'] * 86400 # from days to seconds
     fieldset.ndays_simu = ndays_simu
     fieldset.tactic_factor = param['tactic_factor']
     fieldset.SCL0 = param['SCL0']
+    fieldset.res = grid_resolution(fieldset)
     
     if param['species'] == 'leatherback':
         file = leath
@@ -328,7 +351,7 @@ def define_passive_kernels(fieldset, pset, param):
         compute_SCL = pk.compute_SCL_VGBF  
     elif growth == 'Gompertz':
         compute_SCL = pk.compute_SCL_Gompertz
-    kernels_list = [pk.store_variables,
+    kernels_list = [pk.StoreVariables,
                     compute_SCL,
                     pk.IncrementAge,
                     pk.SampleCurrent,
@@ -365,22 +388,22 @@ def define_active_kernels(pset, param):
     kernels_list = []
     if mode == 'active':
         if growth == 'VGBF':
-            compute_PPmax = ak.compute_PPmax_VGBF   
+            ComputePPmax = ak.ComputePPmax_VGBF   
         elif growth == 'Gompertz':
-            compute_PPmax = ak.compute_PPmax_Gompertz
+            ComputePPmax = ak.ComputePPmax_Gompertz
         kernels_list = [ak.check_swim,
-                        ak.compute_Mass,
-                        compute_PPmax,
-                        ak.compute_vmax,
-                        ak.compute_habitat,
-                        ak.compute_swimming_direction,
-                        ak.compute_swimming_velocity]
+                        ak.ComputeMass,
+                        ComputePPmax,
+                        ak.ComputeVmax,
+                        ak.ComputeHabitat,
+                        ak.ComputeSwimmingDirection,
+                        ak.ComputeSwimmingVelocity]
         if param['Tmin_Topt'] == 'variable':
-            kernels_list.insert(2, ak.compute_Tmin_Topt) #Needs to be after compute_Mass
+            kernels_list.insert(2, ak.Compute_Tmin_Topt) #Needs to be after compute_Mass
     
     # Frenzy
     if param['frenzy'] or param['wave_swim']:
-        kernels_list.append(ak.compute_frenzy_speed)
+        kernels_list.append(ak.ComputeFrenzySpeed)
     if param['frenzy']:        
         kernels_list.append(ak.compute_frenzy_theta)       
     if param['wave_swim']:
