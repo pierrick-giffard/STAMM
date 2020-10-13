@@ -16,7 +16,7 @@ def ComputeMass(particle, fieldset, time):
     if particle.active and particle.compute_swim:
         particle.M = fieldset.a*(particle.SCL)**fieldset.b
 
-def Compute_Tmin_Topt(particle, fieldset, time): 
+def ComputeTminTopt(particle, fieldset, time): 
     if particle.active and particle.compute_swim:
         particle.Topt = fieldset.T0 - fieldset.to * sqrt(particle.M)
         particle.Tmin = fieldset.T0 - fieldset.tm * sqrt(particle.M)
@@ -219,7 +219,7 @@ def ComputeFrenzySpeed(particle, fieldset, time):
             exit(0)
 
 
-def compute_frenzy_theta(particle, fieldset, time):
+def ComputeFrenzyTheta(particle, fieldset, time):
     """
     Compute frenzy_theta with a von mises distribution of
     mean angle fieldset.frenzy_theta and deviation kappa.
@@ -239,7 +239,7 @@ def compute_frenzy_theta(particle, fieldset, time):
 
 
     
-def compute_wave_direction(particle, fieldset, time):
+def ComputeWaveDirection(particle, fieldset, time):
     """
     Compute opposite of wave direction based on Stokes drift (angle in rad with respect to east).
     In case Stokes Drift is 0 (i.e. on mask), return east (arbitrary direction !!!)
@@ -255,7 +255,7 @@ def compute_wave_direction(particle, fieldset, time):
             
           
   
-def swimming_frenzy(particle, fieldset, time):
+def SwimmingFrenzy(particle, fieldset, time):
     """
     Swim towards frenzy_theta (angle in rad defined with respect to east)
     during frenzy_duration days at a velocity of frenzy_speed m/s
@@ -268,7 +268,7 @@ def swimming_frenzy(particle, fieldset, time):
         
         
     
-def cold_induced_mortality(particle, fieldset, time):
+def ColdInducedMortality(particle, fieldset, time):
     """
     Increment particle.lethargy_time if T < Tmin.
     If particle.lethargy_time > cold_resistance, then delete d = fmod(particle.age * 86400, fieldset.dt_swim)particle.
@@ -283,7 +283,7 @@ def cold_induced_mortality(particle, fieldset, time):
             particle.lethargy_time = 0
 
  
-def check_swim(particle, fieldset, time):
+def CheckSwim(particle, fieldset, time):
     """
     Determines whether if compute_swim is True or False.
     Swimming velocity is re-calculated after beaching.
@@ -311,7 +311,7 @@ def BeachEscape(particle, fieldset, time):
         if particle.beached:
             particle.grad_dx = fieldset.res * fieldset.deg * math.cos(particle.lat * math.pi / 180) # change grad_dx to grid resolution
             particle.t = 1. # set tactic factor to 1 (no memory)
-            particle.alpha = 10000. # very directed swimming
+            particle.alpha = 1e10 # very directed swimming
         else:
             particle.grad_dx = fieldset.grad_dx # re-initialize grad_dx
             particle.t = fieldset.tactic_factor # re-initialize tactic factor 

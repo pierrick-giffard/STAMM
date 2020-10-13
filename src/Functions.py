@@ -391,7 +391,7 @@ def define_active_kernels(pset, param):
             ComputePPmax = ak.ComputePPmax_VGBF   
         elif growth == 'Gompertz':
             ComputePPmax = ak.ComputePPmax_Gompertz
-        kernels_list = [ak.check_swim,
+        kernels_list = [ak.CheckSwim,
                         ak.ComputeMass,
                         ComputePPmax,
                         ak.ComputeVmax,
@@ -399,20 +399,20 @@ def define_active_kernels(pset, param):
                         ak.ComputeSwimmingDirection,
                         ak.ComputeSwimmingVelocity]
         if param['Tmin_Topt'] == 'variable':
-            kernels_list.insert(2, ak.Compute_Tmin_Topt) #Needs to be after compute_Mass
+            kernels_list.insert(2, ak.ComputeTminTopt) #Needs to be after compute_Mass
     
     # Frenzy
     if param['frenzy'] or param['wave_swim']:
         kernels_list.append(ak.ComputeFrenzySpeed)
     if param['frenzy']:        
-        kernels_list.append(ak.compute_frenzy_theta)       
+        kernels_list.append(ak.ComputeFrenzyTheta)       
     if param['wave_swim']:
-        kernels_list.append(ak.compute_wave_direction)       
+        kernels_list.append(ak.ComputeWaveDirection)       
     if param['frenzy'] or param['wave_swim']:      
-        kernels_list.append(ak.swimming_frenzy)
+        kernels_list.append(ak.SwimmingFrenzy)
         
     if param['cold_death']:
-        kernels_list.append(ak.cold_induced_mortality)
+        kernels_list.append(ak.ColdInducedMortality)
         
     for k in range(len(kernels_list)):
         kernels_list[k]=pset.Kernel(kernels_list[k]) 
