@@ -23,8 +23,7 @@ def define_Turtle_Class(fieldset, param):
         u_current = Variable('u_current', to_write=True, dtype=np.float32)
         v_current = Variable('v_current', to_write=True, dtype=np.float32)
         age = Variable('age', to_write=True, dtype=np.float64, initial=0.)
-        onland = Variable('onland', to_write=False, dtype=np.float32, initial=0.) #number of beachings in a row
-        beached = Variable('beached', to_write=False, dtype=np.float32, initial=0.) #0=ocean, 1=onland
+        beached = Variable('beached', to_write=False, dtype=np.float32, initial=0.) #0=ocean, >1=onland
         SCL = Variable('SCL', to_write=True, dtype=np.float32, initial=fieldset.SCL0)
         if param['mode'] == 'passive':
             u_swim = Variable('u_swim', to_write=False, dtype=np.float32)

@@ -186,7 +186,7 @@ def create_particleset(fieldset, pclass, lon, lat, t_release, param):
     print('****************************************************')
     print("Building ParticleSet...")
     print('****************************************************')
-    
+
     t0 = time.time()
 
     # Create ParticleSet
@@ -238,7 +238,7 @@ def initialization(fieldset, ndays_simu, param):
     fieldset.ndays_simu = ndays_simu
     fieldset.tactic_factor = param['tactic_factor']
     fieldset.SCL0 = param['SCL0']
-    fieldset.res = grid_resolution(fieldset)
+    fieldset.resolution = grid_resolution(fieldset)
     
     if param['species'] == 'leatherback':
         file = leath

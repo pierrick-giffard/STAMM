@@ -111,7 +111,7 @@ def BeachTesting(particle, fieldset, time):
     if particle.active:
         (u, v) = fieldset.UV[time, particle.depth, particle.lat, particle.lon]
         if math.fabs(u) < 1e-14 and math.fabs(v) < 1e-14:
-            particle.beached = 1
+            particle.beached += 1
         else:
             particle.beached = 0
 
@@ -130,13 +130,12 @@ def UndoMove(particle, fieldset, time):
             #print('Particle [%d] beached at lon,lat = %f,%f and time = %f'%(particle.id,particle.lon,particle.lat,particle.time))                       
             particle.lon = particle.prev_lon
             particle.lat = particle.prev_lat
-            particle.onland += 1
             #
-            if particle.onland > onland_max:
+            if particle.beached > onland_max:
                 print("Particle [%d] was disabled after beaching 50 times in a row at lon,lat = %f,%f"%(particle.id,particle.lon,particle.lat))
                 particle.active = 0
         else:
-            particle.onland = 0
+            particle.beached = 0
 
 
 

@@ -302,16 +302,23 @@ def CheckSwim(particle, fieldset, time):
             
 def BeachEscape(particle, fieldset, time):
     """
-    To escape beaching an other time. When beached, the following
-        -reduce grad_dx to grid resolution (fieldset.res).
+    To escape beaching an other time.
+    If first time to beach:
+        -reduce grad_dx to grid resolution (fieldset.resolution)
         -set tactic_factor to 1 (no memory)
-        -set alpha to 10000 (very directed swimming)
+        -set alpha to 1e10 (very directed swimming)
+    If beached more than 1 time in a row:
+        -set swimming direction to the opposite of previous swimming direction
     """
     if particle.active:
-        if particle.beached:
-            particle.grad_dx = fieldset.res * fieldset.deg * math.cos(particle.lat * math.pi / 180) # change grad_dx to grid resolution
+        if particle.beached == 1:
+            particle.grad_dx = fieldset.resolution * fieldset.deg * math.cos(particle.lat * math.pi / 180) # change grad_dx to grid resolution
             particle.t = 1. # set tactic factor to 1 (no memory)
             particle.alpha = 1e10 # very directed swimming
+        
+        elif particle.beached > 1:
+            particle.theta = particle.theta + math.pi # opposite of previous direction
+        
         else:
             particle.grad_dx = fieldset.grad_dx # re-initialize grad_dx
             particle.t = fieldset.tactic_factor # re-initialize tactic factor 
