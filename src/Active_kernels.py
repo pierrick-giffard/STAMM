@@ -311,18 +311,21 @@ def BeachEscape(particle, fieldset, time):
         -set swimming direction to the opposite of previous swimming direction
     """
     if particle.active:
-        if particle.beached == 1:
+        if particle.beached == 0 :
+            particle.grad_dx = fieldset.grad_dx # re-initialize grad_dx
+            particle.t = fieldset.tactic_factor # re-initialize tactic factor 
+            particle.alpha = fieldset.alpha  # re-initialize alpha
+
+        elif particle.beached == 1:
             particle.grad_dx = fieldset.resolution * fieldset.deg * math.cos(particle.lat * math.pi / 180) # change grad_dx to grid resolution
             particle.t = 1. # set tactic factor to 1 (no memory)
             particle.alpha = 1e10 # very directed swimming
         
-        elif particle.beached > 1:
+        elif particle.beached == 2:
             particle.theta = particle.theta + math.pi # opposite of previous direction
         
         else:
-            particle.grad_dx = fieldset.grad_dx # re-initialize grad_dx
-            particle.t = fieldset.tactic_factor # re-initialize tactic factor 
-            particle.alpha = fieldset.alpha  # re-initialize alpha
+            particle.alpha = 0 # uniform distribution
 
        
 

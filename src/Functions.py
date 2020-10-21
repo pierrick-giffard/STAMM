@@ -190,10 +190,10 @@ def create_particleset(fieldset, pclass, lon, lat, t_release, param):
     t0 = time.time()
 
     # Create ParticleSet
-    pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time = t_release)
+    pset = ParticleSet(fieldset, pclass=pclass, lon=lon, lat=lat, time=t_release)
 
     # Execute 1 dt kernels
-    pset.execute(pk.CheckOnLand, dt=0)
+    #pset.execute(pk.CheckOnLand, dt=0)
 
     #Time
     tt=time.time()-t0
@@ -524,5 +524,6 @@ def round_t_release(t_release, param):
     Round to 1h
     """
     gcd = 3600
-    return gcd * np.round(t_release / gcd )
+    t_rounded = np.array(gcd * np.round(t_release / gcd))
+    return t_rounded.astype(int)
           

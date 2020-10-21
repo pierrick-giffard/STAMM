@@ -56,7 +56,7 @@ beach_orientation = 'E' #'W' or 'E', for beach mode and square mode.
 release_zone_size = 0.25 #for square mode, release zone side size in degrees
 
 #total of released turtles
-nturtles = 1000
+nturtles = 1500
 
 ##zone to plot               #
 xmin = -81              #
