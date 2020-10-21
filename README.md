@@ -200,7 +200,7 @@ You can also use script _src/run\_stamm.sh_ to run STAMM, and then to execute so
 
 # Analyse and Visualize results with STIT
 
-You will find e few scripts to visualize the outputs in _STIT/postprocessing_:
+You will find a few scripts to visualize the outputs in _STIT/postprocessing_.
 
 # General remarks
 
@@ -210,14 +210,15 @@ STAMM is sensitive to forcings selection. In the namelist, you will provide a di
 
 If it doesn&#39;t work for your files, try to modify your file names or the function forcing\_list in Funtions.py.
 
-## Assumptions
 
-The swimming velocity is supposed constant over a whole timestep.
 
 ## Land mask
 
 In STAMM, all variables are set to 0 on land so that habitat gradient is directed towards ocean and turtles avoid beaching. Land corresponds to the physical land mask, and more precisely a turtle is on land when the 4 surrounding points are masked points.
 Physical land mask can be different from food land mask, but it can generate problems. Most turtles won&#39;t enter into the food land mask because habitat is set to 0. If they do so, they could be &#39;lost&#39; because there won&#39;t be any habitat gradient because habitat will be 0 everywhere.
+
+## Escape beaching
+A kernel was created so that turtle do not beach. If a turtle is about to beach,  it stays at the same position. At next time step, the parameter grad\_dx is set at the model grid resolution to avoid calculating ggradient further than 1 cell. In most cases the turtle will swim towards ocean. If it doesn't, at the next timestep it will take the opposite direction.
 
 ## Disabled turtles
 
