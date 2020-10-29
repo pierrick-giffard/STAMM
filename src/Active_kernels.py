@@ -7,7 +7,7 @@ Kernels used to compute swimming velocity and cold induced mortality.
 
 from math import sqrt, cos, sin, atan2, exp, log
 import math
-from parcels import random
+from parcels import random #ParcelsRandom
 
 
 

@@ -98,14 +98,14 @@ def read_namelist(filename, display=True):
     """
     All items are read as strings, they must be converted to correct type
     """
-    #Convert integers
-    for key in ['nturtles','ndays_simu','t_output','tstep','ystart','cold_resistance']:
+    # Convert integers
+    for key in ['nturtles','t_output','tstep','ystart','cold_resistance']:
         try:
             items[key] = int(items[key])
         except ValueError:
             sys.exit("ERROR : %s must be integer" %(key))
    
-    #Convert booleans
+    # Convert booleans
     for key in ['periodicBC','key_alltracers', 'cold_death','halo','frenzy','wave_swim','time_extrapolation']:
         if items[key] == '':
             print("\n WARNING: %s not found, set to False \n"%key)
@@ -117,7 +117,7 @@ def read_namelist(filename, display=True):
     # Species name to lower caracters
     items['species'] = items['species'].lower()
 
-    #Check mode
+    # Check mode
     items['mode'] = items['mode'].lower()
     if items['mode'] not in ['passive','active']:
         sys.exit("ERROR : mode must be 'passive' or 'active'")
@@ -128,14 +128,16 @@ def read_namelist(filename, display=True):
     if items['adv_scheme'] not in ['RK4','Euler']:
         sys.exit("ERROR : mode must be 'RK4' or 'Euler'")
     
-    #SCL
-    try:
-        items['SCL0'] = float(items['SCL0'])
-    except ValueError:
-        sys.exit("ERROR : %s must be float" %('SCL0'))
-   
+    # Convert floats
+    for key in ['SCL0', 'ndays_simu']:
+        try:
+            items[key] = float(items[key])
+        except ValueError:
+            sys.exit("ERROR : %s must be float" %key)
+        
+
     
-    #Active items
+    # Active items
     if items['mode']=='active':
         for key in ['alpha','P0','grad_dx','tactic_factor','dt_swim']:        
             try:
@@ -144,7 +146,7 @@ def read_namelist(filename, display=True):
                 sys.exit("ERROR : %s must be float" %(key))
                             
     
-    #Time periodic
+    # Time periodic
     if items['time_periodic'] == 'False':
         items['time_periodic'] = False
     elif items['time_periodic'] != 'auto':
@@ -280,12 +282,9 @@ def find_last_date(param):
         #
         last_food = sorted(glob(food_dir + '/*' + food_suffix))[-1]
         file_food = netCDF4.Dataset(last_food)
-        
-        print('WARNING: temporary VGPM date until all data is interpolated')
-        #t_unit = file_food.variables[time_var_food].units   #tmp
-        #t_value = int(file_food.variables[time_var_food][-1].data)   #tmp
-        #time_food = netCDF4.num2date(t_value, t_unit)   #tmp
-        time_food = datetime(2009,1,1)
+        t_unit = file_food.variables[time_var_food].units   #tmp
+        t_value = int(file_food.variables[time_var_food][-1].data)   #tmp
+        time_food = netCDF4.num2date(t_value, t_unit)   #tmp
         file_food.close()
         #
         last_file = min(time_U, time_V, time_T, time_food)

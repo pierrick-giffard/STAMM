@@ -13,7 +13,7 @@ February - May 2020.
 # IMPORTS
 # =============================================================================
 #Python libraries
-from parcels import plotTrajectoriesFile,ErrorCode
+from parcels import ErrorCode
 from datetime import timedelta as delta
 import sys, os
 import time
@@ -87,7 +87,6 @@ pset.execute(kernels, runtime=delta(days=ndays_simu), dt=delta(seconds=tstep),\
 # OUTPUT
 # =============================================================================
 output_file.export()
-#plotTrajectoriesFile(OutputFile)
 fc.modify_output(OutputFile, t_init, param)
 
 

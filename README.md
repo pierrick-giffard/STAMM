@@ -17,7 +17,7 @@ There are four directories:
 
 You can create a new environment named _stamm_ and including necessary modules with the following command:
 
-_conda create -n stamm -c conda-forge python=3.6 parcels=2.2.0 spyder basemap basemap-data-hires opencv_
+_conda create -n stamm -c conda-forge python=3.6 parcels=2.2.0 spyder basemap basemap-data-hires opencv_ pykdtree
 
 Then, activate this environment with command _conda activate stamm_.
 
@@ -68,7 +68,7 @@ Note: no space should appear between two sections.
 
 **tstep** = computational time step in seconds
 
-**ndays\_simu** = Number of days to simulate
+**ndays\_simu** = Number of days to simulate (float).
 
 **time\_periodic** = To loop periodically data. It is set to either False, the length of the period in days (since first particle release) or &#39;auto&#39;. In mode &#39;auto&#39;, it will loop automatically after last complete available year. Default: &#39;auto&#39;.
 

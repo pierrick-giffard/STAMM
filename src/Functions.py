@@ -20,7 +20,7 @@ import time
 import netCDF4
 import math
 import subprocess
-import sys, os, operator
+import sys, os
 
 #Personal libraries
 import Advection_kernel as adv
