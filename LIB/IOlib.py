@@ -353,8 +353,9 @@ def forcing_list(f_dir, f_suffix, date_start, date_end, tperiodic_add=False):
     tperiodic_add: used for vgpm if time_periodic, delta between date_start and first file
     Work only if dt = 1 day between 2 files or if dt = 8 and file name format is *YYYYDDD* (like vgpm data)
     """
-    # SMOC files: there are several files for 1 date     
-    drange = pd.date_range(date_start, date_end)
+    # SMOC files: there are several files for 1 date
+    
+    drange = pd.date_range(date_start, date_end + timedelta(days=1))
     files_smoc = []
     for d in drange:
         dr = d + timedelta(days=1) # date run: run is computed 1 day after data file
