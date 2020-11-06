@@ -321,7 +321,7 @@ def define_start_end(ndays_simu, param, t_init, last_date):
             else:
                 last_year = last_date.year - 1
             date_end = datetime(last_year, 12, 31)
-            time_periodic = (date_end - date_start).days
+            time_periodic = (date_end - date_start).days +1
             print('time_periodic is set to %d'%time_periodic)
             if date_end < date_start:
                 raise ValueError('Not enough data files. You can try to set time_periodic manually')
