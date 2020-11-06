@@ -56,6 +56,10 @@ def define_Turtle_Class(fieldset, param):
             compute_swim = Variable('compute_swim', to_write=False, dtype=np.float32, initial=1)
             if param['growth'] == 'Gompertz':
                 K = Variable('K', to_write=False, dtype=np.float32, initial=fieldset.K0)
+            xgrad_T = Variable('xgrad_T', to_write=True, dtype=np.float32)
+            ygrad_T = Variable('ygrad_T', to_write=True, dtype=np.float32)
+            xgrad_NPP = Variable('xgrad_NPP', to_write=True, dtype=np.float32)
+            ygrad_NPP = Variable('ygrad_NPP', to_write=True, dtype=np.float32)
         
         # Frenzy
         if param['frenzy'] or param['wave_swim']:
