@@ -317,11 +317,9 @@ def define_start_end(ndays_simu, param, t_init, last_date):
             date_end = date_start + timedelta(days=ndays_simu)
             time_periodic = False
         elif date_start + timedelta(days=ndays_simu) > last_date:
-            if last_date.month == 12 and last_date.day == 31:
-                last_year = last_date.year
-            else:
-                last_year = last_date.year - 1
-            date_end = datetime(last_year, 12, 31)
+            date_end = datetime(last_date.year, date_start.month, date_start.day) - timedelta(days=1)
+            if date_end > last_date:
+                date_end = datetime(last_date.year - 1, date_start.month, date_start.day) - timedelta(days=1)
             time_periodic = (date_end - date_start).days + 1
             print('time_periodic is set to %d'%time_periodic)
             if date_end < date_start:

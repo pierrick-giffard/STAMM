@@ -56,7 +56,7 @@ beach_orientation = 'E' #'W' or 'E', for beach mode and square mode.
 release_zone_size = 0.25 #for square mode, release zone side size in degrees
 
 #total of released turtles
-nturtles = 1500
+nturtles = 5000
 
 ##zone to plot               #
 xmin = -81              #
@@ -98,17 +98,17 @@ ydot = 26.8                #
 #ydot = 8.50                 #
 
 ##zone to plot               #
-#xmin = -57.0                #
-#xmax = -47.0                #  
-#ymin = 2.0                  #
-#ymax = 8.5                  #
+xmin = -57.0                #
+xmax = -47.0                #  
+ymin = 2.0                  #
+ymax = 8.5                  #
 #                            #
-#lat_space = 1.5             #
-#lon_space = 3.0             # AWALA
+lat_space = 1.5             #
+lon_space = 3.0             # AWALA
 #                            #
 ##dot on the minimap         #
-#xdot = -57.0                #
-#ydot = 5.0                  #
+xdot = -57.0                #
+ydot = 5.0                  #
 
 ##zone to plot               #
 #xmin = -86.0                #
