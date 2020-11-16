@@ -167,12 +167,6 @@ def ComputeHabitat(particle, fieldset, time):
             print("Habitat is %f at lon,lat = %f,%f. Execution stops."%(particle.hab,particle.lon,particle.lat))
             exit(0)
             
-        # Gradients de T et de NPP
-        particle.xgrad_T = (T0[2] - T0[1]) / (2 * fieldset.grad_dx)
-        particle.ygrad_T = (T0[4] - T0[3]) / (2 * fieldset.grad_dx)
-        particle.xgrad_NPP = (NPP0[2] - NPP0[1]) / (2 * fieldset.grad_dx)
-        particle.ygrad_NPP = (NPP0[4] - NPP0[3]) / (2 * fieldset.grad_dx)
-
 
 
 def ComputeSwimmingDirection(particle, fieldset, time):
